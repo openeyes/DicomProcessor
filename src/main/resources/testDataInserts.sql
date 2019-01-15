@@ -78,7 +78,7 @@ INSERT INTO attachment_type (attachment_type , title_full , title_short , title_
 VALUES ("request_json" , "json from attachment" , "js0n" , "JSON");
 
 INSERT INTO attachment_type (attachment_type , title_full , title_short , title_abbreviated)
-VALUES ("biometry_report" , "biometry_report" , "biometry_report" , "biometry_report");
+VALUES ("biometry_report" , "biometry_report" , "biometry_report" , "biometry");
 
 INSERT INTO mime_type (mime_type)
 VALUES ("json");
