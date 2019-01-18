@@ -11,5 +11,5 @@ package com.abehrdigital.dicomprocessor;
  */
 public interface DaoCommand {
 
-    public Object execute(DaoManager daoManager);
+    public Object execute(BaseDaoManager daoManager);
 }

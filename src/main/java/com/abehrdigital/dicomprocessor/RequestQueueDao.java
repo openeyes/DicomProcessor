@@ -6,17 +6,7 @@
 package com.abehrdigital.dicomprocessor;
 
 import com.abehrdigital.dicomprocessor.models.RequestQueue;
-import com.abehrdigital.dicomprocessor.models.RequestQueueLock;
-import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.annotations.Entity;
 
 /**
  *
@@ -48,9 +38,5 @@ public class RequestQueueDao implements BaseDao<RequestQueue , String> {
     public void delete(RequestQueue entity) {
         session.delete(entity);
     }
-
-    
-
-
 
 }

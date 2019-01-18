@@ -10,11 +10,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Transient;
-import org.hibernate.Transaction;
 
 /**
- *
  * @author admin
  */
 @Entity
@@ -39,11 +36,11 @@ public class RequestQueue {
     private Timestamp lastThreadSpawnDate;
     @Column(name = "last_thread_spawn_request_id")
     private Integer lastThreadSpawnRequestId;
-    
-    public RequestQueue(){
+
+    public RequestQueue() {
     }
-    
-    public RequestQueue(Builder builder){
+
+    public RequestQueue(Builder builder) {
         this.requestQueue = builder.requestQueue;
         this.maximumActiveThreads = builder.maximumActiveThreads;
         this.totalActiveThreadCount = builder.totalActiveThreadCount;
@@ -54,7 +51,15 @@ public class RequestQueue {
         this.lastThreadSpawnDate = builder.lastThreadSpawnDate;
         this.lastThreadSpawnRequestId = builder.lastThreadSpawnRequestId;
     }
-    
+
+    public void incrementExecuteCount() {
+        totalExecuteCount++;
+    }
+
+    public void setTotalActiveThreadCount(int currentActiveThreads) {
+        totalActiveThreadCount = currentActiveThreads;
+    }
+
     public static class Builder {
         //Required
         private final String requestQueue;
@@ -62,48 +67,60 @@ public class RequestQueue {
         private final int totalExecuteCount;
         private final int busyYieldMs;
         private final int idleYieldMs;
-        
+
         private int totalActiveThreadCount = 0;
         private Timestamp lastPollDate = null;
         private Timestamp lastThreadSpawnDate = null;
         private Integer lastThreadSpawnRequestId = null;
-        
-        public Builder(String requestQueue , int maximumActiveThreads,
-                int totalExecuteCount , int busyYieldMs , int idleYieldMs){
-               this.requestQueue = requestQueue;
-               this.maximumActiveThreads = maximumActiveThreads;
-               this.totalExecuteCount = totalExecuteCount;
-               this.busyYieldMs = busyYieldMs;
-               this.idleYieldMs = idleYieldMs;
+
+        public Builder(String requestQueue, int maximumActiveThreads,
+                       int totalExecuteCount, int busyYieldMs, int idleYieldMs) {
+            this.requestQueue = requestQueue;
+            this.maximumActiveThreads = maximumActiveThreads;
+            this.totalExecuteCount = totalExecuteCount;
+            this.busyYieldMs = busyYieldMs;
+            this.idleYieldMs = idleYieldMs;
         }
-        
-        public Builder totalActiveThreadCount (int val){
+
+        public Builder totalActiveThreadCount(int val) {
             totalActiveThreadCount = val;
             return this;
         }
-        
-        public Builder lastPollDate (Timestamp val){
+
+        public Builder lastPollDate(Timestamp val) {
             lastPollDate = val;
             return this;
         }
-        
-        public Builder lastThreadSpawnDate(Timestamp val){
+
+        public Builder lastThreadSpawnDate(Timestamp val) {
             lastThreadSpawnDate = val;
             return this;
         }
-        
-        public Builder lastThreadSpawnRequestId (int val){
+
+        public Builder lastThreadSpawnRequestId(int val) {
             lastThreadSpawnRequestId = val;
             return this;
         }
-        
-        public RequestQueue build(){
+
+        public RequestQueue build() {
             return new RequestQueue(this);
         }
-        
+
     }
-    
-     public String getRequestQueueName() {
+
+    public String getRequestQueueName() {
         return requestQueue;
+    }
+
+    public int getMaximumActiveThreads() {
+        return maximumActiveThreads;
+    }
+
+    public int getBusyYieldMs() {
+        return busyYieldMs;
+    }
+
+    public int getIdleYieldMs() {
+        return idleYieldMs;
     }
 }

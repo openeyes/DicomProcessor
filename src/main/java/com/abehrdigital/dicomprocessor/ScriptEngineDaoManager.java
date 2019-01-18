@@ -1,44 +1,32 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.abehrdigital.dicomprocessor;
 
-/**
- * @author admin
- */
-public class DaoManager extends BaseDaoManager {
-
-    private RequestQueueDao queueDao;
-    private RequestQueueLockDao queueLockDao;
+public class ScriptEngineDaoManager extends BaseDaoManager {
+    private RoutineLibraryDao routineLibraryDao;
+    private RequestRoutineExecutionDao requestRoutineExecutionDao;
     private AttachmentDataDao attachmentDataDao;
     private RequestRoutineDao requestRoutineDao;
 
-    public DaoManager(){
-
+    public ScriptEngineDaoManager(){
     }
 
-    public RequestQueueDao getQueueDao() {
-        if (this.queueDao == null) {
-            this.queueDao = new RequestQueueDao(getConnection());
+    public RoutineLibraryDao getRoutineLibraryDao() {
+        if (this.routineLibraryDao == null) {
+            this.routineLibraryDao = new RoutineLibraryDao(getConnection());
         }
-        return this.queueDao;
+        return this.routineLibraryDao;
     }
 
-    public RequestQueueLockDao getQueueLockDao() {
-        if (this.queueLockDao == null) {
-            this.queueLockDao = new RequestQueueLockDao(getConnection());
+    public RequestRoutineExecutionDao getRequestRoutineExecutionDao() {
+        if (this.requestRoutineExecutionDao == null) {
+            this.requestRoutineExecutionDao = new RequestRoutineExecutionDao(getConnection());
         }
-
-        return this.queueLockDao;
+        return this.requestRoutineExecutionDao;
     }
 
     public AttachmentDataDao getAttachmentDataDao() {
         if (this.attachmentDataDao == null) {
             this.attachmentDataDao = new AttachmentDataDao(getConnection());
         }
-
         return this.attachmentDataDao;
     }
 
@@ -50,19 +38,22 @@ public class DaoManager extends BaseDaoManager {
     }
 
     public void manualTransactionStart() {
-
         if (!getConnection().getTransaction().isActive())
             getConnection().beginTransaction();
-
     }
 
     public void manualCommit() {
         getConnection().getTransaction().commit();
     }
 
-
-
     public void rollback() {
+        if(getConnection().getTransaction() != null)
         getConnection().getTransaction().rollback();
+    }
+
+    public void shutdown() {
+        if(getConnection() != null){
+            getConnection().disconnect();
+        }
     }
 }

@@ -48,6 +48,17 @@ public class RequestRoutine {
         this.nextTryDateTime = builder.nextTryDateTime;
     }
 
+    public void succesfulExecution() {
+        status = Status.COMPLETE;
+        tryCount++;
+    }
+
+    public void failedExecution() {
+        status = Status.FAILED;
+        tryCount++;
+        setNextTryDateInFiveMinutes();
+    }
+
     public static class Builder {
 
         //Required
@@ -114,13 +125,6 @@ public class RequestRoutine {
         return status;
     }
 
-    //Extract from method
-    public void evaluateStatus(Status status) {
-        if (status == Status.FAILED) {
-            routineFailed();
-        }
-        setStatus(status);
-    }
 
     public void routineFailed() {
         increaseTryCount();

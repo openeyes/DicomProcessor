@@ -6,7 +6,6 @@
 package com.abehrdigital.dicomprocessor.utils;
 
 /**
- *
  * @author admin
  */
 public enum Status {
@@ -15,9 +14,14 @@ public enum Status {
             return Status.FAILED;
         }
     },
+    COMPLETE() {
+        public Status getExecutionStatus() {
+            return Status.COMPLETE;
+        }
+    },
     SUCCESS() {
         public Status getExecutionStatus() {
-            return Status.SUCCESS;
+            return Status.COMPLETE;
         }
     },
     FAILED() {
@@ -27,6 +31,11 @@ public enum Status {
     },
     RETRY() {
         public Status getExecutionStatus() {
+            return Status.FAILED;
+        }
+    },
+    VOID() {
+        public Status getExecutionStatus () {
             return Status.FAILED;
         }
     };

@@ -1,7 +1,8 @@
 INSERT INTO routine_library (routine_name , routine_body)
-VALUES ("dicom_routine", "var requestData = JSON.parse(request.getJson('request_data', null));
+VALUES ("dicom_routine", "
+var requestData = JSON.parse(controller.getJson('request_data', null));
 
-var dicomParser = request.getDicom('request_blob', null);
+var dicomParser = controller.getDicom('request_blob', null);
 
 var dicom = dicomParser.getStudy();
 
@@ -15,7 +16,7 @@ if (requestData.manufacturer === 'Carl Zeiss Meditec' && requestData.model === '
     requestData.name = dicomHeader['1048592'];
     requestData.dateOfBirth = dicomHeader['1048624'];
     requestData.gender = dicomHeader['1048640'].trim();
-    request.putJson(
+    controller.putJson(
             'dicom_header',
             JSON.stringify(dicomHeader),
             'dicom_header',
@@ -24,21 +25,21 @@ if (requestData.manufacturer === 'Carl Zeiss Meditec' && requestData.model === '
 
     var pdf = dicom.getPdfAsBlob();
 
-    request.putPdf('biometry_report',
+    controller.putPdf('biometry_report',
             pdf,
             'biometry_report',
             null,
             'application/pdf');
 
 
-    request.putJson(
+    controller.putJson(
             'request_data',
             JSON.stringify(requestData),
             'request_json',
             null, 'json');
-    request.addRoutine('PAS_API');
+    controller.addRoutine('PAS_API');
 
-    var biometry = JSON.parse(request.getJson('biometry_data', null));
+    var biometry = JSON.parse(controller.getJson('biometry_data', null));
     biometry.studyId = dicomHeader['2097168'];
     biometry.time = dicomHeader['524336'];
     biometry.date = dicomHeader['4194884'];
@@ -46,14 +47,14 @@ if (requestData.manufacturer === 'Carl Zeiss Meditec' && requestData.model === '
 
     print(biometry);
 
-    request.putJson(
+    controller.putJson(
             'biometry_data',
             JSON.stringify(biometry),
             'biometry_report',
             null,
             'dicom');
 
-    request.addRoutine('create_biometry_event');
+    controller.addRoutine('create_biometry_event');
 }");
 
 INSERT INTO routine_library (routine_name , routine_body)
@@ -63,7 +64,7 @@ INSERT INTO routine_library (routine_name , routine_body)
 VALUES ("create_biometry_event" , "print('biometry biometry');");
 
 INSERT INTO request_queue (request_queue , maximum_active_threads , busy_yield_ms , idle_yield_ms)
-VALUES ("dicom_queue" , 5 , 0 , 0);
+VALUES ("dicom_queue" , 5 , 1000 , 1000);
 
 INSERT INTO request_type (request_type , title_full , title_short , default_routine_name , default_request_queue)
 VALUES ("dicom_request" , "dicom request full" , "dicom request short" ,  "dicom_routine" , "dicom_queue");

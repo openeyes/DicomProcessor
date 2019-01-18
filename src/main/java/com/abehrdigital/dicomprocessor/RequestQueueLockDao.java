@@ -23,7 +23,7 @@ public class RequestQueueLockDao implements BaseDao<RequestQueueLock, String> {
     }
 
     public RequestQueueLock getWithLock (String queueName , LockMode lockMode) {
-        return (RequestQueueLock) session.get(
+        return  session.get(
                 RequestQueueLock.class, queueName,
                 new LockOptions(lockMode)
         );
@@ -31,7 +31,7 @@ public class RequestQueueLockDao implements BaseDao<RequestQueueLock, String> {
 
     @Override
     public RequestQueueLock get(String id) {
-        return (RequestQueueLock) session.get(RequestQueueLock.class, id);
+        return  session.get(RequestQueueLock.class, id);
     }
 
     @Override
