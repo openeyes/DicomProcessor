@@ -1,13 +1,7 @@
 package com.abehrdigital.dicomprocessor;
 
-import com.abehrdigital.dicomprocessor.models.RequestQueue;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RequestRoutineExecution;
-import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
-import com.abehrdigital.dicomprocessor.utils.Status;
-import org.hibernate.HibernateException;
-import org.hibernate.LockMode;
-import org.hibernate.Transaction;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -18,84 +12,74 @@ import java.util.logging.Logger;
 
 public class RequestWorker implements Runnable {
     private int requestId;
-    private String requestQueueName;
-    private Map<Integer, Runnable> requestIdToThreadSyncMap;
-    private RequestWorkerDaoManager workerDaoManager;
+    private final Map<Integer, Runnable> requestIdToThreadSyncMap;
+    private RequestWorkerService service;
 
     public RequestWorker(int requestId, String requestQueueName, Map<Integer, Runnable> requestIdToThreadSyncMap) {
         this.requestId = requestId;
-        this.requestQueueName = requestQueueName;
         this.requestIdToThreadSyncMap = requestIdToThreadSyncMap;
+        service = new RequestWorkerService(
+                DaoFactory.createScriptEngineDaoManager(),
+                requestId,
+                requestQueueName
+        );
     }
 
     @Override
     public void run() {
-        workerDaoManager = new RequestWorkerDaoManager();
-
-        workerDaoManager.manualTransactionStart();
-        Request lockedRequest = workerDaoManager.getRequestDao().getWithLock(requestId, LockMode.UPGRADE_NOWAIT);
+        // INFINITY !!!!LOOP
+        service.beginTransaction();
+        Request lockedRequest = service.getRequestWithLock();
 
         if (lockedRequest == null) {
             deQueue(0, 0);
         }
 
-        RequestRoutine routineForProcessing = workerDaoManager
-                .getRequestRoutineDao()
-                .getRequestRoutineForProcessing(requestId, requestQueueName);
+        // CHECK IF NOT EMPTY
+        RequestRoutine routineForProcessing = service.getNextRoutineToProcess();
 
         executeRequestRoutine(routineForProcessing);
 
-        workerDaoManager.manualCommit();
+        // END LOOP
     }
 
     private void executeRequestRoutine(RequestRoutine routineForProcessing) {
-        ScriptEngineController controller = new ScriptEngineController(
-                new ScriptEngineDaoManager(),
-                routineForProcessing.getRequestId()
-        );
 
-        String routineBody = controller.getRoutineBody(routineForProcessing.getRoutineName());
-        String status;
+
+        String routineBody = service.getRoutineBody(routineForProcessing.getRoutineName());
         String logMessage = "";
-        Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-                "ROUTINE BODY!! " + routineBody);
 
         try {
-            ScriptEngineManager factory = new ScriptEngineManager();
-            ScriptEngine engine = factory.getEngineByName("JavaScript");
+            ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
 
-            engine.put("controller", controller);
-
-            controller.beginTransaction();
-
+            engine.put("controller", service);
             engine.eval(routineBody);
+            service.commit();
 
-            controller.commit();
-
-            routineForProcessing.succesfulExecution();
+            routineForProcessing.successfulExecution();
         } catch (Exception exception) {
-            controller.rollback();
+            service.rollback();
             Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-         "KAS PER BYBYS " + exception.toString());
-          //  routineForProcessing.failedExecution();
+         "REQUEST WORKER EXCEPTION WHEN EVALUATING JAVASCRIPT ->  " + exception.toString());
+            routineForProcessing.failedExecution();
             System.out.println(exception.toString());
             logMessage = exception.toString();
         }
 
         try {
-            controller.beginTransaction();
-            controller.saveRequestRoutineExecution(createRequestExecution(routineForProcessing, logMessage));
-            controller.updateRequestRoutine(routineForProcessing);
-            controller.commit();
+            service.beginTransaction();
+            service.saveRequestRoutineExecution(createRequestExecution(routineForProcessing, logMessage));
+            service.updateRequestRoutine(routineForProcessing);
+            service.commit();
         } catch (Exception exception){
-            controller.rollback();
-            Logger.getLogger(DicomEngine.class.getName(), "KAS PER BYBYS " + exception.toString());
+            service.rollback();
+            Logger.getLogger(DicomEngine.class.getName(), "REQUEST WORKER EXCEPTION HERE ->" +
+                    " WHEN SAVING REQUEST EXECUTION AND REQUEST ROUTINE " + exception.toString());
             System.out.println(exception.toString());
         }
 
         deQueue(1,0);
-        controller.shutDown();
-
+        service.shutDown();
     }
 
     private RequestRoutineExecution createRequestExecution(RequestRoutine routineForProcessing, String logMessage) {
@@ -115,13 +99,13 @@ public class RequestWorker implements Runnable {
             currentActiveThreads = requestIdToThreadSyncMap.size();
         }
 
-        RequestQueue requestQueue = workerDaoManager.getRequestQueueDao().get(requestQueueName);
+
+        service.updateActiveThreadCount(currentActiveThreads);
+
         //TO DO NEW MIGRATION FOR SUCCESS AND FAILURE THREAD COUNT
 //        requestQueue.incrementThreadSuccessAndFailureCount(successIncrement , failIncrement);
-        requestQueue.setTotalActiveThreadCount(currentActiveThreads);
-
-        workerDaoManager.getRequestQueueDao().save(requestQueue);
-
-
+//        requestQueue.setTotalActiveThreadCount(currentActiveThreads);
+//
+//        workerDaoManager.getRequestQueueDao().save(requestQueue);
     }
 }

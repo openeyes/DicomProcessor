@@ -8,6 +8,7 @@ package com.abehrdigital.dicomprocessor;
 import com.abehrdigital.dicomprocessor.models.RequestQueue;
 import com.abehrdigital.dicomprocessor.models.RequestQueueLock;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
+import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 
 import java.util.HashMap;
@@ -26,7 +27,7 @@ public class RequestQueueExecutor {
     private String requestQueueName;
     private DaoManager queueLockDaoManager;
     private DaoManager queueExecutorDaoManager;
-    private Map<Integer, Runnable> requestIdToThreadSyncMap;
+    private final Map<Integer, Runnable> requestIdToThreadSyncMap;
 
     public RequestQueueExecutor(String requestQueueName,
                                 DaoManager queueLockDaoManager,
@@ -38,110 +39,118 @@ public class RequestQueueExecutor {
     }
 
     public void execute() throws Exception {
-        if (establistOrVerifyQueueLockWithThrow()) {
-            RequestQueue currentRequestQueue = queueExecutorDaoManager.getQueueDao().get(requestQueueName);
-            List<RequestRoutine> requestRoutinesForExecution = queueExecutorDaoManager.getRequestRoutineDao()
-                    .getRequestRoutinesForRequestQueueProcessing(requestQueueName);
+        // RequestQueueLocker.lock();
+        lockRequestQueue();
 
-            for (RequestRoutine routineForExecution : requestRoutinesForExecution) {
-                Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-                        "REQUEST ROUTINA FOR EXECUTION  NAME: " + routineForExecution.getRoutineName() + " ID: " +
-                                routineForExecution.getId());
-                currentRequestQueue = queueExecutorDaoManager.getQueueDao().get(requestQueueName);
-                int currentRequestId = routineForExecution.getRequestId();
+        RequestQueue currentRequestQueue = queueExecutorDaoManager.getQueueDao().get(requestQueueName);;
 
-                int currentActiveThreads = 0;
-                boolean requestIndexInActiveThreadMap = false;
-                synchronized (requestIdToThreadSyncMap) {
-                    currentActiveThreads = requestIdToThreadSyncMap.size();
-                    requestIndexInActiveThreadMap = requestIdToThreadSyncMap.containsKey(currentRequestId);
-                }
+        List<RequestRoutine> requestRoutinesForExecution = queueExecutorDaoManager
+                .getRequestRoutineDao()
+                .getRoutinesForQueueProcessing(requestQueueName);
 
-                if (currentActiveThreads >= currentRequestQueue.getMaximumActiveThreads()) {
-                    break;
-                }
+        for (RequestRoutine routineForExecution : requestRoutinesForExecution) {
+            Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
+                    "REQUEST ROUTINA FOR EXECUTION  NAME: " + routineForExecution.getRoutineName() + " ID: " +
+                            routineForExecution.getId());
 
-                if (requestIndexInActiveThreadMap) {
-                    continue;
-                }
+            currentRequestQueue = queueExecutorDaoManager.getQueueDao().get(requestQueueName);
+            int currentRequestId = routineForExecution.getRequestId();
+            int currentActiveThreads = 0;
+            boolean requestIndexInActiveThreadMap = false;
 
-                Thread requestWorker = new Thread(
-                        new RequestWorker(currentRequestId, requestQueueName , requestIdToThreadSyncMap)
-                        , "request_id=" + routineForExecution.getRequestId() + " worker thread"
-                );
 
-                synchronized (requestIdToThreadSyncMap) {
-                    requestIdToThreadSyncMap.put(currentRequestId, requestWorker);
-                    currentActiveThreads = requestIdToThreadSyncMap.size();
-                }
-                queueExecutorDaoManager.manualTransactionStart();
-                currentRequestQueue = queueExecutorDaoManager.getQueueDao().get(requestQueueName);
-                currentRequestQueue.incrementExecuteCount();
-                currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
-                queueExecutorDaoManager.getQueueDao().update(currentRequestQueue);
-                queueExecutorDaoManager.manualCommit();
-
-                requestWorker.start();
-                Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-                        "Request worker start!!");
-            }
-            if (requestRoutinesForExecution.size() != 0) {
-                TimeUnit.MILLISECONDS.sleep(currentRequestQueue.getBusyYieldMs());
-            } else {
-                TimeUnit.MILLISECONDS.sleep(currentRequestQueue.getIdleYieldMs());
+            synchronized (requestIdToThreadSyncMap) {
+                currentActiveThreads = requestIdToThreadSyncMap.size();
+                requestIndexInActiveThreadMap = requestIdToThreadSyncMap.containsKey(currentRequestId);
             }
 
-        } else {
-            throw new Exception();
+            if (currentActiveThreads >= currentRequestQueue.getMaximumActiveThreads()) {
+                break;
+            }
+
+            if (requestIndexInActiveThreadMap) {
+                continue;
+            }
+
+            Thread requestWorker = new Thread(
+                    new RequestWorker(currentRequestId, requestQueueName, requestIdToThreadSyncMap)
+                    , "request_id=" + routineForExecution.getRequestId() + " worker thread"
+            );
+
+            synchronized (requestIdToThreadSyncMap) {
+                requestIdToThreadSyncMap.put(currentRequestId, requestWorker);
+                currentActiveThreads = requestIdToThreadSyncMap.size();
+            }
+
+            updateExecuteAndActiveThreadCount(currentActiveThreads);
+
+            requestWorker.start();
+
+            Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
+                    "Request worker start!!");
         }
+
+        if (requestRoutinesForExecution.size() != 0) {
+            TimeUnit.MILLISECONDS.sleep(currentRequestQueue.getBusyYieldMs());
+        } else {
+            TimeUnit.MILLISECONDS.sleep(currentRequestQueue.getIdleYieldMs());
+        }
+
+    }
+
+    private void updateExecuteAndActiveThreadCount(int currentActiveThreads) {
+        queueExecutorDaoManager.transactionStart();
+        RequestQueue currentRequestQueue = queueExecutorDaoManager
+                .getQueueDao()
+                .get(requestQueueName);
+
+        currentRequestQueue.incrementExecuteCount();
+        currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
+        queueExecutorDaoManager.getQueueDao().update(currentRequestQueue);
+        queueExecutorDaoManager.commit();
     }
 
     // RETURN VOID
-    private boolean establistOrVerifyQueueLockWithThrow() throws Exception {
+    private void lockRequestQueue() throws Exception {
         RequestQueue requestQueue = queueLockDaoManager.getQueueDao().get(requestQueueName);
-        if (requestQueue == null) {
-            throw new Exception("Request queue doesn't exist");
+        if (requestQueue != null) {
+            tryLockingRequestQueueTwentyTimes();
         } else {
-            if (!establishQueueLock()) {
-                lockingFailed();
-                return false;
-            } else {
-                return true;
+            throw new Exception("Request queue doesn't exist");
+        }
+    }
+
+    private void tryLockingRequestQueueTwentyTimes() {
+        for (int tryCount = 0; tryCount < 20; tryCount++) {
+            try {
+                if (establishQueueLock()) {
+                    break;
+                }
+            } catch (HibernateException exception) {
+                sleepFiveSeconds();
             }
+
         }
     }
 
     private boolean establishQueueLock() {
-        Boolean queueLocked = false;
-        for (int tryCount = 0; tryCount < 20; tryCount++) {
+        queueLockDaoManager.transactionStart();
+        RequestQueueLock queueLock = queueLockDaoManager.getQueueLockDao().
+                getWithLock(requestQueueName, LockMode.UPGRADE_NOWAIT);
 
-            System.out.println("Queue Name " + requestQueueName
-                    + " attempting to get request_queue_lock");
-//            Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-//                    "Queue Name " + requestQueueName
-//                            + " attempting to get request_queue_lock");
-
-            queueLockDaoManager.manualTransactionStart();
-            RequestQueueLock queueLock = queueLockDaoManager.getQueueLockDao().
-                    getWithLock(requestQueueName, LockMode.UPGRADE_NOWAIT);
-            if (queueLock == null) {
-                queueLock = new RequestQueueLock(requestQueueName);
-                queueLockDaoManager.getQueueLockDao().save(queueLock);
-                queueLockDaoManager.manualCommit();
-            } else {
-                queueLocked = true;
-                break;
-            }
-
-            sleepFiveSeconds();
+        if (queueLock == null) {
+            createRequestQueueLock();
+        } else {
+            return true;
         }
+        return false;
+    }
 
-        Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-                "OUT  OF THE LOOP");
-
-
-        return queueLocked;
-
+    private void createRequestQueueLock() {
+        RequestQueueLock queueLock;
+        queueLock = new RequestQueueLock(requestQueueName);
+        queueLockDaoManager.getQueueLockDao().save(queueLock);
+        queueLockDaoManager.commit();
     }
 
     private boolean getRequestQueueLocked() {

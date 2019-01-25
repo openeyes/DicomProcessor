@@ -1,36 +1,40 @@
 package com.abehrdigital.dicomprocessor;
 
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
+import com.abehrdigital.dicomprocessor.models.RequestQueue;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RequestRoutineExecution;
 import org.hibernate.HibernateException;
+import org.hibernate.LockMode;
 
 import java.sql.Blob;
 import java.sql.SQLException;
 
-public class ScriptEngineController {
-    private ScriptEngineDaoManager engineDaoManager;
+public class RequestWorkerService {
+    private ScriptEngineDaoManager daoManager;
     private int requestId;
+    private String requestQueueName;
 
-    public ScriptEngineController(ScriptEngineDaoManager engineDaoManager, int requestId) {
-        this.engineDaoManager = engineDaoManager;
+    public RequestWorkerService(ScriptEngineDaoManager daoManager, int requestId, String requestQueueName) {
+        this.daoManager = daoManager;
         this.requestId = requestId;
+        this.requestQueueName = requestQueueName;
     }
 
     public String getRoutineBody(String routineName) {
-        return engineDaoManager.getRoutineLibraryDao().get(routineName).getRoutineBody();
+        return daoManager.getRoutineLibraryDao().get(routineName).getRoutineBody();
     }
 
     public void beginTransaction() {
-        engineDaoManager.manualTransactionStart();
+        daoManager.manualTransactionStart();
     }
 
     public void commit() {
-        engineDaoManager.manualCommit();
+        daoManager.manualCommit();
     }
 
     public void rollback() {
-        engineDaoManager.rollback();
+        daoManager.rollback();
     }
 
     public String getJson(String attachmentMnemonic, String bodySite) throws HibernateException {
@@ -54,9 +58,9 @@ public class ScriptEngineController {
 
     private AttachmentData getAttachmentDataByAttachmentMnemonicAndBodySite(String attachmentMnemonic, String bodySite)
             throws HibernateException {
-        return engineDaoManager
+        return daoManager
                 .getAttachmentDataDao()
-                .getByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite , requestId);
+                .getByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite, requestId);
     }
 
     public void putJson(
@@ -69,7 +73,7 @@ public class ScriptEngineController {
 
         if (attachmentData != null) {
             attachmentData.setJson(json);
-            engineDaoManager.getAttachmentDataDao().save(attachmentData);
+            daoManager.getAttachmentDataDao().save(attachmentData);
         } else {
             attachmentData = new AttachmentData.Builder(
                     requestId, mimeType,
@@ -77,21 +81,21 @@ public class ScriptEngineController {
                     bodySite)
                     .jsonData(json)
                     .build();
-            engineDaoManager.getAttachmentDataDao().save(attachmentData);
+            daoManager.getAttachmentDataDao().save(attachmentData);
         }
     }
 
-        // EXECUTE SEQUENCE MULTIPLE BY 10 FROM THE LAST ONE
+    // EXECUTE SEQUENCE MULTIPLE BY 10 FROM THE LAST ONE
     public void addRoutine(String routineName) throws HibernateException {
-        RequestRoutine requestRoutine = engineDaoManager.getRequestRoutineDao().findByRoutineNameAndRequestId(requestId, routineName);
+        RequestRoutine requestRoutine = daoManager.getRequestRoutineDao().findByRoutineNameAndRequestId(requestId, routineName);
         if (requestRoutine != null) {
-            engineDaoManager.getRequestRoutineDao().resetRequestRoutine(requestRoutine);
+            daoManager.getRequestRoutineDao().resetRequestRoutine(requestRoutine);
         } else {
             if (routineInLibraryExists(routineName)) {
-                requestRoutine = new RequestRoutine.Builder(requestId ,
-                        routineName , "dicom_queue").build();
+                requestRoutine = new RequestRoutine.Builder(requestId,
+                        routineName, "dicom_queue").build();
 
-                engineDaoManager.getRequestRoutineDao().save(requestRoutine);
+                daoManager.getRequestRoutineDao().save(requestRoutine);
             } else {
                 throw new HibernateException("Routine in the library doesn't exist");
             }
@@ -99,7 +103,7 @@ public class ScriptEngineController {
     }
 
     private boolean routineInLibraryExists(String routineName) throws HibernateException {
-        return (engineDaoManager.getRoutineLibraryDao().get(routineName) != null);
+        return (daoManager.getRoutineLibraryDao().get(routineName) != null);
     }
 
 //    private RequestRoutine getRequestRoutine(String routineName) throws HibernateException {
@@ -125,25 +129,43 @@ public class ScriptEngineController {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
         if (attachmentData != null) {
             attachmentData.setBlobData(pdfBlob);
-            engineDaoManager.getAttachmentDataDao().save(attachmentData);
+            daoManager.getAttachmentDataDao().save(attachmentData);
         } else {
             attachmentData = new AttachmentData.Builder(
                     requestId, mimeType, attachmentMnemonic,
                     attachmentType, bodySite)
                     .blobData(pdfBlob).build();
-            engineDaoManager.getAttachmentDataDao().save(attachmentData);
+            daoManager.getAttachmentDataDao().save(attachmentData);
         }
     }
 
     public void saveRequestRoutineExecution(RequestRoutineExecution requestRoutineExecution) {
-        engineDaoManager.getRequestRoutineExecutionDao().save(requestRoutineExecution);
+        daoManager.getRequestRoutineExecutionDao().save(requestRoutineExecution);
     }
 
     public void updateRequestRoutine(RequestRoutine requestRoutine) {
-        engineDaoManager.getRequestRoutineDao().update(requestRoutine);
+        daoManager.getRequestRoutineDao().update(requestRoutine);
     }
 
     public void shutDown() {
-        engineDaoManager.shutdown();
+        daoManager.shutdown();
+    }
+
+    public Request getRequestWithLock() {
+        return daoManager.getRequestDao().getWithLock(requestId, LockMode.UPGRADE_NOWAIT);
+    }
+
+    public RequestRoutine getNextRoutineToProcess() {
+        return daoManager.getRequestRoutineDao().getRequestRoutineForProcessing(requestId, requestQueueName);
+    }
+
+    public RequestQueue getRequestQueue() {
+        return daoManager.getRequestQueueDao().get(requestQueueName);
+    }
+
+    public void updateActiveThreadCount(int currentActiveThreads) {
+        RequestQueue requestQueue = getRequestQueue();
+        requestQueue.setTotalActiveThreadCount(currentActiveThreads);
+        daoManager.getRequestQueueDao().save(requestQueue);
     }
 }

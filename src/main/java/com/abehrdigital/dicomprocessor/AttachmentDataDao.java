@@ -6,19 +6,13 @@
 package com.abehrdigital.dicomprocessor;
 
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
-import com.abehrdigital.dicomprocessor.models.RequestQueue;
-import com.abehrdigital.dicomprocessor.models.RequestQueueLock;
-import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import org.hibernate.Session;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author admin
@@ -54,7 +48,7 @@ public class AttachmentDataDao implements BaseDao<AttachmentData, Integer> {
     public AttachmentData getByAttachmentMnemonicAndBodySite(String attachmentMnemonic, String bodySite, int requestId) {
         CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
         CriteriaQuery criteriaQuery = criteriaBuilder.createQuery(AttachmentData.class);
-        Root<RequestRoutine> root = criteriaQuery.from(AttachmentData.class);
+        Root root = criteriaQuery.from(AttachmentData.class);
 
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("requestId"), requestId)));
@@ -66,15 +60,6 @@ public class AttachmentDataDao implements BaseDao<AttachmentData, Integer> {
         if (bodySite != null) {
             predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("bodySiteSnomedType"), bodySite)));
         }
-
-//        criteriaQuery.where(
-//                criteriaBuilder.and(
-//                        criteriaBuilder.and(
-//                                requestIdPredicate,
-//                                attachmentMnemonicPredicate
-//                        ),
-//                        bodySitePredicate)
-//        );
 
 
         criteriaQuery.where(predicates.stream().toArray(Predicate[]::new));

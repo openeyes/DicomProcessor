@@ -17,11 +17,11 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import javax.script.*;
+
 import org.hibernate.*;
 import org.hibernate.query.NativeQuery;
 
 /**
- *
  * @author admin
  */
 public class DicomEngine {
@@ -33,15 +33,16 @@ public class DicomEngine {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws ScriptException {
-
         long shutdownMsClock = System.currentTimeMillis() + 60 * 1000 * SHUTDOWN_AFTER_MINUTES;
         RequestQueueExecutor requestQueueExecutor = new RequestQueueExecutor(
                 testRequestQueue,
+
+                // CHANGE TO LOCK PROVIDER OR SOMETHING BUT AVOID USING THE SAME OBJECT TWICE
                 DaoFactory.createDaoManager(),
                 DaoFactory.createDaoManager()
         );
 
-     //  Stability recovery loop
+        //  Stability recovery loop
         while (System.currentTimeMillis() < shutdownMsClock) {
             try {
                 // Main request handler iterator
@@ -51,18 +52,18 @@ public class DicomEngine {
                 System.out.println("RequestQueue: exiting cleanly after " + shutdownMsClock + " minutes");
                 throw new OrderlyExitSuccessException();
             } catch (Exception exception) {
-                System.out.println(exception.getClass());
-                Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-                        exception.toString());
+                if (exception.getClass() == OrderlyExitSuccessException.class) {
+                    Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
+                            exception.toString() + " EVERYTHING WENT FINE");
+                } else {
+
+                    System.out.println(exception.getClass());
+                    Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
+                            exception.toString() + " SOMETHING IS WRONG");
+                }
             }
         }
     }
-
-
-
-
-
-
 
 
 }

@@ -49,14 +49,12 @@ public class DaoManager extends BaseDaoManager {
         return this.requestRoutineDao;
     }
 
-    public void manualTransactionStart() {
-
+    public void transactionStart() {
         if (!getConnection().getTransaction().isActive())
             getConnection().beginTransaction();
-
     }
 
-    public void manualCommit() {
+    public void commit() {
         getConnection().getTransaction().commit();
     }
 

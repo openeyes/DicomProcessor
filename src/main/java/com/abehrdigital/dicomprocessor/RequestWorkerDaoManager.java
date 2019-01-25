@@ -1,7 +1,5 @@
 package com.abehrdigital.dicomprocessor;
 
-import com.abehrdigital.dicomprocessor.models.RequestQueue;
-
 public class RequestWorkerDaoManager extends BaseDaoManager {
     private RequestDao requestDao;
     private RequestRoutineDao requestRoutineDao;

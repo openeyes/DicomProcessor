@@ -35,6 +35,8 @@ public class RequestRoutine {
     private int tryCount;
     @Column(name = "next_try_date_time")
     private Timestamp nextTryDateTime;
+    @Column(name = "execute_sequence")
+    private int executeSequence;
 
     public RequestRoutine() {
     }
@@ -46,9 +48,10 @@ public class RequestRoutine {
         this.routineName = builder.routineName;
         this.tryCount = builder.tryCount;
         this.nextTryDateTime = builder.nextTryDateTime;
+        this.executeSequence = builder.executeSequence;
     }
 
-    public void succesfulExecution() {
+    public void successfulExecution() {
         status = Status.COMPLETE;
         tryCount++;
     }
@@ -69,6 +72,7 @@ public class RequestRoutine {
         private Status status = Status.NEW;
         private int tryCount = 0;
         private Timestamp nextTryDateTime = null;
+        private int executeSequence = 0;
 
         public Builder(int requestId, String routineName,
                 String executeRequestQueue) {
@@ -89,6 +93,11 @@ public class RequestRoutine {
 
         public Builder nextTryDateTime(Timestamp timestamp) {
             nextTryDateTime = timestamp;
+            return this;
+        }
+
+        public Builder executeSequence(int executeSequence){
+            this.executeSequence = executeSequence;
             return this;
         }
 
@@ -125,21 +134,11 @@ public class RequestRoutine {
         return status;
     }
 
-
-    public void routineFailed() {
-        increaseTryCount();
-        setNextTryDateInFiveMinutes();
-    }
-
     public void setNextTryDateInFiveMinutes() {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.MINUTE, 5);
 
         nextTryDateTime = new Timestamp(calendar.getTimeInMillis());
-    }
-
-    public void increaseTryCount() {
-        tryCount++;
     }
 
     public void reset() {

@@ -39,12 +39,12 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
         session.delete(entity);
     }
 
-    public List<RequestRoutine> getRequestRoutinesForRequestQueueProcessing(String requestQueue) {
+    public List<RequestRoutine> getRoutinesForQueueProcessing(String requestQueue) {
         NativeQuery query = session.createSQLQuery("" +
                 "SELECT * FROM request_routine rr " +
                 "WHERE rr.execute_request_queue = :request_queue " +
                 "AND rr.status IN( :new_status , :retry_status) " +
-                "AND IFNULL (rr.next_try_date_time, SYSDATE()) >= SYSDATE() " +
+                "AND IFNULL (rr.next_try_date_time, SYSDATE()) <= SYSDATE() " +
                 "AND NOT EXISTS ( " +
                 "SELECT * " +
                 "FROM request_routine subrr " +
@@ -70,7 +70,7 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
                 "WHERE rr.execute_request_queue = :request_queue " +
                 "AND rr.status IN( :new_status , :retry_status) " +
                 "AND rr.request_id = :request_id " +
-                "AND IFNULL (rr.next_try_date_time, SYSDATE()) >= SYSDATE() " +
+                "AND IFNULL (rr.next_try_date_time, SYSDATE()) <= SYSDATE() " +
                 "AND NOT EXISTS ( " +
                 "SELECT * " +
                 "FROM request_routine subrr " +

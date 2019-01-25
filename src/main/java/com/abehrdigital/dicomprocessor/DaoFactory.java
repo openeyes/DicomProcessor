@@ -13,4 +13,12 @@ public class DaoFactory {
     public static DaoManager createDaoManager(){
         return new DaoManager();
     }
+
+    public static ScriptEngineDaoManager createScriptEngineDaoManager(){
+        return new ScriptEngineDaoManager();
+    }
+
+    public static RequestWorkerDaoManager createRequestWorkerDaoManager(){
+        return new RequestWorkerDaoManager();
+    }
 }

@@ -5,6 +5,9 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     private RequestRoutineExecutionDao requestRoutineExecutionDao;
     private AttachmentDataDao attachmentDataDao;
     private RequestRoutineDao requestRoutineDao;
+    private RequestDao requestDao;
+    private RequestQueueDao requestQueueDao;
+
 
     public ScriptEngineDaoManager(){
     }
@@ -30,11 +33,25 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
         return this.attachmentDataDao;
     }
 
+    public RequestDao getRequestDao() {
+        if (this.requestDao == null) {
+            this.requestDao = new RequestDao(getConnection());
+        }
+        return this.requestDao;
+    }
+
     public RequestRoutineDao getRequestRoutineDao() {
         if (this.requestRoutineDao == null) {
             this.requestRoutineDao = new RequestRoutineDao(getConnection());
         }
         return this.requestRoutineDao;
+    }
+
+    public RequestQueueDao getRequestQueueDao() {
+        if (this.requestQueueDao == null) {
+            this.requestQueueDao = new RequestQueueDao(getConnection());
+        }
+        return this.requestQueueDao;
     }
 
     public void manualTransactionStart() {

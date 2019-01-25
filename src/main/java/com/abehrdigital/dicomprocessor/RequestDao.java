@@ -33,8 +33,7 @@ public class RequestDao implements BaseDao<Request, Integer> {
 
     public Request getWithLock(int requestId, LockMode lockMode) {
         return session.get(
-                Request.class, requestId,
-                new LockOptions(lockMode)
+                Request.class, requestId , lockMode
         );
     }
 }
