@@ -1,6 +1,5 @@
 package com.abehrdigital.dicomprocessor;
 
-import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
@@ -35,7 +34,11 @@ public class Query {
     }
 
     // construct sql query
-    public String constructQuery(HashMap<String, XID> map) {
+    public String constructQuery(HashMap<String, XID> map) throws Exception {
+
+        // before constructing the query, update the list of known and unknown fields
+        updateKnownUnknown();
+
         switch (this.CRUD) {
             case "create":
                 return constructInsertQuery(map);
@@ -130,20 +133,67 @@ public class Query {
         return "SELECT " + select + " FROM " + from + where;
     }
 
-    public String constructSelectQuery() {
+    public String constructSelectQuery() throws Exception {
+        if (unknownFields.keySet().size() <= 0) {
+            throw new Exception("Invalid request: there are no fields specified for the retrieve operation!");
+        }
+
         // SELECT	-> unknownFields
-        String select = unknownFields.keySet().size() <= 0 ? "*" : setToStringWithDelimiter(unknownFields.keySet().toArray(), ",");
+        String select = setToStringWithDelimiter(unknownFields.keySet().toArray(), ",");
 
         // FROM 	-> dataset
         String from = this.dataSet;
 
         // WHERE	-> this.knownFields
-        String condition = setToStringWithDelimiter(getEquals(unknownFields), "AND");
+        String condition = setToStringWithDelimiter(getEquals(knownFields), "AND");
         // condition might be null -> there is no WHERE clause
         String where = condition != null ? (" WHERE " + condition + ";") : "";
 
-        return "SELECT " + select + " FROM " + from + where;
+        // select the SQL query
+        this.query =  "SELECT " + select + " FROM " + from + where;
+
+        // there is no secondary query to be executed after select
+        return null;
     }
+
+    /**
+     * add to the list of KnownFields those that have a value in XID_map
+     * remove from UnknownFields those that have a value in XID_map
+     */
+    public void updateKnownUnknown() {
+//        Test.printMap("IN UPDATE_known_Unk", Test.XID_map);
+
+        for (Map.Entry<String, XID> entry : Test.XID_map.entrySet()) {
+            String XID = entry.getKey();
+            XID XID_obj = entry.getValue();
+            if (XID_obj != null && XID_obj.value != null) {
+//                System.out.println("checking XID: " + XID);
+                if (unknownFields.containsValue(XID)) {
+//                    System.out.println(XID+ " is in the unknownValues => remove it");
+                    // get table id for mapping XID
+                    String id = null;
+                    for (Map.Entry<String, String> entryUnknown : unknownFields.entrySet()) {
+                        if (entryUnknown.getValue().equals(XID)) {
+                            id = entryUnknown.getKey();
+                            break;
+                        }
+                    }
+//                    System.out.println("+++++++++++++++++++++++++++++++++++++++++++++");
+//                    System.out.println("removed: " + id);
+                    unknownFields.remove(id);
+                    knownFields.put(id, XID_obj.value);
+//                    System.out.println("+++++++++++++++++++++++++++++++++++++++++++++");
+//                    System.out.println(unknownFields);
+//                    System.out.println(knownFields);
+//                    System.out.println("+++++++++++++++++++++++++++++++++++++++++++++");
+                }
+            }
+        }
+    }
+
+
+
+
 
     public String constructUpdateQuery() {
 //		UPDATE table_name
@@ -232,7 +282,10 @@ MERGE OPERATIONS can be run multiple times, and first insert, then subsequently 
         }
 
         for (int i = 0; i < arr.length; i++) {
+            //TODO: remove this
+//            if (!Test.XID_map.containsKey(arr[i]) || Test.XID_map.get(arr[i]).value != null) {
             sb.append(arr[i] + " " + delimiter + " ");
+//            }
         }
 
         // remove last ", "
@@ -250,9 +303,10 @@ MERGE OPERATIONS can be run multiple times, and first insert, then subsequently 
      * @return array containing the columns returned by the sql query
      */
     @org.springframework.transaction.annotation.Transactional
-    public HashMap<String, String> executeQuery(String secondary_query_insert) {
-        Session session = HibernateUtil.getSessionFactory().openSession();
+    public HashMap<String, String> executeQuery(Session session, String secondary_query_insert) {
         NativeQuery SQLQuery = session.createSQLQuery(query);
+
+        /* only if the crud is "create", execute the secondary query */
         if (CRUD.equals("create")) {
             session.beginTransaction();
             int rows_affected = SQLQuery.executeUpdate();
@@ -261,8 +315,6 @@ MERGE OPERATIONS can be run multiple times, and first insert, then subsequently 
 
             // do the secondary query: for insert/update, it should be "SELECT * FROM TABLE WHERE (...)"
             SQLQuery = session.createSQLQuery(secondary_query_insert);
-        } else {
-
         }
 
         // get all the fields from the sql query
@@ -280,38 +332,39 @@ MERGE OPERATIONS can be run multiple times, and first insert, then subsequently 
 
         System.err.println("knownFields: === " + knownFields);
 
-        // TODO
-        Test.XID_map.put("??????", new XID("?????", "??????", this.dataSet, knownFields));
+        for (Object person : requestRoutines) {
+            if (person instanceof Object[]) {
+                System.err.println("THERE ARE MULTIPLE COLUMNS RETURNED");
+                /*
+                    Object[] list = (Object[]) person;
+                    int i = 0;
+                    for (Map.Entry<String, String> entry : unknownFields.entrySet()) {
+                        String value = person.toString();
+                        String XID = unknownFields.firstEntry().getValue();
+                        Test.XID_map.put(XID, new XID(XID, value, this.dataSet, knownFields));
+                    }
+                */
+            } else {
+                System.out.println("=================2==");
 
-            //TODO
-            //TODO: CONTINUE FROM HERE
-            //TODO
-//            for (Object person : requestRoutines) {
-//                if (person instanceof Object[]) {
-//                    Object[] list = (Object[]) person;
-//                    int i = 0;
-//                    for (Map.Entry<String, String> entry : unknownFields.entrySet()) {
-//
-////                        String value = person.toString();
-////                        String XID = unknownFields.firstEntry().getValue();
-////                        Test.XID_map.put(XID, new XID(XID, value, this.dataSet, knownFields));
-////
-////                        Test.XID_map.put(entry.getValue(), list[i++].toString());
-//                        System.out.print(list[i++].toString() + "   ");
-//                        System.out.print(entry.getKey() + "   " + entry.getValue());
-//                    }
-//                    System.out.println("=================1==");
-//                } else {
-//                    String value = person.toString();
-//                    String XID = unknownFields.firstEntry().getValue();
-//                    Test.XID_map.put(XID, new XID(XID, value, this.dataSet, knownFields));
-//                }
-//            }
-//
-        System.out.println("Test.map: "+ Test.XID_map);
+                String value = person.toString();
+                String XID = unknownFields.firstEntry().getValue();
+                Test.XID_map.put(XID, new XID(XID, value, this.dataSet, knownFields));
+            }
+        }
 
-        // TODO: the insert should return the new information (id of the new record)
+        Test.printMap("Test.map: ", Test.XID_map);
 
         return null;
+    }
+
+    public static String getTime(Session session) throws Exception {
+        NativeQuery SQLQuery = session.createSQLQuery("SELECT NOW();");
+        List<Object> requestRoutines = SQLQuery.getResultList();
+
+        if (requestRoutines.size() != 1)
+            throw new Exception("Could not get current datetime");
+
+        return requestRoutines.get(0).toString();
     }
 }

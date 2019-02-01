@@ -5,16 +5,39 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
+import org.hibernate.Session;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public class Test {
-    // TODO: SELECT episode_id, id, event_type_id FROM event (.....?? where??)
+
     static HashMap<String, XID> XID_map = new HashMap<>();
     static String _OE_System;
     static String _Version;
+    static Session session;
+    static String time;
+
+    public static void printMap(String message, HashMap<String, XID> XID_map) {
+        System.out.println("============");
+        System.out.println(message);
+        for (Map.Entry<String, XID> entry : XID_map.entrySet()) {
+            System.out.println(entry.getKey() + "  =>  " + entry.getValue());
+        }
+        System.out.println("============");
+    }
+
+    public static void printArr(ArrayList<Query> arr) {
+        System.out.println("____________________");
+        for (Object o : arr) {
+            System.out.println(o);
+        }
+        System.out.println("____________________");
+    }
+
+
 
     /**
      * apply the actions inside a json string to the database
@@ -23,51 +46,35 @@ public class Test {
         ArrayList<Query> queries;
         try {
             queries = parseJson(jsonFileName);
+            Iterator itr = queries.iterator();
 
-            for (int i = 0; i < 0; i++) {// for (Query q : queries) {////
-                doQueryByExample(queries.get(i));
+            int i = 0;
+            int count = 6;
+            while (itr.hasNext())
+            {
+                if (i >= count)
+                    break;
+                Query q = (Query) itr.next();
+                System.out.println("--"+q+"--");
+
+                // at the moment, secondary_query_insert is the select query coming from the insert; to get the info inserted
+                String secondary_query_insert = q.constructQuery(XID_map);
+
+                // execute query and the secondary query
+                q.executeQuery(session, secondary_query_insert);
+
+                // remove query from array
+                itr.remove();
+
+                // set query to null to be eligible to be removed by GC
+                q = null;
+
+                i++;
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-    /**
-     * Save in a map the results from applying the query.
-     */
-    private static boolean doQueryByExample(Query q) {
-        boolean changesWereMade = false;
-        // at the moment, secondary_query_insert is the select query coming from the insert; to get the info inserted
-        String secondary_query_insert = q.constructQuery(XID_map);
-        HashMap<String, String> queryResult = q.executeQuery(secondary_query_insert);
-
-
-        System.out.println("RESULT: ");
-        System.out.println(queryResult);
-
-        if (queryResult == null)
-            return false;
-
-        //TODO: executeQuery should insert new values in the XID_map
-        // this \|/ is not required anymore, only for completing the Query fields
-//        // assuming there is only one record.
-//        // TODO: what if there are multiple records returned??
-//        for (Map.Entry<String, String> entry : q.unknownFields.entrySet()) {
-//            String unknownField = entry.getKey(); // ex: id, name
-//            if (queryResult.containsKey(unknownField)) {
-//                String valueFound = queryResult.get(unknownField);
-//                // save the values of the returned variables in the map
-//                XID_map.put(entry.getValue(), valueFound);
-//                changesWereMade = true;
-//            }
-//        }
-        return changesWereMade;
-    }
-
 
     enum JsonObjectClassType {
         String, JSONObject, JSONArray
@@ -85,7 +92,8 @@ public class Test {
     private static ArrayList<Query> parseJson(String filename) throws FileNotFoundException, IOException, ParseException {
         ArrayList<Query> ret = new ArrayList<>();
         JSONParser parser = new JSONParser();
-        JSONObject json = (JSONObject) parser.parse(new FileReader(filename));
+        FileReader reader = new FileReader(filename);
+        JSONObject json = (JSONObject) parser.parse(reader);
 
         for (Object key : json.keySet()) {
             Object data = json.get(key.toString());
@@ -220,11 +228,40 @@ public class Test {
         return new Query(dataSet, CRUD, knownFields, unknownFields, foreignKeys);
     }
 
-    public static void main(String[] args) {
-        applyQuery("C:/Users/Stefan/Desktop/JSON.json");
+    public static Session getSession() throws Exception {
+        // if a session does not exists, open a new session
+        if (session == null) {
+            session = HibernateUtil.getSessionFactory().openSession();
+        }
+        if (session == null) {
+            throw new Exception("Could not open a new session!");
+        }
+        return session;
+    }
 
-        System.out.println(_OE_System);
-        System.out.println(_Version);
-        System.out.println(XID_map);
+    public static void main(String[] args) {
+        try {
+            session = getSession();
+            time = Query.getTime(session);
+
+            applyQuery("C:/Users/Stefan/Desktop/JSON.json");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //TODO: if there are multiple RETRIEVE queries on a table, advance number of XID?
+        // table[1]
+        // table[2]...
+        // not for me to do
+        /*
+         * 1. when there is a retrieve call, how many columns can we retrieve?
+         * Answer: ONLY ONE; generally, the ID (pk) ((and) a unique key)
+         * 2. what is the naming of the XID object?
+         * Answer: $$_tableName[i]_$$, where i is the current row requested from the respective table
+         * 3. if there is a query: [select * from table where name="stefan"]; what will be the $$_XID_$$ for this call?
+         * Answer: this query is invalid. There should always be a column specified to be selected
+         * 4. what if a query returns more than 1 row? for example, [select * from table] => 10 rows
+         * Answer: 1 row; multiple rows -> exceptions; no rows -> maybe good? (STRETCH GOAL)
+         */
     }
 }
