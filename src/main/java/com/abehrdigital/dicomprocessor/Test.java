@@ -28,7 +28,6 @@ public class Test {
         }
         System.out.println("============");
     }
-
     public static void printArr(ArrayList<Query> arr) {
         System.out.println("____________________");
         for (Object o : arr) {
@@ -36,8 +35,6 @@ public class Test {
         }
         System.out.println("____________________");
     }
-
-
 
     /**
      * apply the actions inside a json string to the database
@@ -49,19 +46,17 @@ public class Test {
             Iterator itr = queries.iterator();
 
             int i = 0;
-            int count = 6;
+            int count = 1;
             while (itr.hasNext())
             {
                 if (i >= count)
                     break;
                 Query q = (Query) itr.next();
+                Test.printMap("Test.map: ", Test.XID_map);
                 System.out.println("--"+q+"--");
 
                 // at the moment, secondary_query_insert is the select query coming from the insert; to get the info inserted
-                String secondary_query_insert = q.constructQuery(XID_map);
-
-                // execute query and the secondary query
-                q.executeQuery(session, secondary_query_insert);
+                int rows_affected = q.constructAndRunQuery();
 
                 // remove query from array
                 itr.remove();
@@ -176,7 +171,7 @@ public class Test {
                 }
             }
             // save the info in a new XID object
-            XID_map.put(XID, new XID(XID, null, DataSet, knownFields));
+            XID_map.put(XID, new XID(XID, DataSet, knownFields));
         }
     }
 
@@ -194,12 +189,13 @@ public class Test {
         // knownFields: {id -> String:value}
         TreeMap<String, String> knownFields = new TreeMap<>();
         // foreignKeys: {XID -> String:field_in_XID_table}
-        TreeMap<String, String> foreignKeys = new TreeMap<>();
+        TreeMap<String, ForeignKey> foreignKeys = new TreeMap<>();
 
         // for each field in the json row, save the key and the value
         //   in either knownFields or unknownFields
         for (Iterator iterator = query.keySet().iterator(); iterator.hasNext(); ) {
             String key = iterator.next().toString();
+            System.out.println(key);
             String value = query.get(key).toString();
             switch (key) {
                 case "$$_CRUD_$$":
@@ -210,12 +206,25 @@ public class Test {
                     if (value.startsWith("$$") && value.endsWith("$$")) {
                         // if this is a reference to a field from another table
                         if (value.contains(".")) {
-                            String[] split = value.split(".");
-                            foreignKeys.put(split[0], split[1]);
+                            // TODO: not useful for now
+                            String[] split = value.split("\\.");
+                            System.out.println(value);
+                            System.out.println(split.length);
+
+                            String XID = split[0] + "_$$";
+                            String referenced_column = key;
+                            String referencing_column = split[1].substring(0,split[1].length() - 3);
+
+                            foreignKeys.put(XID, new ForeignKey(referenced_column, referencing_column));
+//                            unknownFields.put(key, split[0] + "_$$");
                         } else {
-                            unknownFields.put(key, value);
-                            // add the unknown variable to the lookup table
-                            XID_map.put(value, null);
+                            if (value.equals("$$_SysDateTime_$$")) {
+                                unknownFields.put(key, value);
+                            } else {
+                                unknownFields.put(key, value);
+                                // add the unknown variable to the lookup table
+                                XID_map.put(value, null);
+                            }
                         }
                     } else {
                         knownFields.put(key, value);
@@ -223,6 +232,8 @@ public class Test {
                     break;
             }
         }
+        System.out.println("=========================================================================================");
+
 
         // create new Query object with the information parsed
         return new Query(dataSet, CRUD, knownFields, unknownFields, foreignKeys);
@@ -244,6 +255,15 @@ public class Test {
             session = getSession();
             time = Query.getTime(session);
 
+            TreeMap<String, String> knownFields = new TreeMap<>();
+            knownFields.put("event_date", time);
+            knownFields.put("created_date", time);
+            knownFields.put("last_modified_date", time);
+            XID_map.put("$$_SysDateTime_$$", new XID("$$_SysDateTime_$$", null, knownFields));
+
+            ////////////////////
+            printMap("Initial XID map", XID_map);
+
             applyQuery("C:/Users/Stefan/Desktop/JSON.json");
         } catch (Exception e) {
             e.printStackTrace();
@@ -262,6 +282,14 @@ public class Test {
          * Answer: this query is invalid. There should always be a column specified to be selected
          * 4. what if a query returns more than 1 row? for example, [select * from table] => 10 rows
          * Answer: 1 row; multiple rows -> exceptions; no rows -> maybe good? (STRETCH GOAL)
+         */
+
+
+        /*
+        If you want default date, just use:
+        "last_modified_date": "$$_SysDateTime_$$",
+        or
+        "created_date": "$$_SysDateTime_$$",
          */
     }
 }
