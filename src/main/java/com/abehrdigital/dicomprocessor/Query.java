@@ -36,7 +36,6 @@ public class Query {
 
     // construct sql query
     int constructAndRunQuery() throws Exception {
-
         // before constructing the query, update the list of known and unknown fields
         updateKnownUnknown();
 
@@ -45,6 +44,8 @@ public class Query {
 
         switch (this.CRUD) {
             case "create":
+                //TODO: create might not be permitted as CRUD operation:
+                // does MERGE take its place?
                 secondary_query_insert = constructInsertQuery();
                 // execute query and the secondary query
                 rows_affected = executeQuery(Test.getSession(), secondary_query_insert);
@@ -99,6 +100,7 @@ public class Query {
                     }
                 }
 
+                // DEBUG purposes
                 if (Test.XID_map.containsKey(XID) && Test.XID_map.get(XID) !=  null) {
                     Test.printMap("Value is here", Test.XID_map);
                 } else {
@@ -116,34 +118,42 @@ public class Query {
      * add to the list of KnownFields those that have a value in XID_map and remove them from UnknownFields
      * add to the list of KnownFields the foreign keys that have a value in XID_map
      */
-    private void updateKnownUnknown() {
+    private void updateKnownUnknown() throws Exception {
         Iterator itr = unknownFields.entrySet().iterator();
 
+        /* search through all unknown fields and if the encoding "$$_..._$$" has a value in Test.XID_map,
+         * add it to the known fields and remove it from the unknownFields
+         */
         while(itr.hasNext()) {
-            Map.Entry<String, String> entryUnknown = (Map.Entry<String, String>) itr.next();
-            String XID = entryUnknown.getValue();
-            String id = entryUnknown.getKey();
+            String id_unknown = ((Map.Entry<String, String>) itr.next()).getKey();
+            String XID_unknown = unknownFields.get(id_unknown);
+
+            // replace "$$_SysDateTime_$$" with the time set at the start of the program execution
+            if (XID_unknown.equals("$$_SysDateTime_$$")) {
+                knownFields.put(id_unknown, Test.getTime());
+                itr.remove();
+                continue;
+            }
 
             // if the value of the XID was previously computed, remove it from the unknown fields
             // and move it to the known fields
-            if (Test.XID_map.containsKey(XID)) {
-                XID XID_object = Test.XID_map.get(XID);
+            if (Test.XID_map.containsKey(XID_unknown)) {
+                XID XID_object = Test.XID_map.get(XID_unknown);
 
-                if (XID_object != null && XID_object.knownFields != null && XID_object.knownFields.containsKey(id)) {
-                    String prevFoundValue = XID_object.knownFields.get(id);
-                    knownFields.put(id, prevFoundValue);
+                if (XID_object != null && XID_object.knownFields != null && XID_object.knownFields.containsKey(id_unknown)) {
+                    knownFields.put(id_unknown, XID_object.knownFields.get(id_unknown));
                     itr.remove();
                 }
             }
         }
 
-        /* Add to the known fields the foreign keys with a value received previously */
+        /* Add to the known fields the foreign keys with a value received previously and saved in Test.XID_map */
         for (Map.Entry<String, ForeignKey> foreignKeyEntry : foreignKeys.entrySet()) {
-            String XID = foreignKeyEntry.getKey();
+            String XID_foreignKey = foreignKeyEntry.getKey();
             ForeignKey foreignKey = foreignKeyEntry.getValue();
 
-            if (Test.XID_map.containsKey(XID)) {
-                XID XID_object = Test.XID_map.get(XID);
+            if (Test.XID_map.containsKey(XID_foreignKey)) {
+                XID XID_object = Test.XID_map.get(XID_foreignKey);
                 if (XID_object != null && XID_object.knownFields != null && XID_object.knownFields.containsKey(foreignKey.referenced_column)) {
                     String prevFoundValue = XID_object.knownFields.get(foreignKey.referenced_column);
                     // save the value of foreign key in known fields
@@ -154,58 +164,37 @@ public class Query {
     }
 
     /**
-     * Construct the insert SQL query; construct a select query to determine the ID of the newly inserted row
+     * Construct the insert SQL query; then construct a select query to determine the ID of the newly inserted row
      * @return query for selecting the id of the inserted row
      * @throws Exception Validation error
      */
     private String constructInsertQuery() throws Exception {
         // if there are fields still unknown, return error
         if (!validateFieldsInsert(Test.XID_map)) {
-            System.err.println("validation failed");
             throw new Exception("Validation failed. Some information is not available.");
         }
-        System.out.println("Validation correct:\n"+this);
 
-        // all the unknown fields were found, append together the known & unknown maps to form the insert query
+        // all the unknown fields were found, append together all fields and values to form the insert query
         StringBuilder keys = new StringBuilder();
-        StringBuilder values = new StringBuilder();
-        for (String s : unknownFields.keySet()) {
-            // if not id (normal field)
-            // or
-            // is id and there is a known value for it in the XID_map
-            if (!s.equals("id") || (Test.XID_map.get(unknownFields.get(s)) != null && Test.XID_map.get(unknownFields.get(s)).knownFields != null &&
-                    Test.XID_map.get(unknownFields.get(s)).knownFields.containsKey(s))) {
-                keys.append(s);
-                keys.append(", ");
-                String val = Test.XID_map.get(unknownFields.get(s)).knownFields.get(s);
-                if (val == null) {
-                    System.err.println("1+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*");
-                    values.append("null, ");
-                } else {
-                    System.err.println("2+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*");
-                    values.append("'");
-                    values.append(val);
-                    values.append("', ");
-                }
-            }
-        }
+        StringBuilder fields = new StringBuilder();
         for (String s : knownFields.keySet()) {
             keys.append(s);
             keys.append(", ");
+            // replace string "null" with actual null
             if (knownFields.get(s) == null) {
-                values.append(knownFields.get(s));
-                values.append(", ");
+                fields.append(knownFields.get(s));
+                fields.append(", ");
             } else {
-                values.append("'");
-                values.append(knownFields.get(s));
-                values.append("', ");
+                fields.append("'");
+                fields.append(knownFields.get(s));
+                fields.append("', ");
             }
         }
         // remove last ", "
         keys.delete(keys.length() - 2, keys.length());
-        values.delete(values.length() - 2, values.length());
+        fields.delete(fields.length() - 2, fields.length());
 
-        this.query = "INSERT INTO " + this.dataSet + " (" + keys + ") VALUES (" + values + ");";
+        this.query = "INSERT INTO " + this.dataSet + " (" + keys + ") VALUES (" + fields + ");";
 
         /*
          * after the insert, we want to retrieve the id and all information inserted and put it back in the MAP
@@ -213,14 +202,13 @@ public class Query {
          */
 
         // SELECT	-> the newly inserted id
+        // TODO: this may not always be the HARDCODED value "id"
         String select = "id";
         // WHERE	-> this.knownFields
         String condition = setToStringWithDelimiter(getEquals(knownFields, " is "), "AND");
-        // condition might be null -> there is no WHERE clause
-        String where = condition != null ? (" WHERE " + condition) : "";
 
         // return as second sql query "SELECT id FROM ..."
-        return "SELECT " + select + " FROM " + this.dataSet + where;
+        return "SELECT " + select + " FROM " + this.dataSet + " WHERE " + condition;
     }
 
     /**
@@ -239,6 +227,7 @@ public class Query {
         // WHERE	-> this.knownFields
         String condition = setToStringWithDelimiter(getEquals(knownFields, " is "), "AND");
         // condition might be null -> there is no WHERE clause
+        // TODO: is it possible not to have any KnownFields??
         String where = condition != null ? (" WHERE " + condition + ";") : "";
 
         // select the SQL query
@@ -404,8 +393,6 @@ public class Query {
                 Test.XID_map.put(XID, new XID(XID, this.dataSet, knownFields));
             }
         }
-
-        Test.printMap("Test.map: ", Test.XID_map);
 
         return rows_affected;
     }

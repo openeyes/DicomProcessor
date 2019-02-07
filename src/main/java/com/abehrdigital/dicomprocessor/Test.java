@@ -19,6 +19,11 @@ public class Test {
     private static Session session;
     private static String time;
 
+    /**
+     * Pretty print HashMap with additional message
+     * @param message Custom message
+     * @param XID_map HashMap to be printed
+     */
     static void printMap(String message, HashMap<String, XID> XID_map) {
         System.out.println("============");
         System.out.println(message);
@@ -37,20 +42,21 @@ public class Test {
             queries = parseJson(jsonFileName);
             Iterator itr = queries.iterator();
 
-            while (itr.hasNext())
-            {
-                Query q = (Query) itr.next();
-                Test.printMap("Test.map: ", Test.XID_map);
-                System.out.println("--"+q+"--");
+            while (itr.hasNext()) {
+                Query query = (Query) itr.next();
 
-                // at the moment, secondary_query_insert is the select query coming from the insert; to get the info inserted
-                int rows_affected = q.constructAndRunQuery();
+                // DEBUG purposes
+                Test.printMap("Test.map: ", Test.XID_map);
+                System.out.println("--" + query + "--");
+
+                // construct the SQL query based on the CRUD operation and the fields found in Query object
+                int rows_affected = query.constructAndRunQuery();
 
                 // remove query from array
                 itr.remove();
 
                 // set query to null to be eligible to be removed by GC
-                q = null;
+                query = null;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -130,7 +136,7 @@ public class Test {
                     // add Query object resulted to the array result
                     ret.add(parseJsonQuery((JSONObject) o2, dataSet));
                 }
-                // or a JSON object
+            // or a JSON object
             } else if (o3 instanceof JSONObject) {
                 // parse JSON object and add the Query object resulted to the array result
                 ret.add(parseJsonQuery((JSONObject) o3, dataSet));
@@ -140,7 +146,9 @@ public class Test {
     }
 
     /**
-     * Parse initial information given as array of JSONObjects
+     * Parse initial information given as array of JSONObjects;
+     * Save info into XID_map
+     *
      * @param XID_Map_JSON array of JSON objects to be parsed
      */
     private static void parse_XID_Map(JSONArray XID_Map_JSON) {
@@ -183,14 +191,14 @@ public class Test {
         TreeMap<String, String> unknownFields = new TreeMap<>();
         // knownFields: {id -> String:value}
         TreeMap<String, String> knownFields = new TreeMap<>();
-        // foreignKeys: {XID -> String:field_in_XID_table}
+        // foreignKeys: {XID -> {field_in_XID_table, field_in_current_table}}
         TreeMap<String, ForeignKey> foreignKeys = new TreeMap<>();
         String XID = null;
 
         // for each field in the json row, save the key and the value
         //   in either knownFields or unknownFields
-        for (Iterator iterator = query.keySet().iterator(); iterator.hasNext(); ) {
-            String key = iterator.next().toString();
+        for (Object o : query.keySet()) {
+            String key = (String) o;
             String value = query.get(key).toString();
             switch (key) {
                 case "$$_CRUD_$$":
@@ -209,20 +217,27 @@ public class Test {
 
                             foreignKeys.put(referenced_XID, new ForeignKey(referenced_column, referencing_column));
                         } else {
-                            if (value.equals("$$_SysDateTime_$$")) {
-                                unknownFields.put(key, value);
-                            } else {
-                                if (key.equals("id")) {
-                                    XID = value;
-                                }
-                                unknownFields.put(key, value);
-                                // add the unknown variable to the lookup table
+                            // save the XID encoding for the id field:
+                            // TODO: this may not always be the HARDCODED value "id"
+                            if (key.equals("id")) {
+                                XID = value;
+                            }
+
+                            // save the key-value pair into unknown fields
+                            unknownFields.put(key, value);
+
+                            if (!value.equals("$$_SysDateTime_$$")) {
+                                // add the unknown variable to the lookup table only if it is not a date
+                                // date is set at the start of the program's execution
                                 XID_map.put(value, null);
                             }
                         }
+                    // known fields
                     } else {
+                        // convert null value strings to null and insert them into knownFields
                         if (value.equals("null")) {
                             knownFields.put(key, null);
+                        // insert value strings into knownFields
                         } else {
                             knownFields.put(key, value);
                         }
@@ -231,16 +246,16 @@ public class Test {
             }
         }
 
-        // create new Query object with the information parsed
+        // create and return new Query object with the information parsed
         return new Query(dataSet, XID, CRUD, knownFields, unknownFields, foreignKeys);
     }
 
     /**
-     * Get the current stssion if it is set. If not, create one.
+     * Get the current session if it is set. If not, create one.
      * @return current session
      * @throws Exception Cannot open a new session.
      */
-    public static Session getSession() throws Exception {
+    static Session getSession() throws Exception {
         // if a session does not exists, open a new session
         if (session == null) {
             session = HibernateUtil.getSessionFactory().openSession();
@@ -252,21 +267,31 @@ public class Test {
     }
 
     /**
+     * Get the current time if it is set. If not, get the time in sql format using a select query.
+     * @return current date time
+     * @throws Exception Cannot get current time.
+     */
+    static String getTime() throws Exception {
+        if (Test.time == null) {
+            Test.time = Query.getTime(session);
+        }
+        if (session == null) {
+            throw new Exception("Could not get current date time!");
+        }
+        return Test.time;
+    }
+
+    /**
      * Main function
      * @param args args
      */
     public static void main(String[] args) {
         try {
-//            session = getSession();
-//            time = Query.getTime(session);
-//
-//            TreeMap<String, String> knownFields = new TreeMap<>();
-//            knownFields.put("event_date", time);
-//            knownFields.put("created_date", time);
-//            knownFields.put("last_modified_date", time);
-//
-//            XID_map.put("$$_SysDateTime_$$", new XID("$$_SysDateTime_$$", null, knownFields));
+            // set session and time at the start of the execution
+            session = getSession();
+            time = getTime();
 
+            // parse and apply the query contained in the JSON file
             applyQuery("./src/JSON.json");
         } catch (Exception e) {
             e.printStackTrace();
