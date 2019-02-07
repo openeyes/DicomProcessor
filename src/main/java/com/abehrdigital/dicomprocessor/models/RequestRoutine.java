@@ -6,12 +6,12 @@
 package com.abehrdigital.dicomprocessor.models;
 
 import com.abehrdigital.dicomprocessor.utils.Status;
+
+import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Calendar;
-import javax.persistence.*;
 
 /**
- *
  * @author admin
  */
 @Entity
@@ -35,6 +35,7 @@ public class RequestRoutine {
     private int tryCount;
     @Column(name = "next_try_date_time")
     private Timestamp nextTryDateTime;
+
     @Column(name = "execute_sequence")
     private int executeSequence;
 
@@ -62,20 +63,26 @@ public class RequestRoutine {
         setNextTryDateInFiveMinutes();
     }
 
+    public void setExecuteSequence(int value) {
+        executeSequence = value;
+
+    }
+
     public static class Builder {
 
         //Required
+
         private final int requestId;
         private final String executeRequestQueue;
         private final String routineName;
-
         private Status status = Status.NEW;
+
         private int tryCount = 0;
         private Timestamp nextTryDateTime = null;
         private int executeSequence = 0;
 
         public Builder(int requestId, String routineName,
-                String executeRequestQueue) {
+                       String executeRequestQueue) {
             this.requestId = requestId;
             this.routineName = routineName;
             this.executeRequestQueue = executeRequestQueue;
@@ -96,7 +103,7 @@ public class RequestRoutine {
             return this;
         }
 
-        public Builder executeSequence(int executeSequence){
+        public Builder executeSequence(int executeSequence) {
             this.executeSequence = executeSequence;
             return this;
         }
@@ -104,6 +111,18 @@ public class RequestRoutine {
         public RequestRoutine build() {
             return new RequestRoutine(this);
         }
+
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public void setNextTryDateInFiveMinutes() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MINUTE, 5);
+
+        nextTryDateTime = new Timestamp(calendar.getTimeInMillis());
     }
 
     public String getRoutineName() {
@@ -114,8 +133,8 @@ public class RequestRoutine {
         return requestId;
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
+    public int getExecuteSequence() {
+        return executeSequence;
     }
 
     public Timestamp getNextTryDate() {
@@ -134,17 +153,9 @@ public class RequestRoutine {
         return status;
     }
 
-    public void setNextTryDateInFiveMinutes() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.MINUTE, 5);
-
-        nextTryDateTime = new Timestamp(calendar.getTimeInMillis());
-    }
-
     public void reset() {
         status = Status.NEW;
         tryCount = 0;
         nextTryDateTime = null;
     }
-
 }

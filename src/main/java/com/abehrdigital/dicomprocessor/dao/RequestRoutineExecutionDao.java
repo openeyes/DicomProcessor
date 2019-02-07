@@ -1,9 +1,9 @@
-package com.abehrdigital.dicomprocessor;
+package com.abehrdigital.dicomprocessor.dao;
 
 import com.abehrdigital.dicomprocessor.models.RequestRoutineExecution;
 import org.hibernate.Session;
 
-public class RequestRoutineExecutionDao implements BaseDao<RequestRoutineExecution , Integer> {
+public class RequestRoutineExecutionDao implements BaseDao<RequestRoutineExecution, Integer> {
     private Session session;
 
     public RequestRoutineExecutionDao(Session session) {
@@ -12,7 +12,7 @@ public class RequestRoutineExecutionDao implements BaseDao<RequestRoutineExecuti
 
     @Override
     public RequestRoutineExecution get(Integer primaryKey) {
-        return session.get(RequestRoutineExecution.class , primaryKey);
+        return session.get(RequestRoutineExecution.class, primaryKey);
     }
 
     @Override

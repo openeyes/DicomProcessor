@@ -1,68 +1,79 @@
 package com.abehrdigital.dicomprocessor;
 
+import com.abehrdigital.dicomprocessor.models.Request;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RequestRoutineExecution;
+import com.abehrdigital.dicomprocessor.utils.DaoFactory;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.util.Calendar;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class RequestWorker implements Runnable {
     private int requestId;
-    private final Map<Integer, Runnable> requestIdToThreadSyncMap;
+    private final RequestThreadListener threadListener;
     private RequestWorkerService service;
+    private int successfulRoutineCount;
+    private int failedRoutineCount;
 
-    public RequestWorker(int requestId, String requestQueueName, Map<Integer, Runnable> requestIdToThreadSyncMap) {
+    public RequestWorker(int requestId, String requestQueueName, RequestThreadListener threadListener) {
         this.requestId = requestId;
-        this.requestIdToThreadSyncMap = requestIdToThreadSyncMap;
+        this.threadListener = threadListener;
         service = new RequestWorkerService(
                 DaoFactory.createScriptEngineDaoManager(),
                 requestId,
                 requestQueueName
         );
+        successfulRoutineCount = 0;
+        failedRoutineCount = 0;
     }
 
     @Override
     public void run() {
-        // INFINITY !!!!LOOP
-        service.beginTransaction();
-        Request lockedRequest = service.getRequestWithLock();
 
-        if (lockedRequest == null) {
-            deQueue(0, 0);
+        while (true) {
+            service.beginTransaction();
+            Request lockedRequest = service.getRequestWithLock();
+
+            if (lockedRequest == null) {
+                threadListener.deQueue(requestId, successfulRoutineCount, failedRoutineCount);
+                break;
+            }
+
+            RequestRoutine routineForProcessing = service.getNextRoutineToProcess();
+
+            if (routineForProcessing != null) {
+                executeRequestRoutine(routineForProcessing);
+            } else {
+                break;
+            }
         }
 
-        // CHECK IF NOT EMPTY
-        RequestRoutine routineForProcessing = service.getNextRoutineToProcess();
-
-        executeRequestRoutine(routineForProcessing);
-
-        // END LOOP
+        threadListener.deQueue(requestId, successfulRoutineCount, failedRoutineCount);
+        service.shutDown();
     }
 
     private void executeRequestRoutine(RequestRoutine routineForProcessing) {
-
-
         String routineBody = service.getRoutineBody(routineForProcessing.getRoutineName());
         String logMessage = "";
 
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
-
             engine.put("controller", service);
+            //catch std:out
             engine.eval(routineBody);
             service.commit();
-
+            successfulRoutineCount++;
             routineForProcessing.successfulExecution();
         } catch (Exception exception) {
             service.rollback();
             Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-         "REQUEST WORKER EXCEPTION WHEN EVALUATING JAVASCRIPT ->  " + exception.toString());
+                    "REQUEST WORKER EXCEPTION WHEN EVALUATING JAVASCRIPT ->  " + exception.toString());
+            failedRoutineCount++;
             routineForProcessing.failedExecution();
-            System.out.println(exception.toString());
+
             logMessage = exception.toString();
         }
 
@@ -70,16 +81,15 @@ public class RequestWorker implements Runnable {
             service.beginTransaction();
             service.saveRequestRoutineExecution(createRequestExecution(routineForProcessing, logMessage));
             service.updateRequestRoutine(routineForProcessing);
+            //Request lock released
             service.commit();
-        } catch (Exception exception){
+        } catch (Exception exception) {
             service.rollback();
             Logger.getLogger(DicomEngine.class.getName(), "REQUEST WORKER EXCEPTION HERE ->" +
                     " WHEN SAVING REQUEST EXECUTION AND REQUEST ROUTINE " + exception.toString());
             System.out.println(exception.toString());
         }
-
-        deQueue(1,0);
-        service.shutDown();
+        service.clearCache();
     }
 
     private RequestRoutineExecution createRequestExecution(RequestRoutine routineForProcessing, String logMessage) {
@@ -90,22 +100,5 @@ public class RequestWorker implements Runnable {
                         new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()),
                         routineForProcessing.getStatus().getExecutionStatus(),
                         routineForProcessing.getTryCount());
-    }
-
-    private void deQueue(int successIncrement, int failIncrement) {
-        int currentActiveThreads;
-        synchronized (requestIdToThreadSyncMap){
-            requestIdToThreadSyncMap.remove(requestId);
-            currentActiveThreads = requestIdToThreadSyncMap.size();
-        }
-
-
-        service.updateActiveThreadCount(currentActiveThreads);
-
-        //TO DO NEW MIGRATION FOR SUCCESS AND FAILURE THREAD COUNT
-//        requestQueue.incrementThreadSuccessAndFailureCount(successIncrement , failIncrement);
-//        requestQueue.setTotalActiveThreadCount(currentActiveThreads);
-//
-//        workerDaoManager.getRequestQueueDao().save(requestQueue);
     }
 }

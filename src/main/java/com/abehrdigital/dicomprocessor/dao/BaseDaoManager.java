@@ -1,4 +1,4 @@
-package com.abehrdigital.dicomprocessor;
+package com.abehrdigital.dicomprocessor.dao;
 
 import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
 import org.hibernate.Session;
@@ -43,5 +43,17 @@ public abstract class BaseDaoManager {
                 return manager.transaction(command);
             }
         });
+    }
+
+    public void flushSession() {
+        session.flush();
+    }
+
+    public void clearSession() {
+        session.clear();
+    }
+
+    public void shutDown() {
+        session.disconnect();
     }
 }

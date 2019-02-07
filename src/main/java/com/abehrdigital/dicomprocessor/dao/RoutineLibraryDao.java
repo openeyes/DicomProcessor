@@ -1,4 +1,4 @@
-package com.abehrdigital.dicomprocessor;
+package com.abehrdigital.dicomprocessor.dao;
 
 import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
 import org.hibernate.Session;
@@ -12,7 +12,7 @@ public class RoutineLibraryDao implements BaseDao<RoutineLibrary, String> {
 
     @Override
     public RoutineLibrary get(String primaryKey) {
-        return session.get(RoutineLibrary.class , primaryKey);
+        return session.get(RoutineLibrary.class, primaryKey);
     }
 
     @Override

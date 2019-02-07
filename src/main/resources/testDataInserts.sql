@@ -72,8 +72,14 @@ VALUES ("dicom_request" , "dicom request full" , "dicom request short" ,  "dicom
 INSERT INTO request (system_message , request_type , request_override_default_queue)
 VALUES("eyes open eyes open" , "dicom_request" , "dicom_queue");
 
-INSERT INTO request_routine (request_id , execute_request_queue , STATUS , routine_name)
-VALUES( 1 , "dicom_queue" , "NEW" , "dicom_routine");
+INSERT INTO request (system_message , request_type , request_override_default_queue)
+VALUES("eyes open eyes open" , "dicom_request" , "dicom_queue");
+
+INSERT INTO request_routine (request_id , execute_request_queue , STATUS , routine_name , execute_sequence)
+VALUES( 2 , "dicom_queue" , "NEW" , "dicom_routine" , 10);
+
+INSERT INTO request_routine (request_id , execute_request_queue , STATUS , routine_name , execute_sequence)
+VALUES( 1 , "dicom_queue" , "NEW" , "dicom_routine" , 10);
 
 INSERT INTO attachment_type (attachment_type , title_full , title_short , title_abbreviated)
 VALUES ("request_json" , "json from attachment" , "js0n" , "JSON");
@@ -104,3 +110,12 @@ VALUES (1, "dicom_header" , 1 , "dicom_header" , "dicom" , NULL);
 
 INSERT INTO attachment_data (request_id , attachment_mnemonic , system_only_managed , attachment_type , mime_type , blob_data)
 VALUES ( 1 , "request_blob" , 1 ,"dicom" , "application/pdf" , NULL);
+
+INSERT INTO attachment_data (request_id , attachment_mnemonic , system_only_managed , attachment_type , mime_type , json_data)
+VALUES (2 , "request_data" , 0 , "request_json" , "json" , "{}");
+
+INSERT INTO attachment_data (request_id , attachment_mnemonic , system_only_managed , attachment_type , mime_type , blob_data)
+VALUES (2, "dicom_header" , 1 , "dicom_header" , "dicom" , NULL);
+
+INSERT INTO attachment_data (request_id , attachment_mnemonic , system_only_managed , attachment_type , mime_type , blob_data)
+VALUES ( 2 , "request_blob" , 1 ,"dicom" , "application/pdf" , NULL);

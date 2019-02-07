@@ -1,9 +1,7 @@
 package com.abehrdigital.dicomprocessor;
 
-import com.abehrdigital.dicomprocessor.models.AttachmentData;
-import com.abehrdigital.dicomprocessor.models.RequestQueue;
-import com.abehrdigital.dicomprocessor.models.RequestRoutine;
-import com.abehrdigital.dicomprocessor.models.RequestRoutineExecution;
+import com.abehrdigital.dicomprocessor.dao.ScriptEngineDaoManager;
+import com.abehrdigital.dicomprocessor.models.*;
 import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 
@@ -85,7 +83,6 @@ public class RequestWorkerService {
         }
     }
 
-    // EXECUTE SEQUENCE MULTIPLE BY 10 FROM THE LAST ONE
     public void addRoutine(String routineName) throws HibernateException {
         RequestRoutine requestRoutine = daoManager.getRequestRoutineDao().findByRoutineNameAndRequestId(requestId, routineName);
         if (requestRoutine != null) {
@@ -105,19 +102,6 @@ public class RequestWorkerService {
     private boolean routineInLibraryExists(String routineName) throws HibernateException {
         return (daoManager.getRoutineLibraryDao().get(routineName) != null);
     }
-
-//    private RequestRoutine getRequestRoutine(String routineName) throws HibernateException {
-//        Criteria criteria = databaseConnection.createCriteria(RequestRoutine.class);
-//        criteria.add(Restrictions.eq("routineName", routineName));
-//        criteria.add(Restrictions.eq("requestId", id));
-//
-//        return (RequestRoutine) criteria.uniqueResult();
-//    }
-
-//    private void resetRequestRoutine(RequestRoutine requestRoutine) throws HibernateException {
-//        requestRoutine.reset();
-//        databaseConnection.save(requestRoutine);
-//    }
 
     public void putPdf(
             String attachmentMnemonic,
@@ -147,25 +131,23 @@ public class RequestWorkerService {
         daoManager.getRequestRoutineDao().update(requestRoutine);
     }
 
-    public void shutDown() {
-        daoManager.shutdown();
-    }
-
-    public Request getRequestWithLock() {
+    public Request getRequestWithLock(){
         return daoManager.getRequestDao().getWithLock(requestId, LockMode.UPGRADE_NOWAIT);
     }
 
     public RequestRoutine getNextRoutineToProcess() {
-        return daoManager.getRequestRoutineDao().getRequestRoutineForProcessing(requestId, requestQueueName);
+        return daoManager.getRequestRoutineDao().getRequestRoutineWithRequestIdForProcessing(requestId, requestQueueName);
     }
 
     public RequestQueue getRequestQueue() {
         return daoManager.getRequestQueueDao().get(requestQueueName);
     }
 
-    public void updateActiveThreadCount(int currentActiveThreads) {
-        RequestQueue requestQueue = getRequestQueue();
-        requestQueue.setTotalActiveThreadCount(currentActiveThreads);
-        daoManager.getRequestQueueDao().save(requestQueue);
+    public void clearCache() {
+        daoManager.clearSession();
+    }
+
+    public void shutDown(){
+        daoManager.shutDown();
     }
 }

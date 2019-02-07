@@ -35,7 +35,7 @@ public enum Status {
         }
     },
     VOID() {
-        public Status getExecutionStatus () {
+        public Status getExecutionStatus() {
             return Status.FAILED;
         }
     };

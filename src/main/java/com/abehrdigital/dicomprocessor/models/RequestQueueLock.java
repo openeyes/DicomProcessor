@@ -11,7 +11,6 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
- *
  * @author admin
  */
 @Entity
@@ -20,11 +19,11 @@ public class RequestQueueLock {
     @Id
     @Column(name = "request_queue")
     private String requestQueue;
-    
-    public RequestQueueLock(){
+
+    public RequestQueueLock() {
     }
-    
-    public RequestQueueLock(String requestQueue){
+
+    public RequestQueueLock(String requestQueue) {
         this.requestQueue = requestQueue;
     }
 
