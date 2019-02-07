@@ -7,7 +7,7 @@ public class XID {
     String DataSet;
     TreeMap<String, String> knownFields;
 
-    public XID(String XID, String DataSet, TreeMap<String, String> knownFields) {
+    XID(String XID, String DataSet, TreeMap<String, String> knownFields) {
         this.XID = XID;
         this.DataSet = DataSet;
         this.knownFields = knownFields;

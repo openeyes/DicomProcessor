@@ -1,0 +1,98 @@
+{
+	"_OE_System": "ABEHR Jason Local v3.0",
+	"_Version": "v0.1",
+	"$$_XID_Map_$$": [
+		
+	],
+	"$$_SaveSet[1]_$$": [ 
+		{
+			"$$_DataSet_$$": "user",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "retrieve",
+					"id": "$$_user[1]_$$",
+					"username": "admin"
+				}
+			]
+		}, {
+			"$$_DataSet_$$": "event_type",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "retrieve",
+					"id": "$$_event_type[1]_$$",
+					"name": "Examination"
+				}
+			]
+		}, {
+			"$$_DataSet_$$": "subspecialty",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "retrieve",
+					"id": "$$_subspecialty[1]_$$",
+					"name": "General Ophthalmology"
+				}
+			]
+		}, {
+			"$$_DataSet_$$": "service",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "retrieve",
+					"id": "$$_service[1]_$$",
+					"name": "Eye Casualty Service"
+				}
+			]
+		}, {
+			"$$_DataSet_$$": "service_subspecialty_assignment",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "retrieve",
+					"id": "$$_service_subspecialty_assignment[1]_$$",
+					"service_id": "$$_service[1].id_$$",
+					"subspecialty_id": "$$_subspecialty[1].id_$$"
+				}
+			]
+		}, {
+			"$$_DataSet_$$": "firm",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "retrieve",
+					"id": "$$_firm[1]_$$",
+					"service_subspecialty_assignment_id": "$$_service_subspecialty_assignment[1].id_$$"
+				}
+			]
+		}, {
+			"$$_DataSet_$$": "episode",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "retrieve",
+					"id": "$$_episode[1]_$$",
+					"patient_id": 1915594,
+					"firm_id": "$$_firm[1].id_$$"
+				}
+			]
+		}, {
+			"$$_DataSet_$$": "event",
+			"$$_ROW_$$": {
+				"$$_CRUD_$$": "merge",
+				"id": "$$_event[1]_$$",
+				"episode_id": "$$_episode[1].id_$$",
+				"created_user_id": "$$_user[1].id_$$",
+				"event_type_id": "$$_event_type[1].id_$$",
+				"last_modified_user_id": "$$_user[1].id_$$",
+				"last_modified_date": "$$_SysDateTime_$$",
+				"created_date": "$$_SysDateTime_$$",
+				"event_date": "2000-04-11 00:00:00",
+				"info": "Draft",
+				"deleted": "0",
+				"delete_reason": "null",
+				"delete_pending": "0",
+				"is_automated": "null",
+				"automated_source": "null",
+				"parent_id": "null",
+				"sub_type": "null",
+				"pas_visit_id": "null",
+				"firm_id": "$$_firm[1].id_$$"
+			},
+		}
+	],
+}

@@ -27,8 +27,11 @@ public class Query {
 
     @Override
     public String toString() {
-        return "Query [dataSet=" + dataSet + ", CRUD=" + CRUD + ", \n\tunknownFields=" + unknownFields + ", \n\tknownFields="
-                + knownFields + "]\n";
+        return "Query [dataSet=" + dataSet + ", CRUD=" + CRUD +
+                ", \n\tunknownFields=" + unknownFields +
+                ", \n\tknownFields=" + knownFields +
+                ", \n\tforeignKeys=" + foreignKeys +
+                "]\n";
     }
 
     // construct sql query
@@ -141,10 +144,10 @@ public class Query {
 
             if (Test.XID_map.containsKey(XID)) {
                 XID XID_object = Test.XID_map.get(XID);
-                if (XID_object != null && XID_object.knownFields != null && XID_object.knownFields.containsKey(foreignKey.referencing_column)) {
-                    String prevFoundValue = XID_object.knownFields.get(foreignKey.referencing_column);
+                if (XID_object != null && XID_object.knownFields != null && XID_object.knownFields.containsKey(foreignKey.referenced_column)) {
+                    String prevFoundValue = XID_object.knownFields.get(foreignKey.referenced_column);
                     // save the value of foreign key in known fields
-                    knownFields.put(foreignKey.referenced_column, prevFoundValue);
+                    knownFields.put(foreignKey.referencing_column, prevFoundValue);
                 }
             }
         }
@@ -369,7 +372,6 @@ public class Query {
 
         System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
 
-
         // append to the known fields of the XID object all the rows returned by the SQL
         TreeMap<String, String> knownFields = new TreeMap<>();
         for (HashMap<String, Object> result : aliasToValueMapList) {
@@ -382,26 +384,6 @@ public class Query {
         if (rows_affected == -1) {
             rows_affected = aliasToValueMapList.size();
         }
-
-        /*
-            // iterate through the response
-            for (Object person : requestRoutines) {
-                if (person instanceof Object[]) {
-                    System.err.println("THERE ARE MULTIPLE COLUMNS RETURNED");
-
-                    //Object[] list = (Object[]) person;
-                    //int i = 0;
-                    //for (Map.Entry<String, String> entry : unknownFields.entrySet()) {
-                    //    String value = person.toString();
-                    //    String XID = unknownFields.firstEntry().getValue();
-                    //    Test.XID_map.put(XID, new XID(XID, value, this.dataSet, knownFields));
-                    //}
-
-                } else {
-                    System.out.println("=One column returned=");
-                }
-            }
-        */
 
         // if unknownFields has no entries, it means there is no information required:
         // ex: insert with a known id

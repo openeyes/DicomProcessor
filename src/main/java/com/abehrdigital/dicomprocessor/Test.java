@@ -1,6 +1,5 @@
 package com.abehrdigital.dicomprocessor;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
@@ -15,12 +14,12 @@ import org.json.simple.parser.ParseException;
 public class Test {
 
     static HashMap<String, XID> XID_map = new HashMap<>();
-    static String _OE_System;
-    static String _Version;
-    static Session session;
-    static String time;
+    private static String _OE_System;
+    private static String _Version;
+    private static Session session;
+    private static String time;
 
-    public static void printMap(String message, HashMap<String, XID> XID_map) {
+    static void printMap(String message, HashMap<String, XID> XID_map) {
         System.out.println("============");
         System.out.println(message);
         for (Map.Entry<String, XID> entry : XID_map.entrySet()) {
@@ -28,18 +27,11 @@ public class Test {
         }
         System.out.println("============");
     }
-    public static void printArr(ArrayList<Query> arr) {
-        System.out.println("____________________");
-        for (Object o : arr) {
-            System.out.println(o);
-        }
-        System.out.println("____________________");
-    }
 
     /**
      * apply the actions inside a json string to the database
      */
-    public static void applyQuery(String jsonFileName) {
+    private static void applyQuery(String jsonFileName) {
         ArrayList<Query> queries;
         try {
             queries = parseJson(jsonFileName);
@@ -72,13 +64,12 @@ public class Test {
     /**
      * Open and parse a JSON file and return a list of Query objects
      *
-     * @param filename
-     * @return
-     * @throws FileNotFoundException
-     * @throws IOException
-     * @throws ParseException
+     * @param filename name of the json to be parsed
+     * @return a list of Query objects, containing parsed information from the json
+     * @throws IOException file not found
+     * @throws ParseException parser exception
      */
-    private static ArrayList<Query> parseJson(String filename) throws FileNotFoundException, IOException, ParseException {
+    private static ArrayList<Query> parseJson(String filename) throws IOException, ParseException {
         ArrayList<Query> ret = new ArrayList<>();
         JSONParser parser = new JSONParser();
         FileReader reader = new FileReader(filename);
@@ -118,7 +109,12 @@ public class Test {
         return ret;
     }
 
-    public static ArrayList<Query> parse_save_set(JSONArray saveSet) {
+    /**
+     * Parse array of JSON objects
+     * @param saveSet array of JSON objects
+     * @return list of Query objects containing parsed information
+     */
+    private static ArrayList<Query> parse_save_set(JSONArray saveSet) {
         ArrayList<Query> ret = new ArrayList<>();
         // get the list of commands
         for (Object o : saveSet) {
@@ -143,11 +139,16 @@ public class Test {
         return ret;
     }
 
-    public static void parse_XID_Map(JSONArray XID_Map) {
+    /**
+     * Parse initial information given as array of JSONObjects
+     * @param XID_Map_JSON array of JSON objects to be parsed
+     */
+    private static void parse_XID_Map(JSONArray XID_Map_JSON) {
         // create a map of XID string pointing to a XID object: eg. "$$_event_type[1]_$$" => XID Object
-        for (Object o : XID_Map) {
+        for (Object o : XID_Map_JSON) {
             JSONObject XID_data = (JSONObject) o;
 
+            // get all information needed to create a new Query object
             TreeMap<String, String> knownFields = new TreeMap<>();
             String XID = null, DataSet = null;
             for (Object key1 : XID_data.keySet()) {
@@ -172,11 +173,11 @@ public class Test {
     /**
      * Parse contents of a JSON object "$$_ROW_$$": get the CRUD and a list of known and unknown fields
      *
-     * @param query
-     * @param dataSet
-     * @return
+     * @param query JSONObject query to be parsed
+     * @param dataSet table name
+     * @return a new Query object with parsed information
      */
-    public static Query parseJsonQuery(JSONObject query, String dataSet) {
+    private static Query parseJsonQuery(JSONObject query, String dataSet) {
         String CRUD = null;
         // unknownFields: {id -> XID}
         TreeMap<String, String> unknownFields = new TreeMap<>();
@@ -200,15 +201,13 @@ public class Test {
                     if (value.startsWith("$$") && value.endsWith("$$")) {
                         // if this is a reference to a field from another table
                         if (value.contains(".")) {
-                            // TODO: not useful for now
                             String[] split = value.split("\\.");
 
-                            String referencing_XID = split[0] + "_$$";
-                            String referenced_column = key;
-                            String referencing_column = split[1].substring(0,split[1].length() - 3);
+                            String referenced_XID = split[0] + "_$$";
+                            String referencing_column = key;
+                            String referenced_column = split[1].substring(0,split[1].length() - 3);
 
-                            foreignKeys.put(referencing_XID, new ForeignKey(referenced_column, referencing_column));
-//                            unknownFields.put(key, split[0] + "_$$");
+                            foreignKeys.put(referenced_XID, new ForeignKey(referenced_column, referencing_column));
                         } else {
                             if (value.equals("$$_SysDateTime_$$")) {
                                 unknownFields.put(key, value);
@@ -236,6 +235,11 @@ public class Test {
         return new Query(dataSet, XID, CRUD, knownFields, unknownFields, foreignKeys);
     }
 
+    /**
+     * Get the current stssion if it is set. If not, create one.
+     * @return current session
+     * @throws Exception Cannot open a new session.
+     */
     public static Session getSession() throws Exception {
         // if a session does not exists, open a new session
         if (session == null) {
@@ -247,19 +251,23 @@ public class Test {
         return session;
     }
 
+    /**
+     * Main function
+     * @param args args
+     */
     public static void main(String[] args) {
         try {
-            session = getSession();
-            time = Query.getTime(session);
+//            session = getSession();
+//            time = Query.getTime(session);
+//
+//            TreeMap<String, String> knownFields = new TreeMap<>();
+//            knownFields.put("event_date", time);
+//            knownFields.put("created_date", time);
+//            knownFields.put("last_modified_date", time);
+//
+//            XID_map.put("$$_SysDateTime_$$", new XID("$$_SysDateTime_$$", null, knownFields));
 
-            TreeMap<String, String> knownFields = new TreeMap<>();
-            knownFields.put("event_date", time);
-            knownFields.put("created_date", time);
-            knownFields.put("last_modified_date", time);
-
-            XID_map.put("$$_SysDateTime_$$", new XID("$$_SysDateTime_$$", null, knownFields));
-
-            applyQuery("C:/Users/Stefan/Desktop/JSON.json");
+            applyQuery("./src/JSON.json");
         } catch (Exception e) {
             e.printStackTrace();
         }
