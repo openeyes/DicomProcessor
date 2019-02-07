@@ -45,12 +45,8 @@ public class Test {
             queries = parseJson(jsonFileName);
             Iterator itr = queries.iterator();
 
-            int i = 0;
-            int count = 1;
             while (itr.hasNext())
             {
-                if (i >= count)
-                    break;
                 Query q = (Query) itr.next();
                 Test.printMap("Test.map: ", Test.XID_map);
                 System.out.println("--"+q+"--");
@@ -63,8 +59,6 @@ public class Test {
 
                 // set query to null to be eligible to be removed by GC
                 q = null;
-
-                i++;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -190,12 +184,12 @@ public class Test {
         TreeMap<String, String> knownFields = new TreeMap<>();
         // foreignKeys: {XID -> String:field_in_XID_table}
         TreeMap<String, ForeignKey> foreignKeys = new TreeMap<>();
+        String XID = null;
 
         // for each field in the json row, save the key and the value
         //   in either knownFields or unknownFields
         for (Iterator iterator = query.keySet().iterator(); iterator.hasNext(); ) {
             String key = iterator.next().toString();
-            System.out.println(key);
             String value = query.get(key).toString();
             switch (key) {
                 case "$$_CRUD_$$":
@@ -208,35 +202,38 @@ public class Test {
                         if (value.contains(".")) {
                             // TODO: not useful for now
                             String[] split = value.split("\\.");
-                            System.out.println(value);
-                            System.out.println(split.length);
 
-                            String XID = split[0] + "_$$";
+                            String referencing_XID = split[0] + "_$$";
                             String referenced_column = key;
                             String referencing_column = split[1].substring(0,split[1].length() - 3);
 
-                            foreignKeys.put(XID, new ForeignKey(referenced_column, referencing_column));
+                            foreignKeys.put(referencing_XID, new ForeignKey(referenced_column, referencing_column));
 //                            unknownFields.put(key, split[0] + "_$$");
                         } else {
                             if (value.equals("$$_SysDateTime_$$")) {
                                 unknownFields.put(key, value);
                             } else {
+                                if (key.equals("id")) {
+                                    XID = value;
+                                }
                                 unknownFields.put(key, value);
                                 // add the unknown variable to the lookup table
                                 XID_map.put(value, null);
                             }
                         }
                     } else {
-                        knownFields.put(key, value);
+                        if (value.equals("null")) {
+                            knownFields.put(key, null);
+                        } else {
+                            knownFields.put(key, value);
+                        }
                     }
                     break;
             }
         }
-        System.out.println("=========================================================================================");
-
 
         // create new Query object with the information parsed
-        return new Query(dataSet, CRUD, knownFields, unknownFields, foreignKeys);
+        return new Query(dataSet, XID, CRUD, knownFields, unknownFields, foreignKeys);
     }
 
     public static Session getSession() throws Exception {
@@ -259,37 +256,12 @@ public class Test {
             knownFields.put("event_date", time);
             knownFields.put("created_date", time);
             knownFields.put("last_modified_date", time);
-            XID_map.put("$$_SysDateTime_$$", new XID("$$_SysDateTime_$$", null, knownFields));
 
-            ////////////////////
-            printMap("Initial XID map", XID_map);
+            XID_map.put("$$_SysDateTime_$$", new XID("$$_SysDateTime_$$", null, knownFields));
 
             applyQuery("C:/Users/Stefan/Desktop/JSON.json");
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        //TODO: if there are multiple RETRIEVE queries on a table, advance number of XID?
-        // table[1]
-        // table[2]...
-        // not for me to do
-        /*
-         * 1. when there is a retrieve call, how many columns can we retrieve?
-         * Answer: ONLY ONE; generally, the ID (pk) ((and) a unique key)
-         * 2. what is the naming of the XID object?
-         * Answer: $$_tableName[i]_$$, where i is the current row requested from the respective table
-         * 3. if there is a query: [select * from table where name="stefan"]; what will be the $$_XID_$$ for this call?
-         * Answer: this query is invalid. There should always be a column specified to be selected
-         * 4. what if a query returns more than 1 row? for example, [select * from table] => 10 rows
-         * Answer: 1 row; multiple rows -> exceptions; no rows -> maybe good? (STRETCH GOAL)
-         */
-
-
-        /*
-        If you want default date, just use:
-        "last_modified_date": "$$_SysDateTime_$$",
-        or
-        "created_date": "$$_SysDateTime_$$",
-         */
     }
 }
