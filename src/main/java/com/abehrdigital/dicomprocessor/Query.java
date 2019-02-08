@@ -64,6 +64,8 @@ public class Query {
 
                     secondary_query_insert = constructUpdateQuery();
 
+                    this.CRUD = "create";
+
                     // when the ID is not known -> do queryByExample to retrieve it
                     // when the ID is known (present in the XID_map) -> update the rest of the columns
                     rows_affected = executeQuery(Test.getSession(), secondary_query_insert);
@@ -348,11 +350,14 @@ public class Query {
             session.getTransaction().commit();
 
             // do the secondary query: for insert/update, it should be "SELECT id FROM TABLE WHERE (...)"
-            SQLQuery = session.createSQLQuery(secondary_query_insert);
+            if (secondary_query_insert != null) {
+                SQLQuery = session.createSQLQuery(secondary_query_insert);
+            } else {
+                return rows_affected;
+            }
         }
 
         // get all the fields from the sql query
-        List<Object[]> requestRoutines = SQLQuery.getResultList();
         SQLQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
 
         // !! Returned fields can be Integers, so the value in the HashMap must be a parent of all types:
@@ -377,12 +382,13 @@ public class Query {
         // if unknownFields has no entries, it means there is no information required:
         // ex: insert with a known id
         if (unknownFields.size() > 0) {
+            // TODO: hardcoded: only the first field is saved (the ID)
             String XID = unknownFields.firstEntry().getValue();
 
             // if the XID is already in the MAP,
             // update known fields in the map with ones returned as a result of running the current sql query
             if (Test.XID_map.containsKey(XID) && Test.XID_map.get(XID) != null) {
-                // knownFields is null; init treemap
+                // knownFields is null; init treeMap
                 if (Test.XID_map.get(XID).knownFields == null) {
                     Test.XID_map.get(XID).knownFields = new TreeMap<>();
                 }
