@@ -16,7 +16,8 @@ public class Query {
     private TreeMap<String, String> knownFields;	// e.g. {id=>5, class_name="Examination", episode_id=245, }
     private TreeMap<String, ForeignKey> foreignKeys;// e.g. {referencing_XID=>(referenced_column,referencing_column), }
 
-    Query(String dataSet, String XID, String CRUD, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields, TreeMap<String, ForeignKey> foreignKeys) {
+    Query(String dataSet, String XID, String CRUD, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields,
+          TreeMap<String, ForeignKey> foreignKeys ) {
         this.dataSet = dataSet;
         this.XID = XID;
         this.CRUD = CRUD;
@@ -59,7 +60,7 @@ public class Query {
                 break;
             case "merge":
                 // if id is known, try to update fields
-                if (Test.XID_map.containsKey(XID) && Test.XID_map.get(XID) !=  null) {
+                if (Test.XID_map.containsKey(XID) && Test.XID_map.get(XID) !=  null && Test.XID_map.get(XID).knownFields != null) {
                     System.out.println("Value is here");
 
                     secondary_query_insert = constructUpdateQuery();
@@ -203,9 +204,8 @@ public class Query {
          * construct the SELECT query
          */
 
-        // SELECT	-> the newly inserted id
-        // TODO: this may not always be the HARDCODED value "id"
-        String select = "id";
+        // SELECT	-> the newly inserted PK
+        String select = Test.XID_map.get(XID).dataSetKeys.get("PRIMARY KEY").get(0).columnName;
         // WHERE	-> this.knownFields
         String condition = setToStringWithDelimiter(getEquals(knownFields, " is "), "AND");
 
@@ -244,12 +244,16 @@ public class Query {
      * @return second query to be executed
      */
     private String constructUpdateQuery() {
+        XID xid = Test.XID_map.get(XID);
+        String pk = xid.dataSetKeys.get("PRIMARY KEY").get(0).columnName;
         // select the SQL query
         this.query =  "UPDATE " + this.dataSet +
                 " SET " + setToStringWithDelimiter(getEquals(knownFields, "="), ",") +
-                " WHERE id='" + Test.XID_map.get(XID).knownFields.get("id") + "'";
+                // TODO 0: check if update works with the new PK
+                // TODO: id is hardcoded
+                " WHERE " + pk + "='" + xid.knownFields.get(pk) + "'";
 
-        // there is no secondary query to be executed after select
+        // there is no secondary query to be executed after update: all information already in XID_map
         return null;
     }
 
@@ -263,7 +267,8 @@ public class Query {
             String XID = entry.getValue();
             String id = entry.getKey();
             // skip the id field (it cannot exist in the database)
-            if (!id.equals("id")) {
+            String pk = Test.XID_map.get(XID).dataSetKeys.get("PRIMARY KEY").get(0).columnName;
+            if (!id.equals(pk)) {
                 // if the value is still unknown in the global map (still null)
                 if (map.containsKey(XID)) {
                     if (map.get(XID) == null || map.get(XID).knownFields.get(id) == null) {
@@ -379,6 +384,8 @@ public class Query {
             rows_affected = aliasToValueMapList.size();
         }
 
+        // TODO: get all keys and insert them into the Test.XID_map
+
         // if unknownFields has no entries, it means there is no information required:
         // ex: insert with a known id
         if (unknownFields.size() > 0) {
@@ -396,7 +403,7 @@ public class Query {
                 Test.XID_map.get(XID).knownFields.putAll(knownFields);
             } else {
                 // XID is not present in the map; create and insert a new instance of XID object into the map
-                Test.XID_map.put(XID, new XID(XID, this.dataSet, knownFields));
+                Test.XID_map.put(XID, new XID(XID, this.dataSet, knownFields, getKeys(session, this.dataSet)));
             }
         }
 
@@ -417,5 +424,45 @@ public class Query {
             throw new Exception("Could not get current datetime");
 
         return requestRoutines.get(0).toString();
+    }
+
+    static HashMap<String, ArrayList<Key>> getKeys(Session session, String dataset) {
+        HashMap<String, ArrayList<Key>> dataSetKeys = new HashMap<>();
+
+        String getKeysQuery = "SELECT innerTable.constraint_type AS 'CONSTRAINT_TYPE', keyCol.`COLUMN_NAME` AS 'COLUMN_NAME', `keyCol`.`REFERENCED_TABLE_NAME` AS 'REFERENCED_TABLE_NAME', innerTable.constraint_name AS 'CONSTRAINT_NAME' " +
+        "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
+                "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS constr " +
+                "WHERE constr.table_name='"+dataset+"') innerTable " +
+        "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE keyCol ON keyCol.table_name=innerTable.table_name AND keyCol.`CONSTRAINT_NAME`=innerTable.`CONSTRAINT_NAME` " +
+        "ORDER BY constraint_type;";
+
+        NativeQuery SQLQuery = session.createSQLQuery(getKeysQuery);
+
+        // get all the fields from the sql query
+        SQLQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        List<HashMap<String, String>> aliasToValueMapList = SQLQuery.list();
+
+        System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
+
+        for (HashMap<String, String> row : aliasToValueMapList) {
+            String constraint_type = row.get("CONSTRAINT_TYPE");
+            switch (constraint_type) {
+                case "PRIMARY KEY":
+                case "FOREIGN KEY":
+                    if (dataSetKeys.get(constraint_type) == null) {
+                        dataSetKeys.put(constraint_type, new ArrayList<>());
+                    }
+                    dataSetKeys.get(constraint_type).add(new Key(row.get("COLUMN_NAME"), row.get("REFERENCED_TABLE_NAME")));
+                    break;
+                case "UNIQUE":
+                    System.out.println("Unique " + row.get("COLUMN_NAME"));
+                    //TODO: add unique key to the map
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return dataSetKeys;
     }
 }

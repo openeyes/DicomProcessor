@@ -75,7 +75,7 @@ public class Test {
      * @throws IOException file not found
      * @throws ParseException parser exception
      */
-    private static ArrayList<Query> parseJson(String filename) throws IOException, ParseException {
+    private static ArrayList<Query> parseJson(String filename) throws Exception {
         ArrayList<Query> ret = new ArrayList<>();
         JSONParser parser = new JSONParser();
         FileReader reader = new FileReader(filename);
@@ -120,13 +120,17 @@ public class Test {
      * @param saveSet array of JSON objects
      * @return list of Query objects containing parsed information
      */
-    private static ArrayList<Query> parse_save_set(JSONArray saveSet) {
+    private static ArrayList<Query> parse_save_set(JSONArray saveSet) throws Exception {
         ArrayList<Query> ret = new ArrayList<>();
         // get the list of commands
         for (Object o : saveSet) {
             JSONObject command = (JSONObject) o;
             // get table name
             String dataSet = (String) command.get("$$_DataSet_$$");
+
+            // get keys for this table
+            HashMap<String, ArrayList<Key>> dataSetKeys = Query.getKeys(getSession(), dataSet);
+
             // get the row
             Object o3 = command.get("$$_ROW_$$");
             // row may be a JSON array
@@ -134,12 +138,12 @@ public class Test {
                 // parse all JSON objects in the array
                 for (Object o2 : (JSONArray) o3) {
                     // add Query object resulted to the array result
-                    ret.add(parseJsonQuery((JSONObject) o2, dataSet));
+                    ret.add(parseJsonQuery((JSONObject) o2, dataSet, dataSetKeys));
                 }
             // or a JSON object
             } else if (o3 instanceof JSONObject) {
                 // parse JSON object and add the Query object resulted to the array result
-                ret.add(parseJsonQuery((JSONObject) o3, dataSet));
+                ret.add(parseJsonQuery((JSONObject) o3, dataSet, dataSetKeys));
             }
         }
         return ret;
@@ -158,7 +162,7 @@ public class Test {
 
             // get all information needed to create a new Query object
             TreeMap<String, String> knownFields = new TreeMap<>();
-            String XID = null, DataSet = null;
+            String XID = null, dataSet = null;
             for (Object key1 : XID_data.keySet()) {
                 String keyStr = (String) key1;
                 switch (keyStr) {
@@ -166,7 +170,7 @@ public class Test {
                         XID = XID_data.get("$$_XID_$$").toString();
                         break;
                     case "$$_DataSet_$$":
-                        DataSet = XID_data.get("$$_DataSet_$$").toString();
+                        dataSet = XID_data.get("$$_DataSet_$$").toString();
                         break;
                     default:
                         knownFields.put(keyStr, XID_data.get(keyStr).toString());
@@ -174,7 +178,7 @@ public class Test {
                 }
             }
             // save the info in a new XID object
-            XID_map.put(XID, new XID(XID, DataSet, knownFields));
+            XID_map.put(XID, new XID(XID, dataSet, knownFields, Query.getKeys(session, dataSet)));
         }
     }
 
@@ -185,7 +189,7 @@ public class Test {
      * @param dataSet table name
      * @return a new Query object with parsed information
      */
-    private static Query parseJsonQuery(JSONObject query, String dataSet) {
+    private static Query parseJsonQuery(JSONObject query, String dataSet, HashMap<String, ArrayList<Key>> dataSetKeys) {
         String CRUD = null;
         // unknownFields: {id -> XID}
         TreeMap<String, String> unknownFields = new TreeMap<>();
@@ -217,9 +221,8 @@ public class Test {
 
                             foreignKeys.put(referenced_XID, new ForeignKey(referenced_column, referencing_column));
                         } else {
-                            // save the XID encoding for the id field:
-                            // TODO: this may not always be the HARDCODED value "id"
-                            if (key.equals("id")) {
+                            // save the XID encoding for the primary key field:
+                            if (key.equals(dataSetKeys.get("PRIMARY KEY").get(0).columnName)) {
                                 XID = value;
                             }
 
@@ -229,7 +232,7 @@ public class Test {
                             if (!value.equals("$$_SysDateTime_$$")) {
                                 // add the unknown variable to the lookup table only if it is not a date
                                 // date is set at the start of the program's execution
-                                XID_map.put(value, null);
+                                XID_map.put(value, new XID(value, null, null, dataSetKeys));
                             }
                         }
                     // known fields
@@ -292,9 +295,11 @@ public class Test {
             time = getTime();
 
             // parse and apply the query contained in the JSON file
-            applyQuery("./src/JSON.json");
+            applyQuery("./src/JSON2.json");
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        Test.printMap("Final", Test.XID_map);
     }
 }
