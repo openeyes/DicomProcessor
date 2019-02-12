@@ -123,6 +123,7 @@ public class Query {
      */
     private void updateKnownUnknown() throws Exception {
         Iterator itr = unknownFields.entrySet().iterator();
+        String pk = Test.XID_map.get(XID).dataSetKeys.get("PRIMARY KEY").get(0).columnName;
 
         /* search through all unknown fields and if the encoding "$$_..._$$" has a value in Test.XID_map,
          * add it to the known fields and remove it from the unknownFields
@@ -130,6 +131,11 @@ public class Query {
         while(itr.hasNext()) {
             String id_unknown = ((Map.Entry<String, String>) itr.next()).getKey();
             String XID_unknown = unknownFields.get(id_unknown);
+
+            // do not remove PK from the unknown fields
+            if (pk.equals(id_unknown)) {
+                continue;
+            }
 
             // replace "$$_SysDateTime_$$" with the time set at the start of the program execution
             if (XID_unknown.equals("$$_SysDateTime_$$")) {
@@ -167,7 +173,9 @@ public class Query {
     }
 
     /**
-     * Construct the insert SQL query; then construct a select query to determine the ID of the newly inserted row
+     * Construct the insert SQL query; then construct a select query to determine the PK of the newly inserted row
+     * IMPORTANT: the tables must have AUTO-INCREMENT set to be able to insert any rows
+     *
      * @return query for selecting the id of the inserted row
      * @throws Exception Validation error
      */
@@ -228,12 +236,9 @@ public class Query {
 
         // WHERE	-> this.knownFields
         String condition = setToStringWithDelimiter(getEquals(knownFields, " is "), "AND");
-        // condition might be null -> there is no WHERE clause
-        // TODO: is it possible not to have any KnownFields??
-        String where = condition != null ? (" WHERE " + condition + ";") : "";
 
         // select the SQL query
-        this.query =  "SELECT " + select + " FROM " + this.dataSet + where;
+        this.query =  "SELECT " + select + " FROM " + this.dataSet + " WHERE " + condition + ";";
 
         // there is no secondary query to be executed after select
         return null;

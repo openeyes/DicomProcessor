@@ -295,7 +295,12 @@ public class Test {
             time = getTime();
 
             // parse and apply the query contained in the JSON file
-            applyQuery("./src/JSON2.json");
+            /* Test JSON2: retrieve + merge->insert */
+            // applyQuery("./src/JSON2.json");
+            /* Test JSON3: check if merge updates records from memory(XID_MAP) or previous selected values */
+            // applyQuery("./src/JSON3.json");
+            /* */
+            applyQuery("./src/JSON4.json");
         } catch (Exception e) {
             e.printStackTrace();
         }
