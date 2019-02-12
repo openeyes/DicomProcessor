@@ -13,7 +13,10 @@ import org.json.simple.parser.ParseException;
 
 public class Test {
 
-    static HashMap<String, XID> XID_map = new HashMap<>();
+    /* dataDictionary: keeps information about mappings $$_name[X]_$$ -> value */
+    static HashMap<String, XID> dataDictionary;
+    /* keyIndex: store information about the keys in the table: PK and UKs */
+    static HashMap<String, Key> keyIndex;
     private static String _OE_System;
     private static String _Version;
     private static Session session;
@@ -22,12 +25,21 @@ public class Test {
     /**
      * Pretty print HashMap with additional message
      * @param message Custom message
-     * @param XID_map HashMap to be printed
+     * @param dataDictionary HashMap to be printed
      */
-    static void printMap(String message, HashMap<String, XID> XID_map) {
+    static void printMap(String message, HashMap<String, XID> dataDictionary) {
         System.out.println("============");
         System.out.println(message);
-        for (Map.Entry<String, XID> entry : XID_map.entrySet()) {
+        for (Map.Entry<String, XID> entry : dataDictionary.entrySet()) {
+            System.out.println(entry.getKey() + "  =>  " + entry.getValue());
+        }
+        System.out.println("============");
+    }
+
+    static void printKeyMap(String message, HashMap<String, Key> dataDictionary) {
+        System.out.println("============");
+        System.out.println(message);
+        for (Map.Entry<String, Key> entry : dataDictionary.entrySet()) {
             System.out.println(entry.getKey() + "  =>  " + entry.getValue());
         }
         System.out.println("============");
@@ -45,8 +57,8 @@ public class Test {
             while (itr.hasNext()) {
                 Query query = (Query) itr.next();
 
-                // DEBUG purposes
-                Test.printMap("Test.map: ", Test.XID_map);
+                // DEBUG
+                Test.printMap("Test.map: ", Test.dataDictionary);
                 System.out.println("--" + query + "--");
 
                 // construct the SQL query based on the CRUD operation and the fields found in Query object
@@ -128,8 +140,8 @@ public class Test {
             // get table name
             String dataSet = (String) command.get("$$_DataSet_$$");
 
-            // get keys for this table
-            HashMap<String, ArrayList<Key>> dataSetKeys = Query.getKeys(getSession(), dataSet);
+            // get keys for this table and set them in Test.keyIndex
+            Query.setKeys(getSession(), dataSet);
 
             // get the row
             Object o3 = command.get("$$_ROW_$$");
@@ -138,12 +150,12 @@ public class Test {
                 // parse all JSON objects in the array
                 for (Object o2 : (JSONArray) o3) {
                     // add Query object resulted to the array result
-                    ret.add(parseJsonQuery((JSONObject) o2, dataSet, dataSetKeys));
+                    ret.add(parseJsonQuery((JSONObject) o2, dataSet));
                 }
             // or a JSON object
             } else if (o3 instanceof JSONObject) {
                 // parse JSON object and add the Query object resulted to the array result
-                ret.add(parseJsonQuery((JSONObject) o3, dataSet, dataSetKeys));
+                ret.add(parseJsonQuery((JSONObject) o3, dataSet));
             }
         }
         return ret;
@@ -155,7 +167,7 @@ public class Test {
      *
      * @param XID_Map_JSON array of JSON objects to be parsed
      */
-    private static void parse_XID_Map(JSONArray XID_Map_JSON) {
+    private static void parse_XID_Map(JSONArray XID_Map_JSON) throws Exception {
         // create a map of XID string pointing to a XID object: eg. "$$_event_type[1]_$$" => XID Object
         for (Object o : XID_Map_JSON) {
             JSONObject XID_data = (JSONObject) o;
@@ -177,8 +189,11 @@ public class Test {
                         break;
                 }
             }
+            // get keys for this table and set them in Test.keyIndex
+            Query.setKeys(getSession(), dataSet);
+
             // save the info in a new XID object
-            XID_map.put(XID, new XID(XID, dataSet, knownFields, Query.getKeys(session, dataSet)));
+            dataDictionary.put(XID, new XID(XID, dataSet, knownFields));
         }
     }
 
@@ -189,7 +204,7 @@ public class Test {
      * @param dataSet table name
      * @return a new Query object with parsed information
      */
-    private static Query parseJsonQuery(JSONObject query, String dataSet, HashMap<String, ArrayList<Key>> dataSetKeys) {
+    private static Query parseJsonQuery(JSONObject query, String dataSet) {
         String CRUD = null;
         // unknownFields: {id -> XID}
         TreeMap<String, String> unknownFields = new TreeMap<>();
@@ -222,7 +237,8 @@ public class Test {
                             foreignKeys.put(referenced_XID, new ForeignKey(referenced_column, referencing_column));
                         } else {
                             // save the XID encoding for the primary key field:
-                            if (key.equals(dataSetKeys.get("PRIMARY KEY").get(0).columnName)) {
+                            String pk = Test.keyIndex.get(dataSet).pk;
+                            if (key.equals(pk)) {
                                 XID = value;
                             }
 
@@ -232,7 +248,7 @@ public class Test {
                             if (!value.equals("$$_SysDateTime_$$")) {
                                 // add the unknown variable to the lookup table only if it is not a date
                                 // date is set at the start of the program's execution
-                                XID_map.put(value, new XID(value, null, null, dataSetKeys));
+                                dataDictionary.put(value, new XID(value, null, null));
                             }
                         }
                     // known fields
@@ -290,21 +306,35 @@ public class Test {
      */
     public static void main(String[] args) {
         try {
+            /* basic initialization */
+            dataDictionary = new HashMap<>();
+            keyIndex = new HashMap<>();
+
             // set session and time at the start of the execution
             session = getSession();
             time = getTime();
 
             // parse and apply the query contained in the JSON file
-            /* Test JSON2: retrieve + merge->insert */
+
+            /* Test JSON: create a new event: retrieve + merge->insert */
+            //applyQuery("./src/JSON.json");
+
+            /* Test JSON2: create a new attachment_data: retrieve + merge->insert */
             // applyQuery("./src/JSON2.json");
-            /* Test JSON3: check if merge updates records from memory(XID_MAP) or previous selected values */
+
+            /* Test JSON3: check if merge updates records from memory(dataDictionary) or previous selected values */
             // applyQuery("./src/JSON3.json");
-            /* */
-            applyQuery("./src/JSON4.json");
+
+            /* Test JSON4: reverse of JSON3 */
+            // applyQuery("./src/JSON4.json");
+
+            // applyQuery("./src/JSON5.json");
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        Test.printMap("Final", Test.XID_map);
+        // DEBUG
+        Test.printMap("Final", Test.dataDictionary);
+        Test.printKeyMap("Final", Test.keyIndex);
     }
 }

@@ -26,7 +26,7 @@
         {
           "$$_CRUD_$$": "retrieve",
           "body_site_snomed_type": "$$_body_site_type[1]_$$",
-          "title_short": "ABCD"
+          "title_short": "Right"
         }
       ]
     },
@@ -36,7 +36,7 @@
         {
           "$$_CRUD_$$": "merge",
           "body_site_snomed_type": "$$_body_site_type[1]_$$",
-          "title_short": "Right"
+          "title_short": "ABCD"
         }
       ]
     }

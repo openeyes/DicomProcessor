@@ -1,15 +1,19 @@
 package com.abehrdigital.dicomprocessor;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 class Key {
-    String columnName;
-    String tableName;
-    public Key(String columnName, String tableName) {
-        this.columnName = columnName;
-        this.tableName = tableName;
+    String pk;
+    HashMap<String, ArrayList<String>> uk;  //uk_name->[col1,col2..]
+
+    public Key(){}
+    public Key(String pk){
+        this.pk = pk;
     }
 
     @Override
     public String toString() {
-        return columnName + " -> " + tableName;
+        return "PK: " + pk + "   uk: " + uk;
     }
 }

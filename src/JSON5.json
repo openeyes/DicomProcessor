@@ -1,0 +1,43 @@
+{
+  "_OE_System": "ABEHR Jason Local v3.0",
+  "_Version": "v0.1",
+  "$$_XID_Map_$$": [
+    {
+      "$$_XID_$$": "$$_attachment_data[1]_$$",
+      "$$_DataSet_$$": "attachment_data",
+      "id": 2
+    }
+  ],
+  "$$_SaveSet[1]_$$": [
+    {
+      "$$_DataSet_$$": "attachment_data",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "retrieve",
+          "id": "$$_attachment_data[1]_$$",
+          "attachment_mnemonic": "mnemonic2"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "attachment_data",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "retrieve",
+          "id": "$$_attachment_data[2]_$$",
+          "attachment_mnemonic": "mnemonic2"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "body_site_type",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "retrieve",
+          "body_site_snomed_type": "$$_body_site_type[1]_$$",
+          "title_short": "Right"
+        }
+      ]
+    }
+  ]
+}
