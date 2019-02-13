@@ -11,7 +11,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-public class Test {
+public class DataAPI {
 
     /* dataDictionary: keeps information about mappings $$_name[X]_$$ -> value */
     static HashMap<String, XID> dataDictionary;
@@ -59,7 +59,7 @@ public class Test {
                 Query query = (Query) itr.next();
 
                 // DEBUG
-                Test.printMap("Test.map: ", Test.dataDictionary);
+                DataAPI.printMap("DataAPI.map: ", DataAPI.dataDictionary);
 
                 // construct the SQL query based on the CRUD operation and the fields found in Query object
                 int rows_affected = query.constructAndRunQuery();
@@ -101,10 +101,10 @@ public class Test {
                 case String:
                     switch (key.toString()) {
                     case "_OE_System":
-                        Test._OE_System = data.toString();
+                        DataAPI._OE_System = data.toString();
                         break;
                     case "_Version":
-                        Test._Version = data.toString();
+                        DataAPI._Version = data.toString();
                         break;
                     default:
                         break;
@@ -139,7 +139,7 @@ public class Test {
             // get table name
             String dataSet = (String) command.get("$$_DataSet_$$");
 
-            // get keys for this table and set them in Test.keyIndex
+            // get keys for this table and set them in DataAPI.keyIndex
             Query.setKeys(getSession(), dataSet);
 
             // get the row
@@ -188,7 +188,7 @@ public class Test {
                         break;
                 }
             }
-            // get keys for this table and set them in Test.keyIndex
+            // get keys for this table and set them in DataAPI.keyIndex
             Query.setKeys(getSession(), dataSet);
 
             // save the info in a new XID object
@@ -236,7 +236,7 @@ public class Test {
                             foreignKeys.put(referenced_XID, new ForeignKey(referenced_column, referencing_column));
                         } else {
                             // save the XID encoding for the primary key field:
-                            String pk = Test.keyIndex.get(dataSet).pk;
+                            String pk = DataAPI.keyIndex.get(dataSet).pk;
                             if (key.equals(pk)) {
                                 XID = value;
                             }
@@ -290,13 +290,13 @@ public class Test {
      * @throws Exception Cannot get current time.
      */
     static String getTime() throws Exception {
-        if (Test.time == null) {
-            Test.time = Query.getTime(session);
+        if (DataAPI.time == null) {
+            DataAPI.time = Query.getTime(session);
         }
         if (session == null) {
             throw new Exception("Could not get current date time!");
         }
-        return Test.time;
+        return DataAPI.time;
     }
 
     public static String getTemplate() {
@@ -331,8 +331,8 @@ public class Test {
         }
 
         // DEBUG
-        Test.printMap("Final", Test.dataDictionary);
-        Test.printKeyMap("Final", Test.keyIndex);
+        DataAPI.printMap("Final", DataAPI.dataDictionary);
+        DataAPI.printKeyMap("Final", DataAPI.keyIndex);
     }
 
     /**
@@ -340,6 +340,6 @@ public class Test {
      * @param args args
      */
     public static void main(String[] args) {
-        Test.magic("1", Test.getTemplate());
+        DataAPI.magic("1", DataAPI.getTemplate());
     }
 }
