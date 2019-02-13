@@ -37,8 +37,11 @@ public class Query {
 
     // construct sql query
     int constructAndRunQuery() throws Exception {
+        System.out.println("--" + this + "--");
+
         // before constructing the query, update the list of known and unknown fields
         updateKnownUnknown();
+        System.out.println("--" + this + "--");
 
         String secondary_query_insert;
         int rows_affected = 0;
@@ -256,14 +259,24 @@ public class Query {
      * Construct the update SQL query to be executed
      * @return second query to be executed
      */
-    private String constructUpdateQuery() {
+    private String constructUpdateQuery() throws Exception {
         XID xid = Test.dataDictionary.get(XID);
         String pk = Test.keyIndex.get(dataSet).pk;
+        String values = setToStringWithDelimiter(getEquals(knownFields, "="), ",");
+
+        if (knownFields.get("last_modified_date") == null) {
+            System.out.println("ooo: ");
+            values += ", last_modified_date='" + Test.getTime()+"'";
+        }
+
 
         // select the SQL query
         this.query =  "UPDATE " + this.dataSet +
-                " SET " + setToStringWithDelimiter(getEquals(knownFields, "="), ",") +
+                " SET " + values +
                 " WHERE " + pk + "='" + xid.knownFields.get(pk) + "'";
+
+        System.out.println("PP: " + values);
+        System.out.println("PP: " + this.query);
 
         // there is no secondary query to be executed after update: all information already in dataDictionary
         return null;

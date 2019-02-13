@@ -2,9 +2,18 @@
 	"_OE_System": "ABEHR Jason Local v3.0",
 	"_Version": "v0.1",
 	"$$_XID_Map_$$": [
-		
+		{
+			"$$_XID_$$": "$$_pacient[1]_$$",
+			"$$_DataSet_$$": "pacient",
+			"id": "1915594"
+		},
+		{
+			"$$_XID_$$": "$$_attachment_data[1]_$$",
+			"$$_DataSet_$$": "attachment_data",
+			"id": "1"
+		}
 	],
-	"$$_SaveSet[1]_$$": [ 
+	"$$_SaveSet[1]_$$": [
 		{
 			"$$_DataSet_$$": "user",
 			"$$_ROW_$$": [
@@ -14,7 +23,8 @@
 					"username": "admin"
 				}
 			]
-		}, {
+		},
+		{
 			"$$_DataSet_$$": "event_type",
 			"$$_ROW_$$": [
 				{
@@ -23,7 +33,8 @@
 					"name": "Examination"
 				}
 			]
-		}, {
+		},
+		{
 			"$$_DataSet_$$": "subspecialty",
 			"$$_ROW_$$": [
 				{
@@ -32,7 +43,8 @@
 					"name": "General Ophthalmology"
 				}
 			]
-		}, {
+		},
+		{
 			"$$_DataSet_$$": "service",
 			"$$_ROW_$$": [
 				{
@@ -41,7 +53,8 @@
 					"name": "Eye Casualty Service"
 				}
 			]
-		}, {
+		},
+		{
 			"$$_DataSet_$$": "service_subspecialty_assignment",
 			"$$_ROW_$$": [
 				{
@@ -51,7 +64,8 @@
 					"subspecialty_id": "$$_subspecialty[1].id_$$"
 				}
 			]
-		}, {
+		},
+		{
 			"$$_DataSet_$$": "firm",
 			"$$_ROW_$$": [
 				{
@@ -60,17 +74,19 @@
 					"service_subspecialty_assignment_id": "$$_service_subspecialty_assignment[1].id_$$"
 				}
 			]
-		}, {
+		},
+		{
 			"$$_DataSet_$$": "episode",
 			"$$_ROW_$$": [
 				{
 					"$$_CRUD_$$": "retrieve",
 					"id": "$$_episode[1]_$$",
-					"patient_id": 1915594,
+					"patient_id": "$$_pacient[1]_$$",
 					"firm_id": "$$_firm[1].id_$$"
 				}
 			]
-		}, {
+		},
+		{
 			"$$_DataSet_$$": "event",
 			"$$_ROW_$$": {
 				"$$_CRUD_$$": "merge",
@@ -92,7 +108,40 @@
 				"sub_type": "null",
 				"pas_visit_id": "null",
 				"firm_id": "$$_firm[1].id_$$"
-			},
+			}
+		},
+		{
+			"$$_DataSet_$$": "element_type",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "retrieve",
+					"id": "$$_element_type[1]_$$",
+					"name": "Attachment"
+				}
+			]
+		},
+		{
+			"$$_DataSet_$$": "event_attachment_group",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "merge",
+					"id": "$$_event_attachment_group[1]_$$",
+					"event_id": "$$_event[1].id_$$",
+					"element_type_id": "$$_element_type[1].id_$$"
+				}
+			]
+		},
+		{
+			"$$_DataSet_$$": "event_attachment_item",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "merge",
+					"id": "$$_event_attachment_item[1]_$$",
+					"event_attachment_group_id": "$$_event_attachment_group[1].id_$$",
+					"attachment_data_id": "$$_attachment_data[1].id_$$",
+					"system_only_managed": "1"
+				}
+			]
 		}
-	],
+	]
 }

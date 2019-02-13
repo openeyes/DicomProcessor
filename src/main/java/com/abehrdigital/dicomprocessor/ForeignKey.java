@@ -11,6 +11,6 @@ public class ForeignKey {
 
     @Override
     public String toString() {
-        return referencing_column + ">" + referenced_column;
+        return referencing_column + "=>" + referenced_column;
     }
 }

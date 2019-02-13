@@ -21,6 +21,7 @@ public class Test {
     private static String _Version;
     private static Session session;
     private static String time;
+    private static String user_id;
 
     /**
      * Pretty print HashMap with additional message
@@ -48,10 +49,10 @@ public class Test {
     /**
      * apply the actions inside a json string to the database
      */
-    private static void applyQuery(String jsonFileName) {
+    private static void applyQuery(String JSON_data) {
         ArrayList<Query> queries;
         try {
-            queries = parseJson(jsonFileName);
+            queries = parseJson(JSON_data);
             Iterator itr = queries.iterator();
 
             while (itr.hasNext()) {
@@ -59,7 +60,6 @@ public class Test {
 
                 // DEBUG
                 Test.printMap("Test.map: ", Test.dataDictionary);
-                System.out.println("--" + query + "--");
 
                 // construct the SQL query based on the CRUD operation and the fields found in Query object
                 int rows_affected = query.constructAndRunQuery();
@@ -82,16 +82,15 @@ public class Test {
     /**
      * Open and parse a JSON file and return a list of Query objects
      *
-     * @param filename name of the json to be parsed
+     * @param JSON_data name of the json to be parsed
      * @return a list of Query objects, containing parsed information from the json
      * @throws IOException file not found
      * @throws ParseException parser exception
      */
-    private static ArrayList<Query> parseJson(String filename) throws Exception {
+    private static ArrayList<Query> parseJson(String JSON_data) throws Exception {
         ArrayList<Query> ret = new ArrayList<>();
         JSONParser parser = new JSONParser();
-        FileReader reader = new FileReader(filename);
-        JSONObject json = (JSONObject) parser.parse(reader);
+        JSONObject json = (JSONObject) parser.parse(JSON_data);
 
         for (Object key : json.keySet()) {
             Object data = json.get(key.toString());
@@ -300,35 +299,33 @@ public class Test {
         return Test.time;
     }
 
-    /**
-     * Main function
-     * @param args args
-     */
-    public static void main(String[] args) {
+    public static String getTemplate() {
         try {
+            JSONParser parser = new JSONParser();
+
+            FileReader reader = new FileReader("./src/JSON.json");
+            JSONObject json = (JSONObject) parser.parse(reader);
+
+            return json.toJSONString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static void magic(String id, String JSON_data) {
+        try {
+            //TODO: use "user_id" for insert/merge operations
             /* basic initialization */
             dataDictionary = new HashMap<>();
             keyIndex = new HashMap<>();
+            user_id = id;
 
             // set session and time at the start of the execution
             session = getSession();
             time = getTime();
 
-            // parse and apply the query contained in the JSON file
-
-            /* Test JSON: create a new event: retrieve + merge->insert */
-            //applyQuery("./src/JSON.json");
-
-            /* Test JSON2: create a new attachment_data: retrieve + merge->insert */
-            // applyQuery("./src/JSON2.json");
-
-            /* Test JSON3: check if merge updates records from memory(dataDictionary) or previous selected values */
-            // applyQuery("./src/JSON3.json");
-
-            /* Test JSON4: reverse of JSON3 */
-            // applyQuery("./src/JSON4.json");
-
-            // applyQuery("./src/JSON5.json");
+            applyQuery(JSON_data);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -336,5 +333,13 @@ public class Test {
         // DEBUG
         Test.printMap("Final", Test.dataDictionary);
         Test.printKeyMap("Final", Test.keyIndex);
+    }
+
+    /**
+     * Main function
+     * @param args args
+     */
+    public static void main(String[] args) {
+        Test.magic("1", Test.getTemplate());
     }
 }
