@@ -94,7 +94,7 @@ public class RequestWorkerService {
                         "dicom_queue")
                         .build();
 
-                daoManager.getRequestRoutineDao().save(requestRoutine);
+                daoManager.getRequestRoutineDao().saveWithNewExecutionSequence(requestRoutine);
             } else {
                 throw new HibernateException("Routine in the library doesn't exist");
             }

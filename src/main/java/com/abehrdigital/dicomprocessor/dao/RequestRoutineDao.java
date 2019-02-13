@@ -25,15 +25,20 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
 
     @Override
     public void save(RequestRoutine entity) {
-        int executeSequence = getNextExecutionSequence();
-        entity.setExecuteSequence(executeSequence);
         session.save(entity);
     }
 
-    private int getNextExecutionSequence() {
+    public void saveWithNewExecutionSequence(RequestRoutine entity) {
+        int executeSequence = getNextExecutionSequence(entity.getRequestId());
+        entity.setExecuteSequence(executeSequence);
+        save(entity);
+    }
+
+    private int getNextExecutionSequence(int requestId) {
         CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
         CriteriaQuery<RequestRoutine> criteriaQuery = criteriaBuilder.createQuery(RequestRoutine.class);
         Root<RequestRoutine> root = criteriaQuery.from(RequestRoutine.class);
+        criteriaQuery.where(criteriaBuilder.equal(root.get("requestId"), requestId));
         criteriaQuery.orderBy(criteriaBuilder.desc(root.get("id")));
         RequestRoutine latestRoutine = session.createQuery(criteriaQuery).setMaxResults(1).getSingleResult();
         return (latestRoutine.getExecuteSequence() + EXECUTE_SEQUENCE_NEW_ROUTINE_INCREMENT);
