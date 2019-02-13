@@ -3,17 +3,19 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.abehrdigital.dicomprocessor.utils;
+package com.abehrdigital.dicomprocessor.dao;
 
 /**
  * @author admin
  */
-public enum Status {
-    NEW(),
-    RETRY(),
-    COMPLETE(),
-    FAILED(),
-    PAUSE(),
-    VOID()
+public interface BaseDao<T, Id> {
+    public T get(Id id);
+
+    public void save(T entity);
+
+    public void update(T entity);
+
+    public void delete(T entity);
 }
+
 

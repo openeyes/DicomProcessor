@@ -1,11 +1,10 @@
-package com.abehrdigital.dicomprocessor;
+package com.abehrdigital.dicomprocessor.utils;
 
 import org.apache.pdfbox.io.RandomAccessBuffer;
 import org.apache.pdfbox.io.RandomAccessRead;
 import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
 
 import java.awt.*;
@@ -13,23 +12,23 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 
 public class PDFUtils {
-    public static PDDocument extractPdfFromBytes(byte[] binaryPDF){ //TODO: Check if PDDocument.load() solves this instead
+    public static PDDocument extractPdfFromBytes(byte[] binaryPDF) { //TODO: Check if PDDocument.load() solves this instead
         PDFParser pdfParser = null;
         PDDocument pdDocument = null;
 
         RandomAccessRead pdfData = new RandomAccessBuffer(binaryPDF);
 
-        try{
+        try {
             pdfParser = new PDFParser(pdfData);
             pdfParser.parse();
             pdDocument = pdfParser.getPDDocument();
-        } catch (IOException ex){
+        } catch (IOException ex) {
             System.out.println("Exception to be handled later"); //TODO: need some added exception handling
         }
         return pdDocument;
     }
 
-    public static void savePdf(PDDocument pdf, String filepath){
+    public static void savePdf(PDDocument pdf, String filepath) {
         try {
             pdf.save(filepath);
         } catch (IOException e) {
@@ -38,12 +37,12 @@ public class PDFUtils {
     }
 
     //returns the width of the page in points (1pt = 1/72")
-    public static double pageWidth(PDPage page){
+    public static double pageWidth(PDPage page) {
         return page.getMediaBox().getWidth();
     }
 
     //returns the height of the page in points (1pt = 1/72")
-    public static double pageHeight(PDPage page){
+    public static double pageHeight(PDPage page) {
         return page.getMediaBox().getHeight();
     }
 
@@ -55,7 +54,7 @@ public class PDFUtils {
         String regionName = "testRegion";
         stripper.addRegion(regionName, region);
         stripper.extractRegions(page);
-       
+
         return stripper.getTextForRegion("testRegion");
     }
 }

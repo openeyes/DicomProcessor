@@ -3,16 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.abehrdigital.dicomprocessor;
+package com.abehrdigital.dicomprocessor.dao;
 
-import com.abehrdigital.dicomprocessor.models.RequestQueue;
 import com.abehrdigital.dicomprocessor.models.RequestQueueLock;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
 
 /**
- *
  * @author admin
  */
 public class RequestQueueLockDao implements BaseDao<RequestQueueLock, String> {
@@ -22,8 +20,8 @@ public class RequestQueueLockDao implements BaseDao<RequestQueueLock, String> {
         this.session = session;
     }
 
-    public RequestQueueLock getWithLock (String queueName , LockMode lockMode) {
-        return  session.get(
+    public RequestQueueLock getWithLock(String queueName, LockMode lockMode) {
+        return session.get(
                 RequestQueueLock.class, queueName,
                 new LockOptions(lockMode)
         );
@@ -31,7 +29,7 @@ public class RequestQueueLockDao implements BaseDao<RequestQueueLock, String> {
 
     @Override
     public RequestQueueLock get(String id) {
-        return  session.get(RequestQueueLock.class, id);
+        return session.get(RequestQueueLock.class, id);
     }
 
     @Override

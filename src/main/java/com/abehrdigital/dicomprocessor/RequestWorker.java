@@ -1,111 +1,126 @@
 package com.abehrdigital.dicomprocessor;
 
+import com.abehrdigital.dicomprocessor.models.Request;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RequestRoutineExecution;
+import com.abehrdigital.dicomprocessor.utils.DaoFactory;
+import com.abehrdigital.dicomprocessor.utils.Status;
 
+import javax.persistence.OptimisticLockException;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import java.io.StringWriter;
 import java.util.Calendar;
-import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class RequestWorker implements Runnable {
-    private int requestId;
-    private final Map<Integer, Runnable> requestIdToThreadSyncMap;
-    private RequestWorkerService service;
+import static com.abehrdigital.dicomprocessor.utils.StackTraceUtil.getStackTraceAsString;
 
-    public RequestWorker(int requestId, String requestQueueName, Map<Integer, Runnable> requestIdToThreadSyncMap) {
+public class RequestWorker implements Runnable {
+    private static final String ENGINE_NAME = "JavaScript";
+    private int requestId;
+    private final RequestThreadListener threadListener;
+    private RequestWorkerService service;
+    private int successfulRoutineCount;
+    private int failedRoutineCount;
+
+    public RequestWorker(int requestId, String requestQueueName, RequestThreadListener threadListener) {
         this.requestId = requestId;
-        this.requestIdToThreadSyncMap = requestIdToThreadSyncMap;
+        this.threadListener = threadListener;
         service = new RequestWorkerService(
                 DaoFactory.createScriptEngineDaoManager(),
                 requestId,
                 requestQueueName
         );
+        successfulRoutineCount = 0;
+        failedRoutineCount = 0;
     }
 
     @Override
     public void run() {
-        // INFINITY !!!!LOOP
-        service.beginTransaction();
-        Request lockedRequest = service.getRequestWithLock();
+        try {
+            while (true) {
+                service.beginTransaction();
+                service.clearCache();
+                Request lockedRequest = service.getRequestWithLock();
 
-        if (lockedRequest == null) {
-            deQueue(0, 0);
+                if (lockedRequest == null) {
+                    throw new Exception("Failed to lock the request row");
+                }
+
+                RequestRoutine routineForProcessing = service.getNextRoutineToProcess();
+                if (routineForProcessing != null) {
+                    executeRequestRoutine(routineForProcessing);
+                } else {
+                    break;
+                }
+            }
+        } catch (Exception exception) {
+            Logger.getLogger(RequestWorker.class.getName()).log(Level.SEVERE, exception.toString());
+        } finally {
+            service.shutDown();
+            threadListener.deQueue(requestId, successfulRoutineCount, failedRoutineCount);
         }
-
-        // CHECK IF NOT EMPTY
-        RequestRoutine routineForProcessing = service.getNextRoutineToProcess();
-
-        executeRequestRoutine(routineForProcessing);
-
-        // END LOOP
     }
 
     private void executeRequestRoutine(RequestRoutine routineForProcessing) {
-
-
-        String routineBody = service.getRoutineBody(routineForProcessing.getRoutineName());
         String logMessage = "";
-
+        Status routineStatus = Status.FAILED;
         try {
-            ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
-
+            String routineBody = service.getRoutineBody(routineForProcessing.getRoutineName());
+            ScriptEngine engine = new ScriptEngineManager().getEngineByName(ENGINE_NAME);
+            StringWriter engineScriptWriter = new StringWriter();
+            redirectEngineOutputToWriter(engine, engineScriptWriter);
             engine.put("controller", service);
             engine.eval(routineBody);
+            logMessage += engineScriptWriter;
+            routineStatus = Status.COMPLETE;
+            routineForProcessing.updateFieldsByStatus(routineStatus);
+            service.updateRequestRoutine(routineForProcessing);
+            //Request table lock released when transaction is committed
             service.commit();
-
-            routineForProcessing.successfulExecution();
+            successfulRoutineCount++;
+        } catch (OptimisticLockException lockException) {
+            service.rollback();
+            logMessage += lockException.toString();
+            routineStatus = Status.RETRY;
         } catch (Exception exception) {
             service.rollback();
-            Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-         "REQUEST WORKER EXCEPTION WHEN EVALUATING JAVASCRIPT ->  " + exception.toString());
-            routineForProcessing.failedExecution();
-            System.out.println(exception.toString());
-            logMessage = exception.toString();
+            Logger.getLogger(RequestWorker.class.getName()).log(Level.SEVERE,
+                    "REQUEST WORKER EXCEPTION WHEN EVALUATING JAVASCRIPT ->  " + getStackTraceAsString(exception));
+            logMessage += getStackTraceAsString(exception);
         }
 
         try {
             service.beginTransaction();
+            if (routineStatus == Status.FAILED) {
+                routineForProcessing.updateFieldsByStatus(routineStatus);
+                service.updateRequestRoutine(routineForProcessing);
+                failedRoutineCount++;
+            }
             service.saveRequestRoutineExecution(createRequestExecution(routineForProcessing, logMessage));
-            service.updateRequestRoutine(routineForProcessing);
             service.commit();
-        } catch (Exception exception){
+        } catch (Exception exception) {
             service.rollback();
-            Logger.getLogger(DicomEngine.class.getName(), "REQUEST WORKER EXCEPTION HERE ->" +
-                    " WHEN SAVING REQUEST EXECUTION AND REQUEST ROUTINE " + exception.toString());
-            System.out.println(exception.toString());
+            Logger.getLogger(RequestWorker.class.getName(), getStackTraceAsString(exception));
         }
+    }
 
-        deQueue(1,0);
-        service.shutDown();
+    private void redirectEngineOutputToWriter(ScriptEngine engine, StringWriter engineScriptWriter) {
+        ScriptContext context = engine.getContext();
+        context.setWriter(engineScriptWriter);
+        context.setErrorWriter(engineScriptWriter);
     }
 
     private RequestRoutineExecution createRequestExecution(RequestRoutine routineForProcessing, String logMessage) {
-        return
-                new RequestRoutineExecution(
-                        logMessage,
-                        routineForProcessing.getId(),
-                        new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()),
-                        routineForProcessing.getStatus().getExecutionStatus(),
-                        routineForProcessing.getTryCount());
-    }
-
-    private void deQueue(int successIncrement, int failIncrement) {
-        int currentActiveThreads;
-        synchronized (requestIdToThreadSyncMap){
-            requestIdToThreadSyncMap.remove(requestId);
-            currentActiveThreads = requestIdToThreadSyncMap.size();
-        }
-
-
-        service.updateActiveThreadCount(currentActiveThreads);
-
-        //TO DO NEW MIGRATION FOR SUCCESS AND FAILURE THREAD COUNT
-//        requestQueue.incrementThreadSuccessAndFailureCount(successIncrement , failIncrement);
-//        requestQueue.setTotalActiveThreadCount(currentActiveThreads);
-//
-//        workerDaoManager.getRequestQueueDao().save(requestQueue);
+        return new RequestRoutineExecution(
+                logMessage,
+                routineForProcessing.getId(),
+                new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()),
+                routineForProcessing.getStatus(),
+                routineForProcessing.getTryCount()
+        );
     }
 }

@@ -5,18 +5,20 @@
  */
 package com.abehrdigital.dicomprocessor.models;
 
-import java.sql.Timestamp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.sql.Timestamp;
+import java.util.Calendar;
 
 /**
  * @author admin
  */
 @Entity
 @Table(name = "request_queue")
-public class RequestQueue {
+public class
+RequestQueue {
     @Id
     @Column(name = "request_queue")
     private String requestQueue;
@@ -26,6 +28,10 @@ public class RequestQueue {
     private int totalActiveThreadCount;
     @Column(name = "total_execute_count")
     private int totalExecuteCount;
+    @Column(name = "total_success_count")
+    private int totalSuccessCount;
+    @Column(name = "total_fail_count")
+    private int totalFailCount;
     @Column(name = "busy_yield_ms")
     private int busyYieldMs;
     @Column(name = "idle_yield_ms")
@@ -34,6 +40,8 @@ public class RequestQueue {
     private Timestamp lastPollDate;
     @Column(name = "last_thread_spawn_date")
     private Timestamp lastThreadSpawnDate;
+
+
     @Column(name = "last_thread_spawn_request_id")
     private Integer lastThreadSpawnRequestId;
 
@@ -58,6 +66,26 @@ public class RequestQueue {
 
     public void setTotalActiveThreadCount(int currentActiveThreads) {
         totalActiveThreadCount = currentActiveThreads;
+    }
+
+    public void incrementSuccessCount(int count) {
+        totalSuccessCount += count;
+    }
+
+    public void incrementFailCount(int failedRoutineCount) {
+        totalFailCount += failedRoutineCount;
+    }
+
+    public void updateTotalExecuteCount() {
+        totalExecuteCount = totalSuccessCount + totalFailCount;
+    }
+
+    public void setLastThreadSpawnDateToCurrentTimestamp() {
+        this.lastThreadSpawnDate = new Timestamp(Calendar.getInstance().getTimeInMillis());
+    }
+
+    public void setLastThreadSpawnRequestId(int requestId) {
+        this.lastThreadSpawnRequestId = requestId;
     }
 
     public static class Builder {

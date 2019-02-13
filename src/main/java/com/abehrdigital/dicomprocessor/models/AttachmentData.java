@@ -5,13 +5,10 @@
  */
 package com.abehrdigital.dicomprocessor.models;
 
-import com.abehrdigital.dicomprocessor.*;
-import java.sql.Blob;
-import java.sql.Date;
 import javax.persistence.*;
+import java.sql.Blob;
 
 /**
- *
  * @author admin
  */
 @Entity
@@ -26,7 +23,7 @@ public class AttachmentData {
     private Integer requestId;
     @Column(name = "blob_data")
     private Blob blobData;
-    @Column(name = "json_data" , columnDefinition = "LONGTEXT")
+    @Column(name = "json_data", columnDefinition = "LONGTEXT")
     private String jsonData;
     @Column(name = "attachment_type")
     private String attachmentType;
@@ -38,10 +35,10 @@ public class AttachmentData {
     private String attachmentMnemonic;
     @Column(name = "system_only_managed")
     private int systemOnlyManaged;
-    
-    public AttachmentData(){
+
+    public AttachmentData() {
     }
-    
+
     public static class Builder {
         //Required
         private final int requestId;
@@ -49,36 +46,36 @@ public class AttachmentData {
         private final String attachmentMnemonic;
         private final String attachmentType;
         private final String bodySiteSnomedType;
-        
+
         private int systemOnlyManaged = 0;
         private String jsonData = null;
         private Blob blobData = null;
-        
-        public Builder(int requestId , String mimeType ,
-                String attachmentMnemonic , String attachmentType ,
-                String bodySiteSnomedType){
+
+        public Builder(int requestId, String mimeType,
+                       String attachmentMnemonic, String attachmentType,
+                       String bodySiteSnomedType) {
             this.requestId = requestId;
             this.mimeType = mimeType;
             this.attachmentMnemonic = attachmentMnemonic;
             this.attachmentType = attachmentType;
             this.bodySiteSnomedType = bodySiteSnomedType;
         }
-        
-        public Builder systemOnlyManaged (int val){
+
+        public Builder systemOnlyManaged(int val) {
             systemOnlyManaged = val;
             return this;
         }
-        
-        public Builder jsonData (String val){
+
+        public Builder jsonData(String val) {
             jsonData = val;
             return this;
         }
-        
-        public Builder blobData (Blob val){
+
+        public Builder blobData(Blob val) {
             blobData = val;
             return this;
         }
-        
+
         public AttachmentData build() {
             return new AttachmentData(this);
         }

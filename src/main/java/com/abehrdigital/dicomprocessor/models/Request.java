@@ -3,24 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.abehrdigital.dicomprocessor;
+package com.abehrdigital.dicomprocessor.models;
 
-import com.abehrdigital.dicomprocessor.models.*;
-import com.abehrdigital.dicomprocessor.utils.Status;
-import java.sql.Blob;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.logging.Logger;
 import javax.persistence.*;
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
 
 /**
- *
  * @author admin
  */
 @Entity

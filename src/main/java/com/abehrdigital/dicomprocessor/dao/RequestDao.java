@@ -1,7 +1,7 @@
-package com.abehrdigital.dicomprocessor;
+package com.abehrdigital.dicomprocessor.dao;
 
+import com.abehrdigital.dicomprocessor.models.Request;
 import org.hibernate.LockMode;
-import org.hibernate.LockOptions;
 import org.hibernate.Session;
 
 public class RequestDao implements BaseDao<Request, Integer> {
@@ -33,7 +33,7 @@ public class RequestDao implements BaseDao<Request, Integer> {
 
     public Request getWithLock(int requestId, LockMode lockMode) {
         return session.get(
-                Request.class, requestId , lockMode
+                Request.class, requestId, lockMode
         );
     }
 }

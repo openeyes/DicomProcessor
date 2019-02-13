@@ -3,10 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.abehrdigital.dicomprocessor;
+package com.abehrdigital.dicomprocessor.dao;
 
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
 import org.hibernate.Session;
+
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -65,7 +66,7 @@ public class AttachmentDataDao implements BaseDao<AttachmentData, Integer> {
         criteriaQuery.where(predicates.stream().toArray(Predicate[]::new));
 
         List<AttachmentData> attachmentDataList = session.createQuery(criteriaQuery).getResultList();
-        if(attachmentDataList.size() == 0){
+        if (attachmentDataList.size() == 0) {
             return null;
         } else {
             return attachmentDataList.get(0);

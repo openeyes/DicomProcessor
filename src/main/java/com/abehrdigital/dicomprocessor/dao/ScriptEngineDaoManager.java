@@ -1,4 +1,4 @@
-package com.abehrdigital.dicomprocessor;
+package com.abehrdigital.dicomprocessor.dao;
 
 public class ScriptEngineDaoManager extends BaseDaoManager {
     private RoutineLibraryDao routineLibraryDao;
@@ -9,7 +9,7 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     private RequestQueueDao requestQueueDao;
 
 
-    public ScriptEngineDaoManager(){
+    public ScriptEngineDaoManager() {
     }
 
     public RoutineLibraryDao getRoutineLibraryDao() {
@@ -64,12 +64,12 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     }
 
     public void rollback() {
-        if(getConnection().getTransaction() != null)
-        getConnection().getTransaction().rollback();
+        if (getConnection().getTransaction() != null)
+            getConnection().getTransaction().rollback();
     }
 
     public void shutdown() {
-        if(getConnection() != null){
+        if (getConnection() != null) {
             getConnection().disconnect();
         }
     }

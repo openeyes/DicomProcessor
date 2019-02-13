@@ -1,15 +1,15 @@
 package com.abehrdigital.dicomprocessor;
 
+import com.abehrdigital.dicomprocessor.utils.PDFUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.io.IOException;
-import java.sql.SQLException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.dcm4che3.data.Sequence;
 
-import java.util.Map;
 import javax.sql.rowset.serial.SerialBlob;
-import org.apache.pdfbox.pdmodel.PDPage;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Map;
 
 public class Study {
 

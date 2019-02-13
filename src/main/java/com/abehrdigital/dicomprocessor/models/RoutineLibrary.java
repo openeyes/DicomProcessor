@@ -5,9 +5,12 @@
  */
 package com.abehrdigital.dicomprocessor.models;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
 /**
- *
  * @author admin
  */
 @Entity
@@ -16,12 +19,12 @@ public class RoutineLibrary {
     @Id
     @Column(name = "routine_name")
     private String routineName;
-    @Column(name = "routine_body" , columnDefinition = "TEXT")
+    @Column(name = "routine_body", columnDefinition = "TEXT")
     private String routineBody;
-    @Column(name = "hash_code" , columnDefinition = "BIGINT")
+    @Column(name = "hash_code", columnDefinition = "BIGINT")
     private Integer hashCode;
-    
-    public RoutineLibrary(){
+
+    public RoutineLibrary() {
     }
 
     public RoutineLibrary(String routineName, String routineBody, Integer hashCode) {
@@ -34,7 +37,7 @@ public class RoutineLibrary {
         this.routineName = routineName;
         this.routineBody = routineBody;
     }
-    
+
     public String getRoutineBody() {
         return routineBody;
     }

@@ -1,11 +1,9 @@
-package com.abehrdigital.dicomprocessor;
+package com.abehrdigital.dicomprocessor.dao;
 
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.utils.Status;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
-import org.hibernate.type.IntegerType;
-import org.hibernate.type.StringType;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -14,6 +12,7 @@ import java.util.List;
 
 public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
     private Session session;
+    private final static int EXECUTE_SEQUENCE_NEW_ROUTINE_INCREMENT = 10;
 
     public RequestRoutineDao(Session session) {
         this.session = session;
@@ -27,6 +26,22 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
     @Override
     public void save(RequestRoutine entity) {
         session.save(entity);
+    }
+
+    public void saveWithNewExecutionSequence(RequestRoutine entity) {
+        int executeSequence = getNextExecutionSequence(entity.getRequestId());
+        entity.setExecuteSequence(executeSequence);
+        save(entity);
+    }
+
+    private int getNextExecutionSequence(int requestId) {
+        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+        CriteriaQuery<RequestRoutine> criteriaQuery = criteriaBuilder.createQuery(RequestRoutine.class);
+        Root<RequestRoutine> root = criteriaQuery.from(RequestRoutine.class);
+        criteriaQuery.where(criteriaBuilder.equal(root.get("requestId"), requestId));
+        criteriaQuery.orderBy(criteriaBuilder.desc(root.get("id")));
+        RequestRoutine latestRoutine = session.createQuery(criteriaQuery).setMaxResults(1).getSingleResult();
+        return (latestRoutine.getExecuteSequence() + EXECUTE_SEQUENCE_NEW_ROUTINE_INCREMENT);
     }
 
     @Override
@@ -49,10 +64,10 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
                 "SELECT * " +
                 "FROM request_routine subrr " +
                 "WHERE subrr.request_id = rr.request_id " +
-                "AND subrr.id < rr.id " +
+                "AND subrr.execute_sequence < rr.execute_sequence " +
                 "AND subrr.status NOT IN (:complete_status , :void_status) " +
                 ")" +
-                "ORDER BY rr.request_id"
+                "ORDER BY rr.execute_sequence"
         )
                 .addEntity("rr", RequestRoutine.class)
                 .setParameter("request_queue", requestQueue)
@@ -64,8 +79,8 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
         return query.getResultList();
     }
 
-    public RequestRoutine getRequestRoutineForProcessing(int requestId, String requestQueue) {
-        NativeQuery query = session.createSQLQuery("" +
+    public RequestRoutine getRequestRoutineWithRequestIdForProcessing(int requestId, String requestQueue) {
+        NativeQuery query = session.createSQLQuery(
                 "SELECT * FROM request_routine rr " +
                 "WHERE rr.execute_request_queue = :request_queue " +
                 "AND rr.status IN( :new_status , :retry_status) " +
@@ -75,10 +90,11 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
                 "SELECT * " +
                 "FROM request_routine subrr " +
                 "WHERE subrr.request_id = rr.request_id " +
-                "AND subrr.id < rr.id " +
+                "AND subrr.execute_sequence < rr.execute_sequence " +
                 "AND subrr.status NOT IN (:complete_status , :void_status) " +
-                ")" +
-                "ORDER BY rr.request_id"
+                ") " +
+                "ORDER BY rr.id " +
+                "LIMIT 1 "
         )
                 .addEntity("rr", RequestRoutine.class)
                 .setParameter("request_queue", requestQueue)
@@ -99,7 +115,7 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
 
     public RequestRoutine findByRoutineNameAndRequestId(int requestId, String routineName) {
         CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-        CriteriaQuery criteriaQuery = criteriaBuilder.createQuery(RequestRoutine.class);
+        CriteriaQuery<RequestRoutine> criteriaQuery = criteriaBuilder.createQuery(RequestRoutine.class);
         Root<RequestRoutine> root = criteriaQuery.from(RequestRoutine.class);
 
         criteriaQuery.where(
@@ -114,13 +130,12 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
         if (requestRoutines.size() == 0) {
             return null;
         } else {
-            requestRoutines.get(0);
+            return session.createQuery(criteriaQuery).getResultList().get(0);
         }
-        return (RequestRoutine) session.createQuery(criteriaQuery).getResultList().get(0);
     }
 
     public void resetRequestRoutine(RequestRoutine requestRoutine) {
         requestRoutine.reset();
-        save(requestRoutine);
+        update(requestRoutine);
     }
 }
