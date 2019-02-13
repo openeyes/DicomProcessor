@@ -59,7 +59,7 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
                 "SELECT * " +
                 "FROM request_routine subrr " +
                 "WHERE subrr.request_id = rr.request_id " +
-                "AND subrr.id < rr.id " +
+                "AND subrr.execute_sequence < rr.execute_sequence " +
                 "AND subrr.status NOT IN (:complete_status , :void_status) " +
                 ")" +
                 "ORDER BY rr.execute_sequence"
@@ -75,7 +75,7 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
     }
 
     public RequestRoutine getRequestRoutineWithRequestIdForProcessing(int requestId, String requestQueue) {
-        NativeQuery query = session.createSQLQuery("" +
+        NativeQuery query = session.createSQLQuery(
                 "SELECT * FROM request_routine rr " +
                 "WHERE rr.execute_request_queue = :request_queue " +
                 "AND rr.status IN( :new_status , :retry_status) " +
@@ -85,10 +85,11 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
                 "SELECT * " +
                 "FROM request_routine subrr " +
                 "WHERE subrr.request_id = rr.request_id " +
-                "AND subrr.id < rr.id " +
+                "AND subrr.execute_sequence < rr.execute_sequence " +
                 "AND subrr.status NOT IN (:complete_status , :void_status) " +
-                ")" +
-                "ORDER BY rr.execute_sequence"
+                ") " +
+                "ORDER BY rr.id " +
+                "LIMIT 1 "
         )
                 .addEntity("rr", RequestRoutine.class)
                 .setParameter("request_queue", requestQueue)

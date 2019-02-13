@@ -5,7 +5,11 @@
  */
 package com.abehrdigital.dicomprocessor.models;
 
+import com.abehrdigital.dicomprocessor.utils.RequestRoutineNextTryTimeCalculator;
 import com.abehrdigital.dicomprocessor.utils.Status;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.OptimisticLockType;
+import org.hibernate.annotations.OptimisticLocking;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -16,6 +20,8 @@ import java.util.Calendar;
  */
 @Entity
 @Table(name = "request_routine")
+@OptimisticLocking(type = OptimisticLockType.DIRTY)
+@DynamicUpdate
 public class RequestRoutine {
 
     @Id
@@ -35,7 +41,6 @@ public class RequestRoutine {
     private int tryCount;
     @Column(name = "next_try_date_time")
     private Timestamp nextTryDateTime;
-
     @Column(name = "execute_sequence")
     private int executeSequence;
 
@@ -54,13 +59,18 @@ public class RequestRoutine {
 
     public void successfulExecution() {
         status = Status.COMPLETE;
+        nextTryDateTime = null;
         tryCount++;
     }
 
     public void failedExecution() {
-        status = Status.FAILED;
         tryCount++;
-        setNextTryDateInFiveMinutes();
+        calculateAndSetNextTryDateAfterFailure();
+        if (nextTryDateTime == null) {
+            status = Status.FAILED;
+        } else {
+            status = Status.RETRY;
+        }
     }
 
     public void setExecuteSequence(int value) {
@@ -68,10 +78,19 @@ public class RequestRoutine {
 
     }
 
+    public void
+    updateFieldsByStatus(Status routineStatus) {
+        if (routineStatus == Status.COMPLETE) {
+            successfulExecution();
+        } else if (routineStatus == Status.FAILED) {
+            failedExecution();
+        } else {
+            setStatus(routineStatus);
+        }
+    }
+
     public static class Builder {
-
         //Required
-
         private final int requestId;
         private final String executeRequestQueue;
         private final String routineName;
@@ -111,18 +130,14 @@ public class RequestRoutine {
         public RequestRoutine build() {
             return new RequestRoutine(this);
         }
-
     }
 
     public void setStatus(Status status) {
         this.status = status;
     }
 
-    public void setNextTryDateInFiveMinutes() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.MINUTE, 5);
-
-        nextTryDateTime = new Timestamp(calendar.getTimeInMillis());
+    public void calculateAndSetNextTryDateAfterFailure() {
+        nextTryDateTime = RequestRoutineNextTryTimeCalculator.getNextTryDateTimeIntervalInSeconds(tryCount);
     }
 
     public String getRoutineName() {
@@ -135,10 +150,6 @@ public class RequestRoutine {
 
     public int getExecuteSequence() {
         return executeSequence;
-    }
-
-    public Timestamp getNextTryDate() {
-        return nextTryDateTime;
     }
 
     public int getTryCount() {

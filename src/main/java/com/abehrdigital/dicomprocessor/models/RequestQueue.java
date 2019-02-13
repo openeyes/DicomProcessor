@@ -85,8 +85,7 @@ RequestQueue {
     }
 
     public void setLastThreadSpawnRequestId(int requestId) {
-        this.lastThreadSpawnRequestId = requestId
-        ;
+        this.lastThreadSpawnRequestId = requestId;
     }
 
     public static class Builder {

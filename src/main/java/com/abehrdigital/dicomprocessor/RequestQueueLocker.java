@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.abehrdigital.dicomprocessor.utils.StackTraceUtil.getStackTraceAsString;
+
 public class RequestQueueLocker {
     private Session session;
     private RequestQueueLockDao requestQueueLockDao;
@@ -32,18 +34,25 @@ public class RequestQueueLocker {
         if (requestQueueExists()) {
             for (int tryCount = 0; tryCount < maximumTryCount; tryCount++) {
                 try {
-                    if (establishQueueLock()) {
+                    if (!session.getTransaction().isActive()) {
+                        session.beginTransaction();
+                    }
+                    session.clear();
+                    RequestQueueLock queueLock = requestQueueLockDao.getWithLock(requestQueueName, LockMode.UPGRADE_NOWAIT);
+
+                    if (queueLock == null) {
+                        createRequestQueueLock();
+                    } else {
                         queueLocked = true;
                         break;
                     }
                 } catch (HibernateException exception) {
-                    if(session.getTransaction() != null){
+                    if (session.getTransaction() != null) {
                         session.getTransaction().rollback();
                     }
                     sleepFiveSeconds();
                 }
             }
-
             if (!queueLocked) {
                 lockingFailed();
             }
@@ -56,22 +65,6 @@ public class RequestQueueLocker {
         return requestQueueDao.get(requestQueueName) != null;
     }
 
-    private boolean establishQueueLock() {
-        if (!session.getTransaction().isActive()) {
-            session.beginTransaction();
-        }
-        session.clear();
-        RequestQueueLock queueLock = requestQueueLockDao.getWithLock(requestQueueName, LockMode.UPGRADE_NOWAIT);
-
-        if (queueLock == null) {
-            createRequestQueueLock();
-            establishQueueLock();
-        } else {
-            return true;
-        }
-        return false;
-    }
-
     private void createRequestQueueLock() {
         RequestQueueLock queueLock = new RequestQueueLock(requestQueueName);
         requestQueueLockDao.save(queueLock);
@@ -79,7 +72,7 @@ public class RequestQueueLocker {
     }
 
     private void lockingFailed() throws Exception {
-        Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
+        Logger.getLogger(RequestQueueLocker.class.getName()).log(Level.SEVERE,
                 null,
                 "Queue Name " + requestQueueName
                         + " failed");
@@ -89,8 +82,8 @@ public class RequestQueueLocker {
     private void sleepFiveSeconds() {
         try {
             TimeUnit.SECONDS.sleep(5);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(RequestQueueExecutor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException exception) {
+            Logger.getLogger(RequestQueueLocker.class.getName()).log(Level.SEVERE, getStackTraceAsString(exception));
         }
     }
 

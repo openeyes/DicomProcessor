@@ -9,36 +9,11 @@ package com.abehrdigital.dicomprocessor.utils;
  * @author admin
  */
 public enum Status {
-    NEW() {
-        public Status getExecutionStatus() {
-            return Status.FAILED;
-        }
-    },
-    COMPLETE() {
-        public Status getExecutionStatus() {
-            return Status.COMPLETE;
-        }
-    },
-    SUCCESS() {
-        public Status getExecutionStatus() {
-            return Status.COMPLETE;
-        }
-    },
-    FAILED() {
-        public Status getExecutionStatus() {
-            return Status.FAILED;
-        }
-    },
-    RETRY() {
-        public Status getExecutionStatus() {
-            return Status.FAILED;
-        }
-    },
-    VOID() {
-        public Status getExecutionStatus() {
-            return Status.FAILED;
-        }
-    };
-
-    public abstract Status getExecutionStatus();
+    NEW(),
+    RETRY(),
+    COMPLETE(),
+    FAILED(),
+    PAUSE(),
+    VOID()
 }
+

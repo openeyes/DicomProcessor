@@ -56,4 +56,9 @@ public abstract class BaseDaoManager {
     public void shutDown() {
         session.disconnect();
     }
+
+    public void refresh(Object object) {
+        session.refresh(object);
+    }
+
 }

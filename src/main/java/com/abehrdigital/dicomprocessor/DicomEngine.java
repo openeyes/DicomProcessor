@@ -8,13 +8,15 @@ package com.abehrdigital.dicomprocessor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.abehrdigital.dicomprocessor.utils.StackTraceUtil.getStackTraceAsString;
+
 /**
  * @author admin
  */
 public class DicomEngine {
 
     private static final String testRequestQueue = "dicom_queue";
-    private static final int SHUTDOWN_AFTER_MINUTES = 1;
+    private static final int SHUTDOWN_AFTER_MINUTES = 3;
 
     /**
      * @param args the command line arguments
@@ -39,7 +41,7 @@ public class DicomEngine {
                 } else {
                     System.out.println(exception.getClass());
                     Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-                            exception.toString() + " SOMETHING IS WRONG");
+                            getStackTraceAsString(exception));
                 }
             }
         }

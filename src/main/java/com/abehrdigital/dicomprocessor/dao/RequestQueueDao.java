@@ -6,6 +6,8 @@
 package com.abehrdigital.dicomprocessor.dao;
 
 import com.abehrdigital.dicomprocessor.models.RequestQueue;
+import org.hibernate.LockMode;
+import org.hibernate.LockOptions;
 import org.hibernate.Session;
 
 /**
@@ -18,10 +20,12 @@ public class RequestQueueDao implements BaseDao<RequestQueue, String> {
         this.session = session;
     }
 
-    public RequestQueue getUpdated(String id) {
-        RequestQueue requestQueue = get(id);
-        session.refresh(requestQueue);
-        return requestQueue;
+    public RequestQueue getWithLock(String id, LockMode lockMode) {
+        session.clear();
+        return session.get(
+                RequestQueue.class, id,
+                new LockOptions(lockMode)
+        );
     }
 
     @Override

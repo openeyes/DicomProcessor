@@ -9,6 +9,7 @@ import com.abehrdigital.dicomprocessor.dao.RequestQueueDaoManager;
 import com.abehrdigital.dicomprocessor.models.RequestQueue;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.utils.DaoFactory;
+import org.hibernate.LockMode;
 
 import java.util.HashMap;
 import java.util.List;
@@ -62,18 +63,25 @@ public class RequestQueueExecutor implements RequestThreadListener {
 
                 if (!requestIsInActiveThreadMap) {
                     saveAndStartRequestWorker(createRequestWorkerWithCurrentRequestId());
+                    currentRequestQueue = getUpToDateRequestQueueForUpdate();
                     setLastThreadSpawnDateAndRequestId();
-                    updateActiveThreadCount();
-                    updateCurrentRequestQueue();
+                    currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
+                    daoManager.getRequestQueueDao().update(currentRequestQueue);
+                    daoManager.commit();
                 }
             }
 
             currentRequestQueue = getUpToDateRequestQueue();
             sleepAfterRoutineLoop(requestRoutinesForExecution.size());
         } catch (Exception exception) {
-            Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
+            Logger.getLogger(RequestQueueExecutor.class.getName()).log(Level.SEVERE,
                     exception.toString() + " Executor exception");
+            exception.printStackTrace();
         }
+    }
+
+    private RequestQueue getUpToDateRequestQueue() {
+        return daoManager.getRequestQueueDao().get(requestQueueName);
     }
 
     private void setLastThreadSpawnDateAndRequestId() {
@@ -89,11 +97,14 @@ public class RequestQueueExecutor implements RequestThreadListener {
         }
     }
 
-    private RequestQueue getUpToDateRequestQueue() {
-        return daoManager.getRequestQueueDao().getUpdated(requestQueueName);
+    private RequestQueue getUpToDateRequestQueueForUpdate() {
+        daoManager.transactionStart();
+        daoManager.clearSession();
+
+        return daoManager.getRequestQueueDao().getWithLock(requestQueueName, LockMode.UPGRADE_NOWAIT);
     }
 
-    private Thread createRequestWorkerWithCurrentRequestId(){
+    private Thread createRequestWorkerWithCurrentRequestId() {
         return new Thread(
                 new RequestWorker(currentRequestId, requestQueueName, this),
                 "request_id=" + currentRequestId + " worker thread"
@@ -105,37 +116,28 @@ public class RequestQueueExecutor implements RequestThreadListener {
             requestIdToThreadSyncMap.put(currentRequestId, requestWorker);
             currentActiveThreads = requestIdToThreadSyncMap.size();
         }
-
         requestWorker.start();
     }
 
-    private void updateActiveThreadCount() {
-        currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
-    }
-
     @Override
-    public void deQueue(int requestId, int successfulRoutineCount, int failedRoutineCount) {
+    public synchronized void deQueue(int requestId, int successfulRoutineCount, int failedRoutineCount) {
         synchronized (requestIdToThreadSyncMap) {
             requestIdToThreadSyncMap.remove(requestId);
             currentActiveThreads = requestIdToThreadSyncMap.size();
         }
 
         setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
-        updateCurrentRequestQueue();
+        daoManager.transactionStart();
+        daoManager.getRequestQueueDao().update(currentRequestQueue);
+        daoManager.commit();
     }
 
     private void setActiveThreadAndExecutionCounts(int successfulRoutineCount, int failedRoutineCount) {
-        currentRequestQueue = getUpToDateRequestQueue();
+        currentRequestQueue = getUpToDateRequestQueueForUpdate();
         currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
         currentRequestQueue.incrementSuccessCount(successfulRoutineCount);
         currentRequestQueue.incrementFailCount(failedRoutineCount);
         currentRequestQueue.updateTotalExecuteCount();
-    }
-
-    private void updateCurrentRequestQueue() {
-        daoManager.transactionStart();
-        daoManager.getRequestQueueDao().update(currentRequestQueue);
-        daoManager.commit();
     }
 
     public void shutDown() {

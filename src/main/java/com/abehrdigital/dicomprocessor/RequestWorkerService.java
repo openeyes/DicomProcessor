@@ -6,7 +6,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 
 import java.sql.Blob;
-import java.sql.SQLException;
 
 public class RequestWorkerService {
     private ScriptEngineDaoManager daoManager;
@@ -66,7 +65,7 @@ public class RequestWorkerService {
             String json,
             String attachmentType,
             String bodySite,
-            String mimeType) throws SQLException {
+            String mimeType) {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
 
         if (attachmentData != null) {
@@ -89,8 +88,11 @@ public class RequestWorkerService {
             daoManager.getRequestRoutineDao().resetRequestRoutine(requestRoutine);
         } else {
             if (routineInLibraryExists(routineName)) {
-                requestRoutine = new RequestRoutine.Builder(requestId,
-                        routineName, "dicom_queue").build();
+                requestRoutine = new RequestRoutine.Builder(
+                        requestId,
+                        routineName,
+                        "dicom_queue")
+                        .build();
 
                 daoManager.getRequestRoutineDao().save(requestRoutine);
             } else {
@@ -131,7 +133,7 @@ public class RequestWorkerService {
         daoManager.getRequestRoutineDao().update(requestRoutine);
     }
 
-    public Request getRequestWithLock(){
+    public Request getRequestWithLock() {
         return daoManager.getRequestDao().getWithLock(requestId, LockMode.UPGRADE_NOWAIT);
     }
 
@@ -147,7 +149,7 @@ public class RequestWorkerService {
         daoManager.clearSession();
     }
 
-    public void shutDown(){
+    public void shutDown() {
         daoManager.shutDown();
     }
 }
