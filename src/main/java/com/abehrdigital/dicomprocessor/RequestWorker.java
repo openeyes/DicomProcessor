@@ -81,7 +81,7 @@ public class RequestWorker implements Runnable {
             service.updateRequestRoutine(routineForProcessing);
             //Request table lock released when transaction is committed
             service.commit();
-
+            successfulRoutineCount++;
         } catch (OptimisticLockException lockException) {
             service.rollback();
             logMessage += lockException.toString();
@@ -98,6 +98,7 @@ public class RequestWorker implements Runnable {
             if (routineStatus == Status.FAILED) {
                 routineForProcessing.updateFieldsByStatus(routineStatus);
                 service.updateRequestRoutine(routineForProcessing);
+                failedRoutineCount++;
             }
             service.saveRequestRoutineExecution(createRequestExecution(routineForProcessing, logMessage));
             service.commit();
