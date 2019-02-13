@@ -6,10 +6,12 @@ import org.apache.pdfbox.pdfparser.PDFParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
+import org.apache.pdfbox.text.TextObject;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.util.List;
 
 public class PDFUtils {
     public static PDDocument extractPdfFromBytes(byte[] binaryPDF) { //TODO: Check if PDDocument.load() solves this instead
@@ -56,5 +58,26 @@ public class PDFUtils {
         stripper.extractRegions(page);
 
         return stripper.getTextForRegion("testRegion");
+    }
+
+    //TODO: Need to change this so that it uses PdfTextStripper instead of PdfTextStripperByArea - We really don't need all these arguments
+    public static List<TextObject> extractPdfTextObjects(double upperLeftX, double upperLeftY, double width, double height, PDPage page) throws IOException {
+        PDFTextStripperByArea stripper = new PDFTextStripperByArea(); //we only need 1, maybe move outside method
+        Rectangle2D region = new Rectangle.Double(upperLeftX, upperLeftY, width, height);
+        String regionName = "testRegion";
+        stripper.addRegion(regionName, region);
+        stripper.extractRegions(page);
+        String output = stripper.getTextForRegion("testRegion");
+        return stripper.getTextObjects();
+        //TODO: put this stuff into a new method.
+        /*
+        for (TextObject textObj : textObjs){
+            List<String> matchedGroups = checkForMatch(textObj, "([0-9]+)");
+            for(String matchedText : matchedGroups){
+                System.out.println(matchedText + "!!!!!!!!");
+            }
+        }
+        return output;
+        */
     }
 }
