@@ -38,6 +38,7 @@ INSERT INTO routine_library (routine_name , routine_body)
                                                                                  JSON.stringify(requestData),
                                                                                  'request_json',
                                                                                  null, 'json');
+                                                                                 controller.addRoutine('prototype_event');
                                                                          controller.addRoutine('PAS_API');
 
                                                                          var biometry = JSON.parse(controller.getJson('biometry_data', null));
@@ -53,18 +54,27 @@ INSERT INTO routine_library (routine_name , routine_body)
                                                                                  'dicom');
 
                                                                          controller.addRoutine('create_biometry_event');
-                                                                         controller.addRoutine('prototype_event');
-                                                                         controller.addRoutine('PAS_API');
+
+
                                                                          controller.addRoutine('create_event');
                                                                      ");
 
                                                                      INSERT INTO routine_library (routine_name , routine_body)
-                                                                     VALUES ("PAS_API" , "var requestData = JSON.parse(controller.getJson('request_data', null));
-                                            requestData.patientId = controller.getPatientId(requestData.firstName , requestData.lastName , requestData.dateOfBirth , requestData.gender);
-                                           var attachmentPdf = controller.getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf' , null);
-                        requestData.attachmentDataId = attachmentPdf.getId();
+                                                                     VALUES ("PAS_API" , "var eventData = JSON.parse(controller.getJson('event_data', null));
+                                                                     var attachmentPdf = controller.getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf' , null);
+                                                                                             eventData.attachmentDataId = attachmentPdf.getId();
+                                                                     eventData.$$_XID_Map_$$.forEach(function(data){
+                                                                        if(data.$$_XID_$$ == '$$_attachment_data[1]_$$'){
+                                                                            data.id = attachmentPdf.getId();
+                                                                        }
+
+                                                                        if(data.$$_XID_$$ == '$$_patient[1]_$$'){
+                                                                            data.id = controller.getPatientId(requestData.firstName , requestData.lastName , requestData.dateOfBirth , requestData.gender);
+                                                                        }
+                                                                        });
+
                             controller.putJson(
-                          'request_data',
+                          'eventData',
                                    JSON.stringify(requestData),
                                         'request_json' ,
                                     null, 'json');
@@ -80,7 +90,7 @@ INSERT INTO routine_library (routine_name , routine_body)
                                                                      INSERT INTO routine_library (routine_name , routine_body)
                                                                      VALUES ("prototype_event" , "var eventTemplate = controller.getEventTemplate();
                                                                                                     controller.putJson(
-                                                                                                         'request_data',
+                                                                                                         'event_data',
                                                                                                      eventTemplate,
                                                                                                             'event_data',
                                                                                                                null, 'json');");
@@ -126,6 +136,9 @@ INSERT INTO routine_library (routine_name , routine_body)
 
                                                                      INSERT INTO attachment_type (attachment_type , title_full , title_short , title_abbreviated)
                                                                         VALUES ("event_pdf" , "pdf" , "pdf" , "pdf");
+
+                                                                        INSERT INTO attachment_type (attachment_type , title_full , title_short , title_abbreviated)
+                                                                           VALUES ("event_data" , "pdf" , "pdf" , "pdf");
 
                                                                      INSERT INTO attachment_type (attachment_type , title_full , title_short , title_abbreviated)
                                                                      VALUES ("biometry_report" , "biometry_report" , "biometry_report" , "biometry");
