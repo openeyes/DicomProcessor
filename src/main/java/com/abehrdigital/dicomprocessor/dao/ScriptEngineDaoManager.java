@@ -7,7 +7,7 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     private RequestRoutineDao requestRoutineDao;
     private RequestDao requestDao;
     private RequestQueueDao requestQueueDao;
-
+    private PatientDao patientDao;
 
     public ScriptEngineDaoManager() {
     }
@@ -72,5 +72,12 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
         if (getConnection() != null) {
             getConnection().disconnect();
         }
+    }
+
+    public PatientDao getPatientDao() {
+        if (this.patientDao == null) {
+            this.patientDao = new PatientDao(getConnection());
+        }
+        return this.patientDao;
     }
 }

@@ -42,7 +42,6 @@ public class RequestQueueExecutor implements RequestThreadListener {
     public void execute() {
         try {
             requestQueueLocker.lockWithMaximumTryCount(LOCK_MAXIMUM_TRY_COUNT);
-
             List<RequestRoutine> requestRoutinesForExecution = daoManager
                     .getRequestRoutineDao()
                     .getRoutinesForQueueProcessing(requestQueueName);
@@ -81,6 +80,7 @@ public class RequestQueueExecutor implements RequestThreadListener {
     }
 
     private RequestQueue getUpToDateRequestQueue() {
+        daoManager.clearSession();
         return daoManager.getRequestQueueDao().get(requestQueueName);
     }
 
@@ -100,7 +100,6 @@ public class RequestQueueExecutor implements RequestThreadListener {
     private RequestQueue getUpToDateRequestQueueForUpdate() {
         daoManager.transactionStart();
         daoManager.clearSession();
-
         return daoManager.getRequestQueueDao().getWithLock(requestQueueName, LockMode.UPGRADE_NOWAIT);
     }
 
