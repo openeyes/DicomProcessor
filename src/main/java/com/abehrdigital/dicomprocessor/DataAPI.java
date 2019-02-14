@@ -299,7 +299,7 @@ public class DataAPI {
         return DataAPI.time;
     }
 
-    public static String getTemplate() {
+    public static String getEventTemplate() {
         try {
             JSONParser parser = new JSONParser();
 
@@ -335,11 +335,15 @@ public class DataAPI {
         DataAPI.printKeyMap("Final", DataAPI.keyIndex);
     }
 
+    public static void createEvent(String eventData) {
+        magic("1", eventData);
+    }
+
     /**
      * Main function
      * @param args args
      */
     public static void main(String[] args) {
-        DataAPI.magic("1", DataAPI.getTemplate());
+        DataAPI.magic("1", DataAPI.getEventTemplate());
     }
 }

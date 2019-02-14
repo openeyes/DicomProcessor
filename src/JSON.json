@@ -3,8 +3,8 @@
 	"_Version": "v0.1",
 	"$$_XID_Map_$$": [
 		{
-			"$$_XID_$$": "$$_pacient[1]_$$",
-			"$$_DataSet_$$": "pacient",
+			"$$_XID_$$": "$$_patient[1]_$$",
+			"$$_DataSet_$$": "patient",
 			"id": "1915594"
 		},
 		{
@@ -81,7 +81,7 @@
 				{
 					"$$_CRUD_$$": "retrieve",
 					"id": "$$_episode[1]_$$",
-					"patient_id": "$$_pacient[1]_$$",
+					"patient_id": "$$_patient[1].id_$$",
 					"firm_id": "$$_firm[1].id_$$"
 				}
 			]
