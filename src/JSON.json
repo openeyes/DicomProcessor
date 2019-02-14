@@ -100,7 +100,6 @@
 				"created_user_id": "$$_user[1].id_$$",
 				"event_type_id": "$$_event_type[1].id_$$",
 				"last_modified_user_id": "$$_user[1].id_$$",
-				"last_modified_date": "$$_SysDateTime_$$",
 				"created_date": "$$_SysDateTime_$$",
 				"event_date": "$$_event[1].event_date_$$",
 				"info": "Draft",

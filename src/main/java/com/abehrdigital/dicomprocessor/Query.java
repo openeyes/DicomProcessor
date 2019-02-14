@@ -56,49 +56,51 @@ public class Query {
             case "merge":
                 // if id is known, try to update fields
                 String pk = DataAPI.keyIndex.get(dataSet).pk;
-                if (DataAPI.dataDictionary.containsKey(XID) && DataAPI.dataDictionary.get(XID) !=  null &&
-                        DataAPI.dataDictionary.get(XID).knownFields != null && DataAPI.dataDictionary.get(XID).knownFields.get(pk) != null) {
-                    System.out.println("Value is here 1: " + pk);
 
-                    secondary_query_insert = constructUpdateQuery();
+                // no id, then try Retrieve.
+                //  if no rows are returned, then insert and get the newly introduced id
+                System.out.println("Value is not here");
 
+                this.CRUD = "retrieve";
+                secondary_query_insert = constructSelectQuery();
+
+                // execute select query
+                rows_affected = executeQuery(DataAPI.getSession(), secondary_query_insert);
+
+                System.out.println("merge rows: " + rows_affected);
+
+                if (rows_affected == 0) {
+                    // no rows returned: insert
                     this.CRUD = "create";
 
-                    // when the ID is not known -> do queryByExample to retrieve it
-                    // when the ID is known (present in the dataDictionary) -> update the rest of the columns
+                    System.out.println("insert");
+                    secondary_query_insert = constructInsertQuery();
+                    System.out.println("Second: " + secondary_query_insert);
+                    // execute query and the secondary query
                     rows_affected = executeQuery(DataAPI.getSession(), secondary_query_insert);
-                    if (rows_affected != 1) {
-                        throw new Exception("Could not update.");
-                    }
-                } else {
-                    // no id, then try Retrieve.
-                    //  if no rows are returned, then insert and get the newly introduced id
-                    System.out.println("Value is not here");
+                } else if (rows_affected == 1) {
+                    // records found
+                    System.out.println("ONE Record found");
+                    if (DataAPI.dataDictionary.containsKey(XID) && DataAPI.dataDictionary.get(XID) != null &&
+                            DataAPI.dataDictionary.get(XID).knownFields != null && DataAPI.dataDictionary.get(XID).knownFields.get(pk) != null) {
+                        System.out.println("Value is here 1: " + pk);
 
-                    this.CRUD = "retrieve";
-                    secondary_query_insert = constructSelectQuery();
+                        secondary_query_insert = constructUpdateQuery();
 
-                    // execute select query
-                    rows_affected = executeQuery(DataAPI.getSession(), secondary_query_insert);
-
-                    System.out.println("merge rows: " + rows_affected);
-
-                    if (rows_affected == 0) {
-                        // no rows returned: insert
                         this.CRUD = "create";
 
-                        System.out.println("insert");
-                        secondary_query_insert = constructInsertQuery();
-                        System.out.println("Second: " + secondary_query_insert);
-                        // execute query and the secondary query
+                        // when the ID is not known -> do queryByExample to retrieve it
+                        // when the ID is known (present in the dataDictionary) -> update the rest of the columns
                         rows_affected = executeQuery(DataAPI.getSession(), secondary_query_insert);
-                    } else if (rows_affected == 1) {
-                        // records found
-                        System.out.println("ONE Record found");
+                        if (rows_affected != 1) {
+                            throw new Exception("Could not update.");
+                        }
                     } else {
-                        System.out.println("MORE THAN ONE record found");
                     }
+                } else {
+                    System.out.println("MORE THAN ONE record found");
                 }
+
 
                 // DEBUG purposes
                 if (DataAPI.dataDictionary.containsKey(XID) && DataAPI.dataDictionary.get(XID) !=  null) {
@@ -202,7 +204,23 @@ public class Query {
         keys.delete(keys.length() - 2, keys.length());
         fields.delete(fields.length() - 2, fields.length());
 
+        if (knownFields.get("last_modified_date") == null) {
+            System.out.println("ooo1: ");
+            keys.append(", last_modified_date");
+            fields.append(", '" + DataAPI.getTime() + "'");
+//            values += ", last_modified_date='" + DataAPI.getTime()+"'";
+        }
+
+        if (knownFields.get("created_date") == null) {
+            System.out.println("ooo2: ");
+
+            keys.append(", created_date");
+            fields.append(", '" + DataAPI.getTime() + "'");
+//            values += ", created_date='" + DataAPI.getTime()+"'";
+        }
+
         this.query = "INSERT INTO " + this.dataSet + " (" + keys + ") VALUES (" + fields + ");";
+        System.err.println(this.query);
 
         /*
          * after the insert, we want to retrieve the PK and UKs inserted
@@ -269,6 +287,11 @@ public class Query {
         if (knownFields.get("last_modified_date") == null) {
             System.out.println("ooo: ");
             values += ", last_modified_date='" + DataAPI.getTime()+"'";
+        }
+
+        if (knownFields.get("created_date") == null) {
+            System.out.println("ooo: ");
+            values += ", created_date='" + DataAPI.getTime()+"'";
         }
 
 
