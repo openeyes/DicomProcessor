@@ -55,8 +55,10 @@ public class Query {
                 break;
             case "merge":
                 // if id is known, try to update fields
-                if (DataAPI.dataDictionary.containsKey(XID) && DataAPI.dataDictionary.get(XID) !=  null && DataAPI.dataDictionary.get(XID).knownFields != null) {
-                    System.out.println("Value is here");
+                String pk = DataAPI.keyIndex.get(dataSet).pk;
+                if (DataAPI.dataDictionary.containsKey(XID) && DataAPI.dataDictionary.get(XID) !=  null &&
+                        DataAPI.dataDictionary.get(XID).knownFields != null && DataAPI.dataDictionary.get(XID).knownFields.get(pk) != null) {
+                    System.out.println("Value is here 1: " + pk);
 
                     secondary_query_insert = constructUpdateQuery();
 
@@ -100,7 +102,7 @@ public class Query {
 
                 // DEBUG purposes
                 if (DataAPI.dataDictionary.containsKey(XID) && DataAPI.dataDictionary.get(XID) !=  null) {
-                    DataAPI.printMap("Value is here", DataAPI.dataDictionary);
+                    DataAPI.printMap("Value is here 2 " + pk, DataAPI.dataDictionary);
                 } else {
                     DataAPI.printMap("Value is not here", DataAPI.dataDictionary);
                 }

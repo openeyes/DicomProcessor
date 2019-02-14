@@ -5,12 +5,17 @@
 		{
 			"$$_XID_$$": "$$_patient[1]_$$",
 			"$$_DataSet_$$": "patient",
-			"id": "1915594"
+			"id": "17891"
 		},
 		{
 			"$$_XID_$$": "$$_attachment_data[1]_$$",
 			"$$_DataSet_$$": "attachment_data",
-			"id": "1"
+			"id": "2"
+		},
+		{
+			"$$_XID_$$": "$$_event[1]_$$",
+			"$$_DataSet_$$": "event",
+			"event_date": "2019-02-14 13:47:24"
 		}
 	],
 	"$$_SaveSet[1]_$$": [
@@ -97,7 +102,7 @@
 				"last_modified_user_id": "$$_user[1].id_$$",
 				"last_modified_date": "$$_SysDateTime_$$",
 				"created_date": "$$_SysDateTime_$$",
-				"event_date": "2000-04-11 00:00:00",
+				"event_date": "$$_event[1].event_date_$$",
 				"info": "Draft",
 				"deleted": "0",
 				"delete_reason": "null",

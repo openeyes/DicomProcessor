@@ -90,10 +90,15 @@ public class DataAPI {
     private static ArrayList<Query> parseJson(String JSON_data) throws Exception {
         ArrayList<Query> ret = new ArrayList<>();
         JSONParser parser = new JSONParser();
+        System.out.println("SSSS: " + JSON_data);
+        System.out.println("SSSS: " + JSON_data.getClass());
         JSONObject json = (JSONObject) parser.parse(JSON_data);
+
 
         for (Object key : json.keySet()) {
             Object data = json.get(key.toString());
+            System.out.println("SSSSS: " + JSON_data);
+            System.out.println("SSSSS: " + data);
 
             // depending on the current object class, parse the data
             JsonObjectClassType json_class = JsonObjectClassType.valueOf(data.getClass().getSimpleName());
@@ -315,7 +320,10 @@ public class DataAPI {
 
     public static void magic(String id, String JSON_data) {
         try {
-            //TODO: use "user_id" for insert/merge operations
+            // TODO: use "user_id" for insert/merge operations
+            // TODO: for insert, set all dates to NOW
+            //      for update, set only last_updated to NOW, but the rest keep them as they were
+            //      (do not update anything: it should use default value)
             /* basic initialization */
             dataDictionary = new HashMap<>();
             keyIndex = new HashMap<>();
@@ -335,9 +343,6 @@ public class DataAPI {
         DataAPI.printKeyMap("Final", DataAPI.keyIndex);
     }
 
-    public static void createEvent(String eventData) {
-        magic("1", eventData);
-    }
 
     /**
      * Main function
