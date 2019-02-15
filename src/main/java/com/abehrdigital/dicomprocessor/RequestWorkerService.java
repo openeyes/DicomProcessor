@@ -53,7 +53,7 @@ public class RequestWorkerService {
         return new DicomParser(getBlob(attachmentMnemonic, bodySite));
     }
 
-    private AttachmentData getAttachmentDataByAttachmentMnemonicAndBodySite(String attachmentMnemonic, String bodySite)
+    public AttachmentData getAttachmentDataByAttachmentMnemonicAndBodySite(String attachmentMnemonic, String bodySite)
             throws HibernateException {
         return daoManager
                 .getAttachmentDataDao()
@@ -139,6 +139,10 @@ public class RequestWorkerService {
 
     public RequestRoutine getNextRoutineToProcess() {
         return daoManager.getRequestRoutineDao().getRequestRoutineWithRequestIdForProcessing(requestId, requestQueueName);
+    }
+
+    public int getPatientId(String firstName , String lastName , int dateOfBirth , String gender){
+        return daoManager.getPatientDao().getIdByNameAndDobAndGender(firstName , lastName , dateOfBirth , gender);
     }
 
     public RequestQueue getRequestQueue() {

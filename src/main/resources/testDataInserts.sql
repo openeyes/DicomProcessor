@@ -12,8 +12,9 @@ INSERT INTO routine_library (routine_name , routine_body)
                                                                      requestData.model = dicomHeader['528528'].trim();
                                                                      requestData.version = dicomHeader['570494977'];
 
-                                                                     if (requestData.manufacturer === 'Carl Zeiss Meditec' && requestData.model === 'IOLMaster 700' && requestData.version === '2.11') {
-                                                                         requestData.name = dicomHeader['1048592'];
+                                                                        var fullName = dicomHeader['1048592'].split('^');
+                                                                         requestData.lastName = fullName[0];
+                                                                         requestData.firstName = fullName[1];
                                                                          requestData.dateOfBirth = dicomHeader['1048624'];
                                                                          requestData.gender = dicomHeader['1048640'].trim();
                                                                          controller.putJson(
@@ -25,9 +26,9 @@ INSERT INTO routine_library (routine_name , routine_body)
 
                                                                          var pdf = dicom.getPdfAsBlob();
 
-                                                                         controller.putPdf('biometry_report',
+                                                                         controller.putPdf('event_pdf',
                                                                                  pdf,
-                                                                                 'biometry_report',
+                                                                                 'event_pdf',
                                                                                  null,
                                                                                  'application/pdf');
 
@@ -37,15 +38,13 @@ INSERT INTO routine_library (routine_name , routine_body)
                                                                                  JSON.stringify(requestData),
                                                                                  'request_json',
                                                                                  null, 'json');
+                                                                                 controller.addRoutine('prototype_event');
                                                                          controller.addRoutine('PAS_API');
 
                                                                          var biometry = JSON.parse(controller.getJson('biometry_data', null));
                                                                          biometry.studyId = dicomHeader['2097168'];
                                                                          biometry.time = dicomHeader['524336'];
                                                                          biometry.date = dicomHeader['4194884'];
-                                                                         biometry.goodText = dicom.extractTextFromPage(63 , 328 , 70 , 10 , 1);
-
-                                                                         print(biometry);
 
                                                                          controller.putJson(
                                                                                  'biometry_data',
@@ -55,13 +54,46 @@ INSERT INTO routine_library (routine_name , routine_body)
                                                                                  'dicom');
 
                                                                          controller.addRoutine('create_biometry_event');
-                                                                     }");
+
+
+                                                                         controller.addRoutine('create_event');
+                                                                     ");
 
                                                                      INSERT INTO routine_library (routine_name , routine_body)
-                                                                     VALUES ("PAS_API" , "print('api pas');");
+                                                                     VALUES ("PAS_API" , "var eventData = JSON.parse(controller.getJson('event_data', null));
+                                                                     var attachmentPdf = controller.getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf' , null);
+                                                                                             eventData.attachmentDataId = attachmentPdf.getId();
+                                                                     eventData.$$_XID_Map_$$.forEach(function(data){
+                                                                        if(data.$$_XID_$$ == '$$_attachment_data[1]_$$'){
+                                                                            data.id = attachmentPdf.getId();
+                                                                        }
+
+                                                                        if(data.$$_XID_$$ == '$$_patient[1]_$$'){
+                                                                            data.id = controller.getPatientId(requestData.firstName , requestData.lastName , requestData.dateOfBirth , requestData.gender);
+                                                                        }
+                                                                        });
+
+                            controller.putJson(
+                          'eventData',
+                                   JSON.stringify(requestData),
+                                        'request_json' ,
+                                    null, 'json');
+                                  ");
 
                                                                      INSERT INTO routine_library (routine_name , routine_body)
                                                                      VALUES ("create_biometry_event" , "print('biometry biometry');");
+
+                                                                     INSERT INTO routine_library (routine_name , routine_body)
+                                                                     VALUES ("create_event" , " var eventData = JSON.parse(controller.getJson('event_data', null));
+                                                                                                        	controller.createEvent(eventData);");
+
+                                                                     INSERT INTO routine_library (routine_name , routine_body)
+                                                                     VALUES ("prototype_event" , "var eventTemplate = controller.getEventTemplate();
+                                                                                                    controller.putJson(
+                                                                                                         'event_data',
+                                                                                                     eventTemplate,
+                                                                                                            'event_data',
+                                                                                                               null, 'json');");
 
                                                                      INSERT INTO request_queue (request_queue , maximum_active_threads , busy_yield_ms , idle_yield_ms)
                                                                      VALUES ("dicom_queue" , 5 , 1000 , 1000);
@@ -101,6 +133,12 @@ INSERT INTO routine_library (routine_name , routine_body)
 
                                                                      INSERT INTO attachment_type (attachment_type , title_full , title_short , title_abbreviated)
                                                                      VALUES ("request_json" , "json from attachment" , "js0n" , "JSON");
+
+                                                                     INSERT INTO attachment_type (attachment_type , title_full , title_short , title_abbreviated)
+                                                                        VALUES ("event_pdf" , "pdf" , "pdf" , "pdf");
+
+                                                                        INSERT INTO attachment_type (attachment_type , title_full , title_short , title_abbreviated)
+                                                                           VALUES ("event_data" , "pdf" , "pdf" , "pdf");
 
                                                                      INSERT INTO attachment_type (attachment_type , title_full , title_short , title_abbreviated)
                                                                      VALUES ("biometry_report" , "biometry_report" , "biometry_report" , "biometry");
