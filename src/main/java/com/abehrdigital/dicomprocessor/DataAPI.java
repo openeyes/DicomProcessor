@@ -207,7 +207,7 @@ public class DataAPI {
      * @return a new Query object with parsed information
      */
     private static Query parseJsonQuery(JSONObject query, String dataSet) {
-        String CRUD = null;
+        Query.CRUD crud = null;
         // unknownFields: {id -> XID}
         TreeMap<String, String> unknownFields = new TreeMap<>();
         // knownFields: {id -> String:value}
@@ -223,7 +223,7 @@ public class DataAPI {
             String value = query.get(key).toString();
             switch (key) {
                 case "$$_CRUD_$$":
-                    CRUD = value;
+                    crud = Query.CRUD.valueOf(value);
                     break;
                 default:
                     // unknown fields have value prefixed and suffixed with '$$'
@@ -268,7 +268,7 @@ public class DataAPI {
         }
 
         // create and return new Query object with the information parsed
-        return new Query(dataSet, XID, CRUD, knownFields, unknownFields, foreignKeys);
+        return new Query(dataSet, XID, crud, knownFields, unknownFields, foreignKeys);
     }
 
     /**

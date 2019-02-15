@@ -11,7 +11,7 @@ public class Query {
     private String query;
     private String dataSet;
     private String XID;
-    private String CRUD;
+    private CRUD crud;
     private TreeMap<String, String> unknownFields;
     private TreeMap<String, String> knownFields;
     private TreeMap<String, ForeignKey> foreignKeys;
@@ -19,12 +19,15 @@ public class Query {
     private final String COMA_SPACE = ", ";
     private final String SINGLE_QUOTE  = "'";
 
+    enum CRUD {
+        retrieve, merge, create
+    }
 
-    Query(String dataSet, String XID, String CRUD, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields,
+    Query(String dataSet, String XID, CRUD crud, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields,
           TreeMap<String, ForeignKey> foreignKeys ) {
         this.dataSet = dataSet;
         this.XID = XID;
-        this.CRUD = CRUD;
+        this.crud = crud;
         this.knownFields = knownFields;
         this.unknownFields = unknownFields;
         this.foreignKeys = foreignKeys;
@@ -32,7 +35,7 @@ public class Query {
 
     @Override
     public String toString() {
-        return "Query [dataSet=" + dataSet + ", CRUD=" + CRUD +
+        return "Query [dataSet=" + dataSet + ", crud=" + crud +
                 ", \n\tunknownFields=" + unknownFields +
                 ", \n\tknownFields=" + knownFields +
                 ", \n\tforeignKeys=" + foreignKeys +
@@ -50,8 +53,8 @@ public class Query {
         String secondaryQueryInsert;
         int rowsAffected = 0;
 
-        switch (this.CRUD) {
-            case "retrieve":
+        switch (this.crud) {
+            case retrieve:
                 constructSelectQuery();
 
                 // execute select query
@@ -59,7 +62,7 @@ public class Query {
                 rowsAffected = executeQuery(DataAPI.getSession(), null);
                 System.out.println("sel rows: " + rowsAffected);
                 break;
-            case "merge":
+            case merge:
                 // if id is known, try to update fields
                 String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
 
@@ -67,7 +70,7 @@ public class Query {
                 //  if no rows are returned, then insert and get the newly introduced id
                 System.out.println("Value is not here");
 
-                this.CRUD = "retrieve";
+                this.crud = CRUD.valueOf("retrieve");
                 constructSelectQuery();
 
                 // execute select query
@@ -78,7 +81,7 @@ public class Query {
 
                 if (rowsAffected == 0) {
                     // no rows returned: insert
-                    this.CRUD = "create";
+                    this.crud = CRUD.valueOf("create");
 
                     System.out.println("insert");
                     secondaryQueryInsert = constructInsertQuery();
@@ -94,7 +97,7 @@ public class Query {
 
                         constructUpdateQuery();
 
-                        this.CRUD = "create";
+                        this.crud = CRUD.valueOf("create");
 
                         // when the ID is not known -> do queryByExample to retrieve it
                         // when the ID is known (present in the dataDictionary) -> update the rest of the columns
@@ -412,7 +415,7 @@ public class Query {
         int rowsAffected = -1;
 
         /* only if the crud is "create", execute the secondary query */
-        if (CRUD.equals("create")) {
+        if (crud == CRUD.valueOf("create")) {
             session.beginTransaction();
             rowsAffected = sqlQuery.executeUpdate();
             session.getTransaction().commit();
