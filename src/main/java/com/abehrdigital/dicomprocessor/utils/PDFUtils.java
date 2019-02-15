@@ -11,7 +11,10 @@ import org.apache.pdfbox.text.TextObject;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PDFUtils {
     public static PDDocument extractPdfFromBytes(byte[] binaryPDF) { //TODO: Check if PDDocument.load() solves this instead
@@ -80,4 +83,26 @@ public class PDFUtils {
         return output;
         */
     }
+
+    public static List<String> checkForMatch(TextObject textObj, String pattern){
+        return checkForMatch(textObj.toString(), pattern);
+    }
+
+    public static List<String> checkForMatch(String text, String pattern){
+        List<String> matchedGroupText = new ArrayList<String>();
+        Pattern regex = Pattern.compile(pattern);
+        Matcher matcher = regex.matcher(text);
+        if(matcher.find()) {
+            for (int i = 0; i <= matcher.groupCount(); i++) {
+                try {
+                    System.out.println(text);
+                    matchedGroupText.add(matcher.group(i));
+                } catch (IllegalStateException ise) {
+                    System.out.println("oops");
+                }
+            }
+        }
+        return matchedGroupText;
+    }
+
 }

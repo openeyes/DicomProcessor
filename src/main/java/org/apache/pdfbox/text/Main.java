@@ -52,23 +52,17 @@ public class Main {
         return stripper.getTextForRegion("testRegion");
     }
 
-    public static List<TextObject> getTextObjectsFromRectangle(){
-        return new ArrayList<TextObject>(); //TODO: make this work later
-    }
-
-    public static List<TextObject> grabTextObjectsFromPage(PDPage page) throws IOException {
-        PDFTextObjectStripper objectStripper = new PDFTextObjectStripper();
-        return new ArrayList<TextObject>(); // TODO: finish this method
-    }
-
     public static List<String> checkForMatch(TextObject textObj, String pattern){
+        return checkForMatch(textObj.toString(), pattern);
+    }
+
+    public static List<String> checkForMatch(String text, String pattern){
         List<String> matchedGroupText = new ArrayList<String>();
         Pattern regex = Pattern.compile(pattern);
-        Matcher matcher = regex.matcher(textObj.toString());
+        Matcher matcher = regex.matcher(text);
         if(matcher.find()) {
             for (int i = 0; i <= matcher.groupCount(); i++) {
                 try {
-                    System.out.println(textObj.toString());
                     matchedGroupText.add(matcher.group(i));
                 } catch (IllegalStateException ise) {
                     System.out.println("oops");
