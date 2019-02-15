@@ -13,7 +13,6 @@ import org.hibernate.annotations.OptimisticLocking;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.Calendar;
 
 /**
  * @author admin
@@ -75,7 +74,6 @@ public class RequestRoutine {
 
     public void setExecuteSequence(int value) {
         executeSequence = value;
-
     }
 
     public void

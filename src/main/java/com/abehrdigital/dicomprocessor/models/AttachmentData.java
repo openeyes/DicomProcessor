@@ -61,18 +61,22 @@ public class AttachmentData {
             this.bodySiteSnomedType = bodySiteSnomedType;
         }
 
-        public Builder systemOnlyManaged(int val) {
-            systemOnlyManaged = val;
+        public Builder systemOnlyManaged(int value) {
+            systemOnlyManaged = value;
             return this;
         }
 
-        public Builder jsonData(String val) {
-            jsonData = val;
+        public Builder jsonData(String value) {
+            if (value.equals("")) {
+                jsonData = null;
+            } else {
+                jsonData = value;
+            }
             return this;
         }
 
-        public Builder blobData(Blob val) {
-            blobData = val;
+        public Builder blobData(Blob value) {
+            blobData = value;
             return this;
         }
 
@@ -129,6 +133,10 @@ public class AttachmentData {
     }
 
     public void setJson(String value) {
-        jsonData = value;
+        if (value.equals("")) {
+            jsonData = null;
+        } else {
+            jsonData = value;
+        }
     }
 }

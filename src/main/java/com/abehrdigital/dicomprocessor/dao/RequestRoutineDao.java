@@ -82,19 +82,19 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
     public RequestRoutine getRequestRoutineWithRequestIdForProcessing(int requestId, String requestQueue) {
         NativeQuery query = session.createSQLQuery(
                 "SELECT * FROM request_routine rr " +
-                "WHERE rr.execute_request_queue = :request_queue " +
-                "AND rr.status IN( :new_status , :retry_status) " +
-                "AND rr.request_id = :request_id " +
-                "AND IFNULL (rr.next_try_date_time, SYSDATE()) <= SYSDATE() " +
-                "AND NOT EXISTS ( " +
-                "SELECT * " +
-                "FROM request_routine subrr " +
-                "WHERE subrr.request_id = rr.request_id " +
-                "AND subrr.execute_sequence < rr.execute_sequence " +
-                "AND subrr.status NOT IN (:complete_status , :void_status) " +
-                ") " +
-                "ORDER BY rr.id " +
-                "LIMIT 1 "
+                        "WHERE rr.execute_request_queue = :request_queue " +
+                        "AND rr.status IN( :new_status , :retry_status) " +
+                        "AND rr.request_id = :request_id " +
+                        "AND IFNULL (rr.next_try_date_time, SYSDATE()) <= SYSDATE() " +
+                        "AND NOT EXISTS ( " +
+                        "SELECT * " +
+                        "FROM request_routine subrr " +
+                        "WHERE subrr.request_id = rr.request_id " +
+                        "AND subrr.execute_sequence < rr.execute_sequence " +
+                        "AND subrr.status NOT IN (:complete_status , :void_status) " +
+                        ") " +
+                        "ORDER BY rr.id " +
+                        "LIMIT 1 "
         )
                 .addEntity("rr", RequestRoutine.class)
                 .setParameter("request_queue", requestQueue)
