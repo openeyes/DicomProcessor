@@ -240,7 +240,7 @@ public class Query {
         }
 
         // TODO: use printf
-        this.query = "INSERT INTO " + this.dataSet + " (" + keys + ") VALUES (" + fields + ");";
+        this.query = String.format("INSERT INTO %s (%s) VALUES (%s);", this.dataSet, keys, fields);
         System.err.println(this.query);
 
         /*
@@ -270,7 +270,7 @@ public class Query {
         String condition = concatenateConditionsWithDelimiter(getEquals(knownFields, " is "), "AND");
 
         // return as second sql query "SELECT id FROM ..."
-        return "SELECT " + selectStatement.toString() + " FROM " + this.dataSet + " WHERE " + condition;
+        return String.format("SELECT %s FROM %s WHERE %s;", selectStatement.toString(), this.dataSet, condition);
     }
 
     /**
@@ -290,7 +290,7 @@ public class Query {
         String condition = concatenateConditionsWithDelimiter(getEquals(knownFields, " is "), "AND");
 
         // select the SQL query
-        this.query =  "SELECT " + selectStatement + " FROM " + this.dataSet + " WHERE " + condition + ";";
+        this.query =  String.format("SELECT %s FROM %s WHERE %s;", selectStatement, this.dataSet, condition);
     }
 
     /**
@@ -314,9 +314,8 @@ public class Query {
 
 
         // select the SQL query
-        this.query =  "UPDATE " + this.dataSet +
-                " SET " + values +
-                " WHERE " + primaryKey + "='" + xid.knownFields.get(primaryKey) + SINGLE_QUOTE;
+        this.query = String.format("UPDATE %s SET %s WHERE %s='%s'",
+                this.dataSet, values, primaryKey, xid.knownFields.get(primaryKey));
 
         System.out.println("PP: " + values);
         System.out.println("PP: " + this.query);
