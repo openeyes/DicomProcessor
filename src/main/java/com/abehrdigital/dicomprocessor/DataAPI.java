@@ -21,7 +21,7 @@ public class DataAPI {
     private static String _Version;
     private static Session session;
     private static String time;
-    private static String user_id;
+    private static String userId;
 
     /**
      * Pretty print HashMap with additional message
@@ -49,10 +49,10 @@ public class DataAPI {
     /**
      * apply the actions inside a json string to the database
      */
-    private static void applyQuery(String JSON_data) {
+    private static void applyQuery(String jsonData) {
         ArrayList<Query> queries;
         try {
-            queries = parseJson(JSON_data);
+            queries = parseJson(jsonData);
             Iterator itr = queries.iterator();
 
             while (itr.hasNext()) {
@@ -62,7 +62,7 @@ public class DataAPI {
                 DataAPI.printMap("DataAPI.map: ", DataAPI.dataDictionary);
 
                 // construct the SQL query based on the CRUD operation and the fields found in Query object
-                int rows_affected = query.constructAndRunQuery();
+                int rowsAffected = query.constructAndRunQuery();
 
                 // remove query from array
                 itr.remove();
@@ -82,27 +82,25 @@ public class DataAPI {
     /**
      * Open and parse a JSON file and return a list of Query objects
      *
-     * @param JSON_data name of the json to be parsed
+     * @param jsonData name of the json to be parsed
      * @return a list of Query objects, containing parsed information from the json
      * @throws IOException file not found
      * @throws ParseException parser exception
      */
-    private static ArrayList<Query> parseJson(String JSON_data) throws Exception {
+    private static ArrayList<Query> parseJson(String jsonData) throws Exception {
         ArrayList<Query> ret = new ArrayList<>();
         JSONParser parser = new JSONParser();
-        System.out.println("SSSS: " + JSON_data);
-        System.out.println("SSSS: " + JSON_data.getClass());
-        JSONObject json = (JSONObject) parser.parse(JSON_data);
+        JSONObject json = (JSONObject) parser.parse(jsonData);
 
 
         for (Object key : json.keySet()) {
             Object data = json.get(key.toString());
-            System.out.println("SSSSS: " + JSON_data);
+            System.out.println("SSSSS: " + jsonData);
             System.out.println("SSSSS: " + data);
 
             // depending on the current object class, parse the data
-            JsonObjectClassType json_class = JsonObjectClassType.valueOf(data.getClass().getSimpleName());
-            switch (json_class) {
+            JsonObjectClassType jsonClass = JsonObjectClassType.valueOf(data.getClass().getSimpleName());
+            switch (jsonClass) {
                 case String:
                     switch (key.toString()) {
                     case "_OE_System":
@@ -119,9 +117,9 @@ public class DataAPI {
                     break;
                 case JSONArray:
                     if (key.toString().contains("XID_Map")) {
-                        parse_XID_Map((JSONArray) data);
+                        parseXID_Map((JSONArray) data);
                     } else if (key.toString().contains("SaveSet")) {
-                        ret.addAll(parse_save_set((JSONArray) data));
+                        ret.addAll(parseSaveSet((JSONArray) data));
                     }
                     break;
                 default:
@@ -136,7 +134,7 @@ public class DataAPI {
      * @param saveSet array of JSON objects
      * @return list of Query objects containing parsed information
      */
-    private static ArrayList<Query> parse_save_set(JSONArray saveSet) throws Exception {
+    private static ArrayList<Query> parseSaveSet(JSONArray saveSet) throws Exception {
         ArrayList<Query> ret = new ArrayList<>();
         // get the list of commands
         for (Object o : saveSet) {
@@ -169,27 +167,27 @@ public class DataAPI {
      * Parse initial information given as array of JSONObjects;
      * Save info into XID_map
      *
-     * @param XID_Map_JSON array of JSON objects to be parsed
+     * @param XID_MapJSON array of JSON objects to be parsed
      */
-    private static void parse_XID_Map(JSONArray XID_Map_JSON) throws Exception {
+    private static void parseXID_Map(JSONArray XID_MapJSON) throws Exception {
         // create a map of XID string pointing to a XID object: eg. "$$_event_type[1]_$$" => XID Object
-        for (Object o : XID_Map_JSON) {
-            JSONObject XID_data = (JSONObject) o;
+        for (Object o : XID_MapJSON) {
+            JSONObject XIDData = (JSONObject) o;
 
             // get all information needed to create a new Query object
             TreeMap<String, String> knownFields = new TreeMap<>();
             String XID = null, dataSet = null;
-            for (Object key1 : XID_data.keySet()) {
+            for (Object key1 : XIDData.keySet()) {
                 String keyStr = (String) key1;
                 switch (keyStr) {
                     case "$$_XID_$$":
-                        XID = XID_data.get("$$_XID_$$").toString();
+                        XID = XIDData.get("$$_XID_$$").toString();
                         break;
                     case "$$_DataSet_$$":
-                        dataSet = XID_data.get("$$_DataSet_$$").toString();
+                        dataSet = XIDData.get("$$_DataSet_$$").toString();
                         break;
                     default:
-                        knownFields.put(keyStr, XID_data.get(keyStr).toString());
+                        knownFields.put(keyStr, XIDData.get(keyStr).toString());
                         break;
                 }
             }
@@ -234,11 +232,11 @@ public class DataAPI {
                         if (value.contains(".")) {
                             String[] split = value.split("\\.");
 
-                            String referenced_XID = split[0] + "_$$";
-                            String referencing_column = key;
-                            String referenced_column = split[1].substring(0,split[1].length() - 3);
+                            String referencedXID = split[0] + "_$$";
+                            String referencingColumn = key;
+                            String referencedColumn = split[1].substring(0,split[1].length() - 3);
 
-                            foreignKeys.put(referenced_XID, new ForeignKey(referenced_column, referencing_column));
+                            foreignKeys.put(referencedXID, new ForeignKey(referencedColumn, referencingColumn));
                         } else {
                             // save the XID encoding for the primary key field:
                             String pk = DataAPI.keyIndex.get(dataSet).pk;
@@ -318,7 +316,7 @@ public class DataAPI {
         return null;
     }
 
-    public static void magic(String id, String JSON_data) {
+    public static void magic(String id, String jsonData) {
         try {
             // TODO: use "user_id" for insert/merge operations
             // TODO: for insert, set all dates to NOW
@@ -327,13 +325,13 @@ public class DataAPI {
             /* basic initialization */
             dataDictionary = new HashMap<>();
             keyIndex = new HashMap<>();
-            user_id = id;
+            userId = id;
 
             // set session and time at the start of the execution
             session = getSession();
             time = getTime();
 
-            applyQuery(JSON_data);
+            applyQuery(jsonData);
         } catch (Exception e) {
             e.printStackTrace();
         }
