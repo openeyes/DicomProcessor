@@ -277,7 +277,7 @@ public class Query {
         }
 
         // SELECT	-> unknownFields
-        String selectStatement = concatenateConditionsWithDelimiter(unknownFields.keySet().toArray(), ",");
+        String selectStatement = concatenateConditionsWithDelimiter(unknownFields.keySet().stream().toArray(String[] ::new), ",");
 
         // WHERE	-> this.knownFields
         String condition = concatenateConditionsWithDelimiter(getEquals(knownFields, " is "), "AND");
@@ -345,10 +345,8 @@ public class Query {
      *
      * @return array of Objects (strings)
      */
-
-    //TODO: set to String[]
-    private Object[] getEquals(TreeMap<String, String> map, String nullDelimiter) {
-        Object[] resultingConditions = new Object[map.size()];
+    private String[] getEquals(TreeMap<String, String> map, String nullDelimiter) {
+        String[] resultingConditions = new String[map.size()];
 
         if (map.size() < 1) {
             return null;
@@ -375,14 +373,14 @@ public class Query {
      * @param delimiter String to be placed between elements of array
      * @return string concatenation of all elements in array
      */
-    private String concatenateConditionsWithDelimiter(Object[] conditions, String delimiter) {
+    private String concatenateConditionsWithDelimiter(String[] conditions, String delimiter) {
         StringBuilder stringBuilder = new StringBuilder();
 
         if (conditions == null || conditions.length < 1) {
             return null;
         }
 
-        for (Object condition : conditions) {
+        for (String condition : conditions) {
             stringBuilder.append(condition.toString());
             stringBuilder.append(SPACE);
             stringBuilder.append(delimiter);
