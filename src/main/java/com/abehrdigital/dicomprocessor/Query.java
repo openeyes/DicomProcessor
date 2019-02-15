@@ -394,7 +394,6 @@ public class Query {
      *
      * @return array containing the columns returned by the sql query
      */
-    @org.springframework.transaction.annotation.Transactional
     private int executeQuery(Session session, String secondary_query_insert) {
         NativeQuery SQLQuery = session.createSQLQuery(query);
         int rows_affected = -1;
