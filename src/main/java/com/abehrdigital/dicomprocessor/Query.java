@@ -182,6 +182,15 @@ public class Query {
         }
     }
 
+    public void addFieldToStringBuilder(StringBuilder stringBuilder1, StringBuilder stringBuilder2, String field, String value) {
+        stringBuilder1.append(COMA_SPACE);
+        stringBuilder1.append(field);
+
+        stringBuilder2.append(COMA_SPACE);
+        stringBuilder2.append(SINGLE_QUOTE);
+        stringBuilder2.append(value);
+        stringBuilder2.append(SINGLE_QUOTE);
+    }
     /**
      * Construct the insert SQL query; then construct a select query to determine the PK of the newly inserted row
      * IMPORTANT: the tables must have AUTO-INCREMENT set to be able to insert any rows
@@ -216,30 +225,14 @@ public class Query {
         keys.delete(keys.length() - COMA_SPACE.length(), keys.length());
         fields.delete(fields.length() - COMA_SPACE.length(), fields.length());
 
-        //TODO: duplicate code
         if (knownFields.get("last_modified_date") == null) {
-            System.out.println("ooo1: ");
-            keys.append(COMA_SPACE);
-            keys.append("last_modified_date");
-
-            fields.append(COMA_SPACE);
-            fields.append(SINGLE_QUOTE);
-            fields.append(DataAPI.getTime());
-            fields.append(SINGLE_QUOTE);
+            addFieldToStringBuilder(keys, fields,"last_modified_date", DataAPI.getTime());
         }
 
         if (knownFields.get("created_date") == null) {
-            System.out.println("ooo2: ");
-            keys.append(COMA_SPACE);
-            keys.append("created_date");
-
-            fields.append(COMA_SPACE);
-            fields.append(SINGLE_QUOTE);
-            fields.append(DataAPI.getTime());
-            fields.append(SINGLE_QUOTE);
+            addFieldToStringBuilder(keys, fields,"created_date", DataAPI.getTime());
         }
 
-        // TODO: use printf
         this.query = String.format("INSERT INTO %s (%s) VALUES (%s);", this.dataSet, keys, fields);
         System.err.println(this.query);
 
