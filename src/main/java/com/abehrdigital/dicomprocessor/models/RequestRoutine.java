@@ -33,7 +33,7 @@ import java.sql.Timestamp;
                 "WHERE subrr.request_id = rr.request_id " +
                 "AND subrr.execute_sequence < rr.execute_sequence " +
                 "AND subrr.status NOT IN (:complete_status , :void_status) " +
-                ")" +
+                ") " +
                 "ORDER BY rr.id"),
         @NamedNativeQuery(name = "routinesWithRequestQueueAndRequestIdRestrictionForProcessing", query = "" +
                 "SELECT * FROM request_routine rr " +
