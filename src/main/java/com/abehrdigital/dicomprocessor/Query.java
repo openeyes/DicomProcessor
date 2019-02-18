@@ -72,7 +72,7 @@ public class Query {
                 //  if no rows are returned, then insert and get the newly introduced id
                 System.out.println("Value is not here");
 
-                this.crud = CRUD.valueOf("retrieve");
+                this.crud = CRUD.retrieve;
                 constructSelectQuery();
 
                 // execute select query
@@ -83,7 +83,7 @@ public class Query {
 
                 if (rowsAffected == 0) {
                     // no rows returned: insert
-                    this.crud = CRUD.valueOf("create");
+                    this.crud = CRUD.create;
 
                     System.out.println("insert");
                     secondaryQueryInsert = constructInsertQuery();
@@ -99,7 +99,7 @@ public class Query {
 
                         constructUpdateQuery();
 
-                        this.crud = CRUD.valueOf("create");
+                        this.crud = CRUD.create;
 
                         // when the ID is not known -> do queryByExample to retrieve it
                         // when the ID is known (present in the dataDictionary) -> update the rest of the columns
@@ -184,14 +184,21 @@ public class Query {
         }
     }
 
-    public void addFieldToStringBuilder(StringBuilder stringBuilder1, StringBuilder stringBuilder2, String field, String value) {
-        stringBuilder1.append(COMA_SPACE);
-        stringBuilder1.append(field);
+    /**
+     * Add key and value to the two stringbuilders with formatting
+     * @param keys StringBuilder
+     * @param values StringBuilder
+     * @param key String to be added to the keys
+     * @param value String to be added to the values
+     */
+    private void addFieldToStringBuilder(StringBuilder keys, StringBuilder values, String key, String value) {
+        keys.append(COMA_SPACE);
+        keys.append(key);
 
-        stringBuilder2.append(COMA_SPACE);
-        stringBuilder2.append(SINGLE_QUOTE);
-        stringBuilder2.append(value);
-        stringBuilder2.append(SINGLE_QUOTE);
+        values.append(COMA_SPACE);
+        values.append(SINGLE_QUOTE);
+        values.append(value);
+        values.append(SINGLE_QUOTE);
     }
     /**
      * Construct the insert SQL query; then construct a select query to determine the PK of the newly inserted row
@@ -416,7 +423,7 @@ public class Query {
         int rowsAffected = -1;
 
         /* only if the crud is "create", execute the secondary query */
-        if (crud == CRUD.valueOf("create")) {
+        if (crud == CRUD.create) {
             session.beginTransaction();
             rowsAffected = sqlQuery.executeUpdate();
             session.getTransaction().commit();

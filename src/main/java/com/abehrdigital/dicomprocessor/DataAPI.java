@@ -47,25 +47,25 @@ public class DataAPI {
     }
 
     /**
-     * apply the actions inside a json string to the database
+     * Construct the sql query for each Query object received and run it against the database.
+     *
+     * @param queries Query object which needs to be run.
      */
-    private static void applyQuery(String jsonData) {
-        ArrayList<Query> queries;
+    private static void applyQueries(ArrayList<Query> queries) {
         try {
-            queries = parseJson(jsonData);
-            Iterator itr = queries.iterator();
+            Iterator queryIterator = queries.iterator();
 
-            while (itr.hasNext()) {
-                Query query = (Query) itr.next();
+            while (queryIterator.hasNext()) {
+                Query query = (Query) queryIterator.next();
 
                 // DEBUG
                 DataAPI.printMap("DataAPI.map: ", DataAPI.dataDictionary);
 
                 // construct the SQL query based on the CRUD operation and the fields found in Query object
-                int rowsAffected = query.constructAndRunQuery();
+                query.constructAndRunQuery();
 
                 // remove query from array
-                itr.remove();
+                queryIterator.remove();
 
                 // set query to null to be eligible to be removed by GC
                 query = null;
@@ -310,7 +310,7 @@ public class DataAPI {
         try {
             JSONParser parser = new JSONParser();
 
-            FileReader reader = new FileReader("./src/JSON5.json");
+            FileReader reader = new FileReader("./src/JSON.json");
             JSONObject json = (JSONObject) parser.parse(reader);
 
             return json.toJSONString();
@@ -342,7 +342,7 @@ public class DataAPI {
             time = getTime();
 
             // parse and execute the sql queries from the json string
-            applyQuery(jsonData);
+            applyQueries(parseJson(jsonData));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -386,12 +386,13 @@ public class DataAPI {
      * @param args args
      */
     public static void main(String[] args) {
-        //DataAPI.magic("1", DataAPI.getEventTemplate());
         try {
             // create json template with all dependencies for a given dataSet
-            String jsonFromTemplate = createTemplate("event_attachment_item");
+            // String jsonFromTemplate = createTemplate("event_attachment_item");
             // apply the json on the database
-            DataAPI.magic("1", jsonFromTemplate);
+            // DataAPI.magic("1", jsonFromTemplate);
+
+            DataAPI.magic("1", DataAPI.getEventTemplate());
         } catch (Exception e) {
             e.printStackTrace();
         }
