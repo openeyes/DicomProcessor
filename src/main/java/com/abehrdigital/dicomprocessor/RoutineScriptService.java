@@ -108,15 +108,16 @@ public class RoutineScriptService {
         }
     }
 
+    //TODO REMOVE DATE OF BIRTH AND GENDER FROM THE QUERY
     public int getPatientId(int hospitalNumber, int dateOfBirth, String gender) {
-        return daoManager.getPatientDao().getIdByHosNumAndDobAndGender(hospitalNumber, dateOfBirth, gender);
+        return daoManager.getPatientDao().getIdByHospitalNumber(hospitalNumber, dateOfBirth, gender);
     }
 
     public void createEvent(String eventData) {
         //TODO for light intergration
     }
 
-    public String getEventTemplate() {
+    public String getEmptyEventTemplate() {
         //TODO for light intergration
         return "";
     }

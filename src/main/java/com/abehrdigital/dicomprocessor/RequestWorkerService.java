@@ -29,11 +29,11 @@ public class RequestWorkerService {
     }
 
     public void beginTransaction() {
-        daoManager.manualTransactionStart();
+        daoManager.transactionStart();
     }
 
     public void commit() {
-        daoManager.manualCommit();
+        daoManager.commit();
     }
 
     public void rollback() {
