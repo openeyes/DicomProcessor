@@ -46,13 +46,9 @@ public class Query {
 
     // construct sql query
     int constructAndRunQuery() throws Exception {
-        System.out.println("--" + this + "--");
-
         // before constructing the query, update the list of known fields
         updateKnownFields();
         updateKnownFieldsWithForeignKeys();
-
-        System.out.println("--" + this + "--");
 
         String secondaryQueryInsert;
         int rowsAffected = 0;
@@ -64,7 +60,6 @@ public class Query {
                 // execute select query
                 // there is no secondary query to be executed after select
                 rowsAffected = executeQuery(DataAPI.getSession(), null);
-                System.out.println("sel rows: " + rowsAffected);
                 break;
             case merge:
                 // if id is known, try to update fields
@@ -72,8 +67,6 @@ public class Query {
 
                 // no id, then try Retrieve.
                 //  if no rows are returned, then insert and get the newly introduced id
-                System.out.println("Value is not here");
-
                 this.crud = CRUD.retrieve;
                 constructSelectQuery();
 
@@ -81,28 +74,19 @@ public class Query {
                 // there is no secondary query to be executed after select
                 rowsAffected = executeQuery(DataAPI.getSession(), null);
 
-                System.out.println("merge rows: " + rowsAffected);
-
                 if (rowsAffected == 0) {
                     // no rows returned: insert
                     this.crud = CRUD.create;
-
-                    System.out.println("insert");
                     secondaryQueryInsert = constructInsertQuery();
-                    System.out.println("Second: " + secondaryQueryInsert);
+
                     // execute query and the secondary query
                     rowsAffected = executeQuery(DataAPI.getSession(), secondaryQueryInsert);
                 } else if (rowsAffected == 1) {
                     // records found
-                    System.out.println("ONE Record found");
                     if (DataAPI.dataDictionary.containsKey(XID) && DataAPI.dataDictionary.get(XID) != null &&
                             DataAPI.dataDictionary.get(XID).knownFields != null && DataAPI.dataDictionary.get(XID).knownFields.get(primaryKey) != null) {
-                        System.out.println("Value is here 1: " + primaryKey);
-
                         constructUpdateQuery();
-
                         this.crud = CRUD.create;
-
                         // when the ID is not known -> do queryByExample to retrieve it
                         // when the ID is known (present in the dataDictionary) -> update the rest of the columns
                         // there is no secondary query to be executed after update: all information already in dataDictionary
@@ -110,20 +94,8 @@ public class Query {
                         if (rowsAffected != 1) {
                             throw new Exception("Could not update.");
                         }
-                    } else {
                     }
-                } else {
-                    System.out.println("MORE THAN ONE record found");
                 }
-
-
-                // DEBUG purposes
-                if (DataAPI.dataDictionary.containsKey(XID) && DataAPI.dataDictionary.get(XID) !=  null) {
-                    DataAPI.printMap("Value is here 2 " + primaryKey, DataAPI.dataDictionary);
-                } else {
-                    DataAPI.printMap("Value is not here", DataAPI.dataDictionary);
-                }
-
                 break;
             default:
                 break;
@@ -255,7 +227,6 @@ public class Query {
         }
 
         this.query = String.format("INSERT INTO %s (%s) VALUES (%s);", this.dataSet, keys, fields);
-        System.err.println(this.query);
 
         /*
          * after the insert, we want to retrieve the PK and UKs inserted
@@ -281,7 +252,11 @@ public class Query {
         selectStatement.delete(selectStatement.length() - COMA_SPACE.length(), selectStatement.length());
 
         // WHERE	-> this.knownFields
-        String condition = concatenateConditionsWithDelimiter(getEquals(knownFields, " is "), "AND");
+        String[] conditions = getEquals(knownFields, " is ");
+        if (conditions == null) {
+            return null;
+        }
+        String condition = String.join(" AND ", conditions);
 
         // return as second sql query "SELECT id FROM ..."
         return String.format("SELECT %s FROM %s WHERE %s;", selectStatement.toString(), this.dataSet, condition);
@@ -298,10 +273,14 @@ public class Query {
         }
 
         // SELECT	-> unknownFields
-        String selectStatement = concatenateConditionsWithDelimiter(unknownFields.keySet().stream().toArray(String[] ::new), ",");
+        String selectStatement = String.join(" , ", unknownFields.keySet().stream().toArray(String[] ::new));
 
         // WHERE	-> this.knownFields
-        String condition = concatenateConditionsWithDelimiter(getEquals(knownFields, " is "), "AND");
+        String[] conditions = getEquals(knownFields, " is ");
+        if (conditions == null) {
+            return;
+        }
+        String condition = String.join(" AND ", conditions);
 
         // select the SQL query
         this.query =  String.format("SELECT %s FROM %s WHERE %s;", selectStatement, this.dataSet, condition);
@@ -314,25 +293,24 @@ public class Query {
     private void constructUpdateQuery() throws Exception {
         XID xid = DataAPI.dataDictionary.get(XID);
         String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
-        String values = concatenateConditionsWithDelimiter(getEquals(knownFields, "="), ",");
+        String[] values = getEquals(knownFields, "=");
+        if (values == null) {
+            return;
+        }
+        String valuesConcatenated = String.join(" , ", values);
 
         if (knownFields.get("last_modified_date") == null) {
-            System.out.println("ooo: ");
-            values += ", last_modified_date='" + DataAPI.getTime()+SINGLE_QUOTE;
+            valuesConcatenated += ", last_modified_date='" + DataAPI.getTime()+SINGLE_QUOTE;
         }
 
         if (knownFields.get("created_date") == null) {
-            System.out.println("ooo: ");
-            values += ", created_date='" + DataAPI.getTime()+SINGLE_QUOTE;
+            valuesConcatenated += ", created_date='" + DataAPI.getTime()+SINGLE_QUOTE;
         }
 
 
         // select the SQL query
         this.query = String.format("UPDATE %s SET %s WHERE %s='%s'",
-                this.dataSet, values, primaryKey, xid.knownFields.get(primaryKey));
-
-        System.out.println("PP: " + values);
-        System.out.println("PP: " + this.query);
+                this.dataSet, valuesConcatenated, primaryKey, xid.knownFields.get(primaryKey));
     }
 
     /**
@@ -385,33 +363,6 @@ public class Query {
         }
 
         return resultingConditions;
-    }
-
-    /**
-     * Get a string containing the objects in the array, delimited by given delimiter
-     *
-     * @param conditions array of Objects to be concatenated into a string
-     * @param delimiter String to be placed between elements of array
-     * @return string concatenation of all elements in array
-     */
-    private String concatenateConditionsWithDelimiter(String[] conditions, String delimiter) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        if (conditions == null || conditions.length < 1) {
-            return null;
-        }
-
-        for (String condition : conditions) {
-            stringBuilder.append(condition.toString());
-            stringBuilder.append(SPACE);
-            stringBuilder.append(delimiter);
-            stringBuilder.append(SPACE);
-        }
-
-        // remove last delimiter and spaces
-        stringBuilder.delete(stringBuilder.length() - 2 * SPACE.length() - delimiter.length(), stringBuilder.length());
-
-        return stringBuilder.toString();
     }
 
     /**

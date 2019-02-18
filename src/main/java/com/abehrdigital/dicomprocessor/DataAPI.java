@@ -95,8 +95,6 @@ public class DataAPI {
 
         for (Object key : json.keySet()) {
             Object data = json.get(key.toString());
-            System.out.println("SSSSS: " + jsonData);
-            System.out.println("SSSSS: " + data);
 
             // depending on the current object class, parse the data
             JsonObjectClassType jsonClass = JsonObjectClassType.valueOf(data.getClass().getSimpleName());
