@@ -302,11 +302,15 @@ public class DataAPI {
         return DataAPI.time;
     }
 
-    public static String getEventTemplate() {
+    /**
+     * Read contents of a JSON file and return the resulting String
+     * @return String json file
+     */
+    static String getEventTemplate() {
         try {
             JSONParser parser = new JSONParser();
 
-            FileReader reader = new FileReader("./src/JSON.json");
+            FileReader reader = new FileReader("./src/JSON5.json");
             JSONObject json = (JSONObject) parser.parse(reader);
 
             return json.toJSONString();
@@ -316,12 +320,18 @@ public class DataAPI {
         return null;
     }
 
-    public static void magic(String id, String jsonData) {
+    /**
+     * Apply all sql queries after parsing the json string
+     * @param id int id of user who makes the changes
+     * @param jsonData String json to be parsed
+     * @throws Exception Nothing to parse; Could not open a new session!; Could not get current date time!
+     */
+    static void magic(String id, String jsonData) throws Exception {
+        if (jsonData.isEmpty()) {
+            throw new Exception("Nothing to parse");
+        }
         try {
             // TODO: use "user_id" for insert/merge operations
-            // TODO: for insert, set all dates to NOW
-            //      for update, set only last_updated to NOW, but the rest keep them as they were
-            //      (do not update anything: it should use default value)
             /* basic initialization */
             dataDictionary = new HashMap<>();
             keyIndex = new HashMap<>();
@@ -331,6 +341,7 @@ public class DataAPI {
             session = getSession();
             time = getTime();
 
+            // parse and execute the sql queries from the json string
             applyQuery(jsonData);
         } catch (Exception e) {
             e.printStackTrace();
@@ -341,12 +352,48 @@ public class DataAPI {
         DataAPI.printKeyMap("Final", DataAPI.keyIndex);
     }
 
+    /**
+     * Recursively search the foreign keys for a given dataSet to find all dependencies.
+     * Save them in a json-manner string.
+     *
+     * @param dataSet the table name desired
+     * @return String json string containing a template of table dependencies
+     */
+    public static String createTemplate(String dataSet) {
+        try {
+            JSONObject jsonFile = new JSONObject();
+            jsonFile.put("_OE_System", "ABEHR Jason Local v3.0");
+            jsonFile.put("_Version", "v0.1");
+
+            // save in a stack, the jsonObject of dataSets, created by recursively searching for foreign keys
+            // starting from a given dataSet.
+            Stack<JSONObject> saveSets = new Stack<>();
+            Query.getFKRelations(getSession(), dataSet, saveSets, new HashSet<String>());
+
+            jsonFile.put("$$_XID_Map_$$", new JSONArray());
+            // TODO: hardcoded value 1
+            jsonFile.put("$$_SaveSet[1]_$$", saveSets);
+
+            return jsonFile.toJSONString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
 
     /**
      * Main function
      * @param args args
      */
     public static void main(String[] args) {
-        DataAPI.magic("1", DataAPI.getEventTemplate());
+        //DataAPI.magic("1", DataAPI.getEventTemplate());
+        try {
+            // create json template with all dependencies for a given dataSet
+            String jsonFromTemplate = createTemplate("event_attachment_item");
+            // apply the json on the database
+            DataAPI.magic("1", jsonFromTemplate);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

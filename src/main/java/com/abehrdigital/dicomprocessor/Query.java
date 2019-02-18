@@ -3,6 +3,8 @@ package com.abehrdigital.dicomprocessor;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import java.util.*;
 
@@ -204,6 +206,12 @@ public class Query {
             throw new Exception("Validation failed. Some information is not available.");
         }
 
+        if (knownFields.size() < 1) {
+            System.err.println("Nothing to insert.");
+            this.query = null;
+            return null;
+        }
+
         // all the unknown fields were found, append together all fields and values to form the insert query
         StringBuilder keys = new StringBuilder();
         StringBuilder fields = new StringBuilder();
@@ -401,6 +409,9 @@ public class Query {
      * @return array containing the columns returned by the sql query
      */
     private int executeQuery(Session session, String secondaryQueryInsert) {
+        if (this.query == null)
+            return -1;
+
         NativeQuery sqlQuery = session.createSQLQuery(query);
         int rowsAffected = -1;
 
@@ -529,5 +540,60 @@ public class Query {
                     break;
             }
         }
+    }
+
+    static void getFKRelations(Session session, String dataSet, Stack<JSONObject> saveSets, HashSet<String> dataSetsHistory) {
+        // if dataSet was already expanded, do nothing
+        if (!dataSetsHistory.add(dataSet)) {
+            return;
+        }
+
+        // TODO: When do we increment the count of current dataSet?
+        int count = 1;
+
+        // construct query for selecting constraints
+        String getKeysQuery = "SELECT innerTable.constraint_type AS 'CONSTRAINT_TYPE', keyCol.`COLUMN_NAME` AS 'COLUMN_NAME', " +
+                "`keyCol`.`REFERENCED_TABLE_NAME` AS 'REFERENCED_TABLE_NAME', innerTable.constraint_name AS 'CONSTRAINT_NAME', " +
+                "`keyCol`.`REFERENCED_COLUMN_NAME` AS 'REFERENCED_COLUMN_NAME' " +
+                "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
+                "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS constr " +
+                "WHERE constr.table_name='"+dataSet+"') innerTable " +
+                "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE keyCol ON keyCol.table_name=innerTable.table_name AND keyCol.`CONSTRAINT_NAME`=innerTable.`CONSTRAINT_NAME` " +
+                "ORDER BY constraint_type;";
+
+        NativeQuery sqlQuery = session.createSQLQuery(getKeysQuery);
+
+        // get all the fields from the sql query
+        sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        List<HashMap<String, String>> aliasToValueMapList = sqlQuery.list();
+
+        // create new JSON object for current dataSet
+        JSONObject saveSetItem = new JSONObject();
+        JSONArray _ROW_ = new JSONArray();
+        JSONObject _ROW_item_ = new JSONObject();
+
+        // set dataSet and CRUD
+        saveSetItem.put("$$_DataSet_$$", dataSet);
+        _ROW_item_.put("$$_CRUD_$$", "merge");
+
+        // set the primary key and the foreign keys
+        for (HashMap<String, String> row : aliasToValueMapList) {
+            String constraintType = row.get("CONSTRAINT_TYPE");
+            String refTable = row.get("REFERENCED_TABLE_NAME");
+            switch (constraintType) {
+                case "PRIMARY KEY":
+                   _ROW_item_.put(row.get("COLUMN_NAME"), String.format("$$_%s[%d]_$$", dataSet, count));
+                    break;
+                case "FOREIGN KEY":
+                    _ROW_item_.put(row.get("COLUMN_NAME"), String.format("$$_%s[%d].%s_$$", refTable, count, row.get("REFERENCED_COLUMN_NAME")));
+                    getFKRelations(session, refTable, saveSets, dataSetsHistory);
+                    break;
+                default:
+                    break;
+            }
+        }
+        _ROW_.add(_ROW_item_);
+        saveSetItem.put("$$_ROW_$$", _ROW_);
+        saveSets.push(saveSetItem);
     }
 }
