@@ -50,6 +50,8 @@ public class Query {
 
         // before constructing the query, update the list of known fields
         updateKnownFields();
+        updateKnownFieldsWithForeignKeys();
+
         System.out.println("--" + this + "--");
 
         String secondaryQueryInsert;
@@ -131,7 +133,6 @@ public class Query {
 
     /**
      * add to the list of KnownFields those that have a value in dataDictionary and remove them from UnknownFields
-     * add to the list of KnownFields the foreign keys that have a value in dataDictionary
      */
     private void updateKnownFields() throws Exception {
         Iterator unknownFieldsIterator = unknownFields.entrySet().iterator();
@@ -140,7 +141,7 @@ public class Query {
         /* search through all unknown fields and if the encoding "$$_..._$$" has a value in DataAPI.dataDictionary,
          * add it to the known fields and remove it from the unknownFields
          */
-        while(unknownFieldsIterator.hasNext()) {
+        while (unknownFieldsIterator.hasNext()) {
             String idUnknown = ((Map.Entry<String, String>) unknownFieldsIterator.next()).getKey();
             String XIDUnknown = unknownFields.get(idUnknown);
 
@@ -159,24 +160,29 @@ public class Query {
             // if the value of the XID was previously computed, remove it from the unknown fields
             // and move it to the known fields
             if (DataAPI.dataDictionary.containsKey(XIDUnknown)) {
-                XID XIDObject = DataAPI.dataDictionary.get(XIDUnknown);
+                XID xidObject = DataAPI.dataDictionary.get(XIDUnknown);
 
-                if (XIDObject != null && XIDObject.knownFields != null && XIDObject.knownFields.containsKey(idUnknown)) {
-                    knownFields.put(idUnknown, XIDObject.knownFields.get(idUnknown));
+                if (xidObject != null && xidObject.knownFields != null && xidObject.knownFields.containsKey(idUnknown)) {
+                    knownFields.put(idUnknown, xidObject.knownFields.get(idUnknown));
                     unknownFieldsIterator.remove();
                 }
             }
         }
+    }
 
+    /**
+     * add to the list of KnownFields the foreign keys that have a value in dataDictionary
+     */
+    private void updateKnownFieldsWithForeignKeys() {
         /* Add to the known fields the foreign keys with a value received previously and saved in DataAPI.dataDictionary */
         for (Map.Entry<String, ForeignKey> foreignKeyEntry : foreignKeys.entrySet()) {
             String XIDForeignKey = foreignKeyEntry.getKey();
             ForeignKey foreignKey = foreignKeyEntry.getValue();
 
             if (DataAPI.dataDictionary.containsKey(XIDForeignKey)) {
-                XID XIDObject = DataAPI.dataDictionary.get(XIDForeignKey);
-                if (XIDObject != null && XIDObject.knownFields != null && XIDObject.knownFields.containsKey(foreignKey.referencedColumn)) {
-                    String previouslyFoundValue = XIDObject.knownFields.get(foreignKey.referencedColumn);
+                XID xidObject = DataAPI.dataDictionary.get(XIDForeignKey);
+                if (xidObject != null && xidObject.knownFields != null && xidObject.knownFields.containsKey(foreignKey.referencedColumn)) {
+                    String previouslyFoundValue = xidObject.knownFields.get(foreignKey.referencedColumn);
                     // save the value of foreign key in known fields
                     knownFields.put(foreignKey.referencingColumn, previouslyFoundValue);
                 }
