@@ -46,26 +46,6 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
         return this.requestRoutineDao;
     }
 
-    public void manualTransactionStart() {
-        if (!getConnection().getTransaction().isActive())
-            getConnection().beginTransaction();
-    }
-
-    public void manualCommit() {
-        getConnection().getTransaction().commit();
-    }
-
-    public void rollback() {
-        if (getConnection().getTransaction() != null)
-            getConnection().getTransaction().rollback();
-    }
-
-    public void shutdown() {
-        if (getConnection() != null) {
-            getConnection().disconnect();
-        }
-    }
-
     public PatientDao getPatientDao() {
         if (this.patientDao == null) {
             this.patientDao = new PatientDao(getConnection());

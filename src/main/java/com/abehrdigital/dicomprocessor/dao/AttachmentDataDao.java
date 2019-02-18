@@ -6,6 +6,7 @@
 package com.abehrdigital.dicomprocessor.dao;
 
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
+import com.abehrdigital.dicomprocessor.utils.QueryResultUtils;
 import org.hibernate.Session;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -48,7 +49,7 @@ public class AttachmentDataDao implements BaseDao<AttachmentData, Integer> {
 
     public AttachmentData getByAttachmentMnemonicAndBodySite(String attachmentMnemonic, String bodySite, int requestId) {
         CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-        CriteriaQuery criteriaQuery = criteriaBuilder.createQuery(AttachmentData.class);
+        CriteriaQuery<AttachmentData> criteriaQuery = criteriaBuilder.createQuery(AttachmentData.class);
         Root root = criteriaQuery.from(AttachmentData.class);
 
         List<Predicate> predicates = new ArrayList<>();
@@ -57,19 +58,11 @@ public class AttachmentDataDao implements BaseDao<AttachmentData, Integer> {
         if (attachmentMnemonic != null) {
             predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("attachmentMnemonic"), attachmentMnemonic)));
         }
-
         if (bodySite != null) {
             predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("bodySiteSnomedType"), bodySite)));
         }
+        criteriaQuery.where(predicates.toArray(new Predicate[0]));
 
-
-        criteriaQuery.where(predicates.stream().toArray(Predicate[]::new));
-
-        List<AttachmentData> attachmentDataList = session.createQuery(criteriaQuery).getResultList();
-        if (attachmentDataList.size() == 0) {
-            return null;
-        } else {
-            return attachmentDataList.get(0);
-        }
+        return (AttachmentData) QueryResultUtils.getFirstResultOrNull(session.createQuery(criteriaQuery));
     }
 }
