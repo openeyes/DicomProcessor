@@ -21,8 +21,36 @@ import java.sql.Timestamp;
 @Table(name = "request_routine")
 @OptimisticLocking(type = OptimisticLockType.DIRTY)
 @DynamicUpdate
+@NamedNativeQueries({
+        @NamedNativeQuery(name = "routinesWithRequestQueueRestrictionForProcessing", query = "" +
+                "SELECT * FROM request_routine rr " +
+                "WHERE rr.execute_request_queue = :request_queue " +
+                "AND rr.status IN( :new_status , :retry_status) " +
+                "AND IFNULL (rr.next_try_date_time, SYSDATE()) <= SYSDATE() " +
+                "AND NOT EXISTS ( " +
+                "SELECT * " +
+                "FROM request_routine subrr " +
+                "WHERE subrr.request_id = rr.request_id " +
+                "AND subrr.execute_sequence < rr.execute_sequence " +
+                "AND subrr.status NOT IN (:complete_status , :void_status) " +
+                ")" +
+                "ORDER BY rr.id"),
+        @NamedNativeQuery(name = "routinesWithRequestQueueAndRequestIdRestrictionForProcessing", query = "" +
+                "SELECT * FROM request_routine rr " +
+                "WHERE rr.execute_request_queue = :request_queue " +
+                "AND rr.status IN( :new_status , :retry_status) " +
+                "AND rr.request_id = :request_id " +
+                "AND IFNULL (rr.next_try_date_time, SYSDATE()) <= SYSDATE() " +
+                "AND NOT EXISTS ( " +
+                "SELECT * " +
+                "FROM request_routine subrr " +
+                "WHERE subrr.request_id = rr.request_id " +
+                "AND subrr.execute_sequence < rr.execute_sequence " +
+                "AND subrr.status NOT IN (:complete_status , :void_status) " +
+                ") " +
+                "ORDER BY rr.id ")
+})
 public class RequestRoutine {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -76,8 +104,7 @@ public class RequestRoutine {
         executeSequence = value;
     }
 
-    public void
-    updateFieldsByStatus(Status routineStatus) {
+    public void updateFieldsByStatus(Status routineStatus) {
         if (routineStatus == Status.COMPLETE) {
             successfulExecution();
         } else if (routineStatus == Status.FAILED) {
