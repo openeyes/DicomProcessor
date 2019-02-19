@@ -68,7 +68,7 @@ public class RoutineScriptService {
     public void addRoutine(String routineName) throws HibernateException {
         RequestRoutine requestRoutine = daoManager.getRequestRoutineDao().findByRoutineNameAndRequestId(requestId, routineName);
         if (requestRoutine != null) {
-            daoManager.getRequestRoutineDao().resetRequestRoutine(requestRoutine);
+            daoManager.getRequestRoutineDao().resetAndSave(requestRoutine);
         } else {
             if (routineInLibraryExists(routineName)) {
                 requestRoutine = new RequestRoutine.Builder(

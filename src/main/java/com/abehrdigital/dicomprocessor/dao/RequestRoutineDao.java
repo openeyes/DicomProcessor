@@ -96,7 +96,7 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
         return (RequestRoutine) QueryResultUtils.getFirstResultOrNull(session.createQuery(criteriaQuery));
     }
 
-    public void resetRequestRoutine(RequestRoutine requestRoutine) {
+    public void resetAndSave(RequestRoutine requestRoutine) {
         requestRoutine.reset();
         update(requestRoutine);
     }

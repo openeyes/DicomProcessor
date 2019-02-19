@@ -21,6 +21,7 @@ public class DicomEngine {
     /**
      * @param args the command line arguments
      */
+    //TODO DOCKER SECRETS AND SHUT DOWN AFER MINUTES SHOULD COME THROUGH ARGS
     public static void main(String[] args) {
         long shutdownMsClock = System.currentTimeMillis() + 60 * 1000 * SHUTDOWN_AFTER_MINUTES;
         RequestQueueExecutor requestQueueExecutor = new RequestQueueExecutor(testRequestQueue);
