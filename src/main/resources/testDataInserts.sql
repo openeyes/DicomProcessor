@@ -85,7 +85,7 @@ INSERT INTO routine_library (routine_name, routine_body)
 VALUES
   (
     "create_event",
-    " var eventData = JSON.parse(getJson('eventData', null));
+    " var eventData = JSON.parse(getJson('event_data', null));
      var requestData = JSON.parse(getJson('request_data', null));
     var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf' , null);
 
