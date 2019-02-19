@@ -11,11 +11,6 @@
 			"$$_XID_$$": "$$_attachment_data[1]_$$",
 			"$$_DataSet_$$": "attachment_data",
 			"id": "2"
-		},
-		{
-			"$$_XID_$$": "$$_event[1]_$$",
-			"$$_DataSet_$$": "event",
-			"event_date": "2019-02-14 13:47:24"
 		}
 	],
 	"$$_SaveSet[1]_$$": [
@@ -101,7 +96,7 @@
 				"event_type_id": "$$_event_type[1].id_$$",
 				"last_modified_user_id": "$$_user[1].id_$$",
 				"created_date": "$$_SysDateTime_$$",
-				"event_date": "$$_event[1].event_date_$$",
+				"event_date": "$$_SysDateTime_$$",
 				"info": "Draft",
 				"deleted": "0",
 				"delete_reason": "null",
@@ -144,6 +139,16 @@
 					"event_attachment_group_id": "$$_event_attachment_group[1].id_$$",
 					"attachment_data_id": "$$_attachment_data[1].id_$$",
 					"system_only_managed": "1"
+				}
+			]
+		},
+		{
+			"$$_DataSet_$$": "et_ophciexamination_attachment",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "merge",
+					"id": "$$_et_ophciexamination_attachment[1]_$$",
+					"event_id": "$$_event[1].id_$$",
 				}
 			]
 		}
