@@ -105,7 +105,7 @@ INSERT INTO routine_library (routine_name, routine_body)
 VALUES
   (
     "prototype_event",
-    "var eventTemplate = getEventTemplate();
+    "var eventTemplate = getEmptyEventTemplate();
      putJson(
       'event_data',
      eventTemplate,
