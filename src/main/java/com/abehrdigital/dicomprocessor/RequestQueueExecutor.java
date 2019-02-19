@@ -73,6 +73,7 @@ public class RequestQueueExecutor implements RequestThreadListener {
             currentRequestQueue = getUpToDateRequestQueue();
             sleepAfterRoutineLoop(requestRoutinesForExecution.size());
         } catch (Exception exception) {
+            daoManager.rollback();
             Logger.getLogger(RequestQueueExecutor.class.getName()).log(Level.SEVERE,
                     exception.toString() + " Executor exception");
             exception.printStackTrace();

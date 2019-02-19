@@ -11,8 +11,8 @@ public class RoutineLibraryDao implements BaseDao<RoutineLibrary, String> {
     }
 
     @Override
-    public RoutineLibrary get(String primaryKey) {
-        return session.get(RoutineLibrary.class, primaryKey);
+    public RoutineLibrary get(String routineName) {
+        return session.get(RoutineLibrary.class, routineName);
     }
 
     @Override

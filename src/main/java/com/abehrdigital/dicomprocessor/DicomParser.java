@@ -66,6 +66,4 @@ public class DicomParser {
     public Study getStudy() {
         return study;
     }
-
-
 }

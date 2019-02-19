@@ -14,7 +14,6 @@ public class RequestQueueDaoManager extends BaseDaoManager {
     private RequestRoutineDao requestRoutineDao;
 
     public RequestQueueDaoManager() {
-
     }
 
     public RequestQueueDao getRequestQueueDao() {
@@ -29,18 +28,5 @@ public class RequestQueueDaoManager extends BaseDaoManager {
             this.requestRoutineDao = new RequestRoutineDao(getConnection());
         }
         return this.requestRoutineDao;
-    }
-
-    public void transactionStart() {
-        if (!getConnection().getTransaction().isActive())
-            getConnection().beginTransaction();
-    }
-
-    public void commit() {
-        getConnection().getTransaction().commit();
-    }
-
-    public void rollback() {
-        getConnection().getTransaction().rollback();
     }
 }

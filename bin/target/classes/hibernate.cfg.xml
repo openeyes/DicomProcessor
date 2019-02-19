@@ -29,7 +29,7 @@
     <property name="hbm2ddl.auto">validate</property>
     <property name="hibernate.connection.autocommit">false</property> 
      <!--Names the annotated entity class-->
-    <mapping class="com.abehrdigital.dicomprocessor.Request"></mapping>
+    <mapping class="com.abehrdigital.dicomprocessor.models.Request"></mapping>
     <mapping class="com.abehrdigital.dicomprocessor.models.RequestRoutine"></mapping>
     <mapping class="com.abehrdigital.dicomprocessor.models.RequestRoutineExecution"></mapping>
     <mapping class="com.abehrdigital.dicomprocessor.models.RoutineLibrary"></mapping>

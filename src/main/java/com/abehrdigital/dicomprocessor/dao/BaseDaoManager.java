@@ -46,19 +46,34 @@ public abstract class BaseDaoManager {
     }
 
     public void flushSession() {
-        session.flush();
+        getConnection().flush();
     }
 
     public void clearSession() {
-        session.clear();
+        getConnection().clear();
     }
 
     public void shutDown() {
-        session.disconnect();
+        getConnection().disconnect();
     }
 
     public void refresh(Object object) {
-        session.refresh(object);
+        getConnection().refresh(object);
+    }
+
+    public void commit() {
+        getConnection().getTransaction().commit();
+    }
+
+    public void rollback() {
+        if (getConnection().getTransaction() != null) {
+            getConnection().getTransaction().rollback();
+        }
+    }
+
+    public void transactionStart() {
+        if (!getConnection().getTransaction().isActive())
+            getConnection().beginTransaction();
     }
 
 }

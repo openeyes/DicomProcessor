@@ -4,6 +4,7 @@ import com.abehrdigital.dicomprocessor.models.Request;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RequestRoutineExecution;
 import com.abehrdigital.dicomprocessor.utils.DaoFactory;
+import com.abehrdigital.dicomprocessor.utils.RandomStringGenerator;
 import com.abehrdigital.dicomprocessor.utils.Status;
 
 import javax.persistence.OptimisticLockException;
@@ -12,7 +13,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.io.StringWriter;
 import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +20,8 @@ import static com.abehrdigital.dicomprocessor.utils.StackTraceUtil.getStackTrace
 
 public class RequestWorker implements Runnable {
     private static final String ENGINE_NAME = "JavaScript";
+    private static final int JAVA_CLASS_NAME_IN_ENGINE_LENGTH = 6;
+
     private int requestId;
     private final RequestThreadListener threadListener;
     private RequestWorkerService service;
@@ -52,7 +54,7 @@ public class RequestWorker implements Runnable {
 
                 RequestRoutine routineForProcessing = service.getNextRoutineToProcess();
                 if (routineForProcessing != null) {
-                    executeRequestRoutine(routineForProcessing);
+                    evaluateEngineExecution(executeRequestRoutine(routineForProcessing), routineForProcessing);
                 } else {
                     break;
                 }
@@ -65,15 +67,20 @@ public class RequestWorker implements Runnable {
         }
     }
 
-    private void executeRequestRoutine(RequestRoutine routineForProcessing) {
+    private EngineExecution executeRequestRoutine(RequestRoutine routineForProcessing) {
         String logMessage = "";
         Status routineStatus = Status.FAILED;
+        StringWriter engineScriptWriter = new StringWriter();
+        String javaClassNameInJavaScriptEngine = RandomStringGenerator.generateWithDefaultChars(JAVA_CLASS_NAME_IN_ENGINE_LENGTH);
+
         try {
-            String routineBody = service.getRoutineBody(routineForProcessing.getRoutineName());
+            String routineBody = service.getRoutineBodyWithConvertedJavaMethods(
+                    routineForProcessing.getRoutineName(),
+                    javaClassNameInJavaScriptEngine
+            );
             ScriptEngine engine = new ScriptEngineManager().getEngineByName(ENGINE_NAME);
-            StringWriter engineScriptWriter = new StringWriter();
             redirectEngineOutputToWriter(engine, engineScriptWriter);
-            engine.put("controller", service);
+            engine.put(javaClassNameInJavaScriptEngine, service.getScriptService());
             engine.eval(routineBody);
             logMessage += engineScriptWriter;
             routineStatus = Status.COMPLETE;
@@ -81,7 +88,6 @@ public class RequestWorker implements Runnable {
             service.updateRequestRoutine(routineForProcessing);
             //Request table lock released when transaction is committed
             service.commit();
-            successfulRoutineCount++;
         } catch (OptimisticLockException lockException) {
             service.rollback();
             logMessage += lockException.toString();
@@ -93,14 +99,20 @@ public class RequestWorker implements Runnable {
             logMessage += getStackTraceAsString(exception);
         }
 
+        return new EngineExecution(routineStatus, logMessage);
+    }
+
+    private void evaluateEngineExecution(EngineExecution engineExecution, RequestRoutine routineForProcessing) {
         try {
             service.beginTransaction();
-            if (routineStatus == Status.FAILED) {
-                routineForProcessing.updateFieldsByStatus(routineStatus);
+            if (engineExecution.getStatus() == Status.FAILED) {
+                routineForProcessing.updateFieldsByStatus(engineExecution.getStatus());
                 service.updateRequestRoutine(routineForProcessing);
                 failedRoutineCount++;
+            } else if (engineExecution.getStatus() == Status.COMPLETE) {
+                successfulRoutineCount++;
             }
-            service.saveRequestRoutineExecution(createRequestExecution(routineForProcessing, logMessage));
+            service.saveRequestRoutineExecution(createRequestExecution(routineForProcessing, engineExecution.getLog()));
             service.commit();
         } catch (Exception exception) {
             service.rollback();
