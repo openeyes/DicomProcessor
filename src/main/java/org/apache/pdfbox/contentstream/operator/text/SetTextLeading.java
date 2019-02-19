@@ -22,6 +22,7 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * TL: Set text leading.
@@ -31,10 +32,11 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 public class SetTextLeading extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments)
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments)
     {
         COSNumber leading = (COSNumber)arguments.get( 0 );
         context.getGraphicsState().getTextState().setLeading( leading.floatValue() );
+        return null;
     }
 
     @Override

@@ -21,6 +21,7 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.form.PDTransparencyGroup;
+import org.apache.pdfbox.text.TextPosition;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,7 +35,7 @@ import java.util.List;
 public class DrawObject extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         if (arguments.size() < 1)
         {
@@ -43,14 +44,14 @@ public class DrawObject extends OperatorProcessor
         COSBase base0 = arguments.get(0);
         if (!(base0 instanceof COSName))
         {
-            return;
+            return null;
         }
         COSName name = (COSName) base0;
 
         if (context.getResources().isImageXObject(name))
         {
             // we're done here, don't decode images when doing text extraction
-            return;
+            return null;
         }
         
         PDXObject xobject = context.getResources().getXObject(name);
@@ -64,6 +65,7 @@ public class DrawObject extends OperatorProcessor
             PDFormXObject form = (PDFormXObject) xobject;
             context.showForm(form);
         }
+        return null;
     }
 
     @Override

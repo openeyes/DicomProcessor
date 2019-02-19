@@ -22,6 +22,7 @@ import org.apache.pdfbox.contentstream.operator.MissingOperandException;
 
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
+import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
@@ -34,7 +35,7 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 public class Concatenate extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         if (arguments.size() < 6)
         {
@@ -42,7 +43,7 @@ public class Concatenate extends OperatorProcessor
         }
         if (!checkArrayTypesClass(arguments, COSNumber.class))
         {
-            return;
+            return null;
         }
         
         // concatenate matrix to current transformation matrix
@@ -57,6 +58,7 @@ public class Concatenate extends OperatorProcessor
                                    d.floatValue(), e.floatValue(), f.floatValue());
 
         context.getGraphicsState().getCurrentTransformationMatrix().concatenate(matrix);
+        return null;
     }
 
     @Override

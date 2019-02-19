@@ -22,6 +22,7 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * Tw: Set word spacing.
@@ -31,19 +32,20 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 public class SetWordSpacing extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments)
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments)
     {
         if (arguments.size() < 1)
         {
-            return;
+            return null;
         }
         COSBase base = arguments.get(0);
         if (!(base instanceof COSNumber))
         {
-            return;
+            return null;
         }
         COSNumber wordSpacing = (COSNumber) base;
         context.getGraphicsState().getTextState().setWordSpacing( wordSpacing.floatValue() );
+        return null;
     }
 
     @Override

@@ -28,6 +28,7 @@ import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.pdmodel.graphics.color.PDPattern;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * sc,scn,SC,SCN: Sets the color to use for stroking or non-stroking operations.
@@ -37,7 +38,7 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDPattern;
 public abstract class SetColor extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         PDColorSpace colorSpace = getColorSpace();
         if (!(colorSpace instanceof PDPattern))
@@ -48,12 +49,13 @@ public abstract class SetColor extends OperatorProcessor
             }
             if (!checkArrayTypesClass(arguments, COSNumber.class))
             {
-                return;
+                return null;
             }
         }
         COSArray array = new COSArray();
         array.addAll(arguments);
         setColor(new PDColor(array, colorSpace));
+        return null;
     }
 
     /**

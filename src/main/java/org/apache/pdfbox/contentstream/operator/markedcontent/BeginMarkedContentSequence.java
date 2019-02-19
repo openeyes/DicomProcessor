@@ -24,6 +24,7 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.text.PDFMarkedContentExtractor;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * BMC : Begins a marked-content sequence.
@@ -33,7 +34,7 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 public class BeginMarkedContentSequence extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         COSName tag = null;
         for (COSBase argument : arguments)
@@ -47,6 +48,7 @@ public class BeginMarkedContentSequence extends OperatorProcessor
         {
             ((PDFMarkedContentExtractor) this.context).beginMarkedContentSequence(tag, null);
         }
+        return null;
     }
 
     @Override

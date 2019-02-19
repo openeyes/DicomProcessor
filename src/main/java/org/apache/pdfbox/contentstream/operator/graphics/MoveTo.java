@@ -24,6 +24,7 @@ import org.apache.pdfbox.contentstream.operator.MissingOperandException;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * m Begins a new subpath.
@@ -33,7 +34,7 @@ import org.apache.pdfbox.contentstream.operator.Operator;
 public final class MoveTo extends GraphicsOperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         if (operands.size() < 2)
         {
@@ -42,17 +43,18 @@ public final class MoveTo extends GraphicsOperatorProcessor
         COSBase base0 = operands.get(0);
         if (!(base0 instanceof COSNumber))
         {
-            return;
+            return null;
         }
         COSBase base1 = operands.get(1);
         if (!(base1 instanceof COSNumber))
         {
-            return;
+            return null;
         }
         COSNumber x = (COSNumber) base0;
         COSNumber y = (COSNumber) base1;
         Point2D.Float pos = context.transformedPoint(x.floatValue(), y.floatValue());
         context.moveTo(pos.x, pos.y);
+        return null;
     }
 
     @Override

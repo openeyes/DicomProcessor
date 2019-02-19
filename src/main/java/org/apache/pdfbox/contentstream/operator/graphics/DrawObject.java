@@ -28,6 +28,7 @@ import org.apache.pdfbox.pdmodel.graphics.form.PDTransparencyGroup;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * Do: Draws an XObject.
@@ -38,7 +39,7 @@ import org.apache.pdfbox.contentstream.operator.Operator;
 public final class DrawObject extends GraphicsOperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         if (operands.size() < 1)
         {
@@ -47,7 +48,7 @@ public final class DrawObject extends GraphicsOperatorProcessor
         COSBase base0 = operands.get(0);
         if (!(base0 instanceof COSName))
         {
-            return;
+            return null;
         }
         COSName objectName = (COSName) base0;
         PDXObject xobject = context.getResources().getXObject(objectName);
@@ -69,6 +70,7 @@ public final class DrawObject extends GraphicsOperatorProcessor
         {
             getContext().showForm((PDFormXObject) xobject);
         }
+        return null;
     }
 
     @Override

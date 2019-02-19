@@ -26,6 +26,7 @@ import org.apache.pdfbox.contentstream.operator.MissingOperandException;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * c Append curved segment to path.
@@ -37,7 +38,7 @@ public class CurveTo extends GraphicsOperatorProcessor
     private static final Log LOG = LogFactory.getLog(CurveTo.class);
     
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         if (operands.size() < 6)
         {
@@ -45,7 +46,7 @@ public class CurveTo extends GraphicsOperatorProcessor
         }
         if (!checkArrayTypesClass(operands, COSNumber.class))
         {
-            return;
+            return null;
         }
         COSNumber x1 = (COSNumber)operands.get(0);
         COSNumber y1 = (COSNumber)operands.get(1);
@@ -69,6 +70,7 @@ public class CurveTo extends GraphicsOperatorProcessor
                     point2.x, point2.y,
                     point3.x, point3.y);
         }
+        return null;
     }
 
     @Override

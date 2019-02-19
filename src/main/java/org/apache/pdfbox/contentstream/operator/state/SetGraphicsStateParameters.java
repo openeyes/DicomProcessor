@@ -27,6 +27,7 @@ import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 import org.apache.pdfbox.contentstream.operator.MissingOperandException;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * gs: Set parameters from graphics state parameter dictionary.
@@ -38,7 +39,7 @@ public class SetGraphicsStateParameters extends OperatorProcessor
     private static final Log LOG = LogFactory.getLog(SetGraphicsStateParameters.class);
 
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         if (arguments.size() < 1)
         {
@@ -47,7 +48,7 @@ public class SetGraphicsStateParameters extends OperatorProcessor
         COSBase base0 = arguments.get(0);
         if (!(base0 instanceof COSName))
         {
-            return;
+            return null;
         }
         
         // set parameters from graphics state parameter dictionary
@@ -56,9 +57,10 @@ public class SetGraphicsStateParameters extends OperatorProcessor
         if (gs == null)
         {
             LOG.error("name for 'gs' operator not found in resources: /" + graphicsName.getName());
-            return;
+            return null;
         }
         gs.copyIntoGraphicsState( context.getGraphicsState() );
+        return null;
     }
 
     @Override

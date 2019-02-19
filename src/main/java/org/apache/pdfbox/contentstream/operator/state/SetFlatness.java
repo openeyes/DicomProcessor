@@ -24,6 +24,7 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * i: Set the flatness tolerance.
@@ -33,7 +34,7 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 public class SetFlatness extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         if (operands.size() < 1)
         {
@@ -41,10 +42,11 @@ public class SetFlatness extends OperatorProcessor
         }
         if (!checkArrayTypesClass(operands, COSNumber.class))
         {
-            return;
+            return null;
         }
         COSNumber value = (COSNumber) operands.get(0);
         context.getGraphicsState().setFlatness(value.floatValue());
+        return null;
     }
 
     @Override

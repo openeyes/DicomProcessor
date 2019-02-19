@@ -25,6 +25,7 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 
 import java.io.IOException;
 import org.apache.pdfbox.contentstream.operator.MissingOperandException;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * j: Set the line join style.
@@ -33,7 +34,7 @@ import org.apache.pdfbox.contentstream.operator.MissingOperandException;
 public class SetLineJoinStyle extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         if (arguments.size() < 1)
         {
@@ -41,6 +42,7 @@ public class SetLineJoinStyle extends OperatorProcessor
         }
         int lineJoinStyle = ((COSNumber)arguments.get( 0 )).intValue();
         context.getGraphicsState().setLineJoin( lineJoinStyle );
+        return null;
     }
 
     @Override

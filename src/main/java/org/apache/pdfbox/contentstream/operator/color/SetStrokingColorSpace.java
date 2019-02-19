@@ -24,6 +24,7 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * CS: Set color space for stroking operations.
@@ -34,16 +35,17 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 public class SetStrokingColorSpace extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         COSBase base = arguments.get(0);
         if (!(base instanceof COSName))
         {
-            return;
+            return null;
         }
         PDColorSpace cs = context.getResources().getColorSpace((COSName) base);
         context.getGraphicsState().setStrokingColorSpace(cs);
         context.getGraphicsState().setStrokingColor(cs.getInitialColor());
+        return null;
     }
 
     @Override

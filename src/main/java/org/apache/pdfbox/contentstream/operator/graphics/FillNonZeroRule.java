@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * f Fill path using non zero winding rule.
@@ -31,9 +32,10 @@ import org.apache.pdfbox.contentstream.operator.Operator;
 public class FillNonZeroRule extends GraphicsOperatorProcessor
 {
     @Override
-    public final void process(Operator operator, List<COSBase> operands) throws IOException
+    public final List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         context.fillPath(GeneralPath.WIND_NON_ZERO);
+        return null;
     }
 
     @Override

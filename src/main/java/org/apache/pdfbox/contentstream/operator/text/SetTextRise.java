@@ -22,6 +22,7 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 import java.io.IOException;
 
@@ -33,19 +34,20 @@ import java.io.IOException;
 public class SetTextRise extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         if (arguments.size() < 1)
         {
-            return;
+            return null;
         }
         COSBase base = arguments.get(0);
         if (!(base instanceof COSNumber))
         {
-            return;
+            return null;
         }
         COSNumber rise = (COSNumber) base;
         context.getGraphicsState().getTextState().setRise( rise.floatValue() );
+        return null;
     }
 
     @Override

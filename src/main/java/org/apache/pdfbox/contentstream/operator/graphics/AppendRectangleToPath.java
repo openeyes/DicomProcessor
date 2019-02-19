@@ -24,6 +24,7 @@ import org.apache.pdfbox.contentstream.operator.MissingOperandException;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * re Appends a rectangle to the path.
@@ -33,7 +34,7 @@ import org.apache.pdfbox.contentstream.operator.Operator;
 public final class AppendRectangleToPath extends GraphicsOperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         if (operands.size() < 4)
         {
@@ -41,7 +42,7 @@ public final class AppendRectangleToPath extends GraphicsOperatorProcessor
         }
         if (!checkArrayTypesClass(operands, COSNumber.class))
         {
-            return;
+            return null;
         }
         COSNumber x = (COSNumber) operands.get(0);
         COSNumber y = (COSNumber) operands.get(1);
@@ -61,6 +62,7 @@ public final class AppendRectangleToPath extends GraphicsOperatorProcessor
         Point2D p3 = context.transformedPoint(x1, y2);
 
         context.appendRectangle(p0, p1, p2, p3);
+        return null;
     }
 
     @Override

@@ -20,6 +20,7 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,11 +40,12 @@ public class SetStrokingDeviceRGBColor extends SetStrokingColor
      * @param arguments List
      * @throws IOException If the color space cannot be read.
      */
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         PDColorSpace cs = context.getResources().getColorSpace(COSName.DEVICERGB);
         context.getGraphicsState().setStrokingColorSpace(cs);
         super.process(operator, arguments);
+        return null;
     }
 
     @Override

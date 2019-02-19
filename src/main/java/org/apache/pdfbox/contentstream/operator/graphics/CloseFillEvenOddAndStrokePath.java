@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 import java.io.IOException;
 
@@ -30,10 +31,11 @@ import java.io.IOException;
 public final class CloseFillEvenOddAndStrokePath extends GraphicsOperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         context.processOperator("h", operands);  // ClosePath
         context.processOperator("B*", operands); // FillEvenOddAndStroke
+        return null;
     }
 
     @Override

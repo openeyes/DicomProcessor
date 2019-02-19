@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * W* Set clipping path using even odd rule.
@@ -31,9 +32,10 @@ import org.apache.pdfbox.contentstream.operator.Operator;
 public final class ClipEvenOddRule extends GraphicsOperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         context.clip(GeneralPath.WIND_EVEN_ODD);
+        return null;
     }
 
     @Override

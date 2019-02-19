@@ -24,6 +24,7 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSFloat;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * T*: Move to start of next text line.
@@ -33,7 +34,7 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 public class NextLine extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         //move to start of next text line
         List<COSBase> args = new ArrayList<COSBase>();
@@ -43,6 +44,7 @@ public class NextLine extends OperatorProcessor
         args.add(new COSFloat(-1 * context.getGraphicsState().getTextState().getLeading()));
         // use Td instead of repeating code
         context.processOperator("Td", args);
+        return null;
     }
 
     @Override

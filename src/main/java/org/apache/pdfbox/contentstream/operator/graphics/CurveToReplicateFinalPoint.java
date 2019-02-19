@@ -24,6 +24,7 @@ import org.apache.pdfbox.contentstream.operator.MissingOperandException;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * y Append curved segment to path with final point replicated.
@@ -33,7 +34,7 @@ import org.apache.pdfbox.contentstream.operator.Operator;
 public final class CurveToReplicateFinalPoint extends GraphicsOperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         if (operands.size() < 4)
         {
@@ -41,7 +42,7 @@ public final class CurveToReplicateFinalPoint extends GraphicsOperatorProcessor
         }
         if (!checkArrayTypesClass(operands, COSNumber.class))
         {
-            return;
+            return null;
         }
         COSNumber x1 = (COSNumber)operands.get(0);
         COSNumber y1 = (COSNumber)operands.get(1);
@@ -54,6 +55,7 @@ public final class CurveToReplicateFinalPoint extends GraphicsOperatorProcessor
         context.curveTo(point1.x, point1.y,
                         point3.x, point3.y,
                         point3.x, point3.y);
+        return null;
     }
 
     @Override

@@ -25,6 +25,7 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingIntent;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * ri: Set the rendering intent.
@@ -34,7 +35,7 @@ import org.apache.pdfbox.pdmodel.graphics.state.RenderingIntent;
 public class SetRenderingIntent extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         if (operands.size() < 1)
         {
@@ -43,10 +44,11 @@ public class SetRenderingIntent extends OperatorProcessor
         COSBase base = operands.get(0);
         if (!(base instanceof COSName))
         {
-            return;
+            return null;
         }
         context.getGraphicsState().setRenderingIntent(
                 RenderingIntent.fromString(((COSName)base).getName()));
+        return null;
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * Tc: Set character spacing.
@@ -33,7 +34,7 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 public class SetCharSpacing extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         if (arguments.isEmpty())
         {
@@ -49,6 +50,7 @@ public class SetCharSpacing extends OperatorProcessor
             COSNumber characterSpacing = (COSNumber)charSpacing;
             context.getGraphicsState().getTextState().setCharacterSpacing(characterSpacing.floatValue());
         }
+        return null;
     }
 
     @Override

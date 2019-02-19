@@ -25,6 +25,7 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * Tr: Set text rendering mode.
@@ -34,7 +35,7 @@ import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 public class SetTextRenderingMode extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         if (arguments.size() < 1)
         {
@@ -43,16 +44,17 @@ public class SetTextRenderingMode extends OperatorProcessor
         COSBase base0 = arguments.get(0);
         if (!(base0 instanceof COSNumber))
         {
-            return;
+            return null;
         }
         COSNumber mode = (COSNumber) base0;
         int val = mode.intValue();
         if (val < 0 || val >= RenderingMode.values().length)
         {
-            return;
+            return null;
         }
         RenderingMode renderingMode = RenderingMode.fromInt(val);
         context.getGraphicsState().getTextState().setRenderingMode(renderingMode);
+        return null;
     }
 
     @Override

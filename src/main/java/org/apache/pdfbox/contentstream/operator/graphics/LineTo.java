@@ -26,6 +26,7 @@ import org.apache.pdfbox.contentstream.operator.MissingOperandException;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * l Append straight line segment to path.
@@ -37,7 +38,7 @@ public class LineTo extends GraphicsOperatorProcessor
     private static final Log LOG = LogFactory.getLog(LineTo.class);
     
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         if (operands.size() < 2)
         {
@@ -46,12 +47,12 @@ public class LineTo extends GraphicsOperatorProcessor
         COSBase base0 = operands.get(0);
         if (!(base0 instanceof COSNumber))
         {
-            return;
+            return null;
         }
         COSBase base1 = operands.get(1);
         if (!(base1 instanceof COSNumber))
         {
-            return;
+            return null;
         }
         // append straight line segment from the current point to the point
         COSNumber x = (COSNumber) base0;
@@ -68,6 +69,7 @@ public class LineTo extends GraphicsOperatorProcessor
         {
             context.lineTo(pos.x, pos.y);
         }
+        return null;
     }
 
     @Override

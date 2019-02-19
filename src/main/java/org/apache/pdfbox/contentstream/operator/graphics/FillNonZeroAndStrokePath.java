@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 import java.awt.geom.GeneralPath;
 import java.io.IOException;
@@ -33,9 +34,10 @@ import java.io.IOException;
 public class FillNonZeroAndStrokePath extends GraphicsOperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         context.fillAndStrokePath(GeneralPath.WIND_NON_ZERO);
+        return null;
     }
 
     @Override

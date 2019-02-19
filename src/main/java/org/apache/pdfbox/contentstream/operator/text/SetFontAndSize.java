@@ -28,6 +28,7 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 
 import java.io.IOException;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * Tf: Set text font and size.
@@ -37,7 +38,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 public class SetFontAndSize extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         if (arguments.size() < 2)
         {
@@ -48,17 +49,18 @@ public class SetFontAndSize extends OperatorProcessor
         COSBase base1 = arguments.get(1);
         if (!(base0 instanceof COSName))
         {
-            return;
+            return null;
         }
         if (!(base1 instanceof COSNumber))
         {
-            return;
+            return null;
         }
         COSName fontName = (COSName) base0;
         float fontSize = ((COSNumber) base1).floatValue();
         context.getGraphicsState().getTextState().setFontSize(fontSize);
         PDFont font = context.getResources().getFont(fontName);
         context.getGraphicsState().getTextState().setFont(font);
+        return null;
     }
 
     @Override

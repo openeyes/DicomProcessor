@@ -24,6 +24,7 @@ import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * J: Set the line cap style.
@@ -32,7 +33,7 @@ import org.apache.pdfbox.cos.COSNumber;
 public class SetLineCapStyle extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         if (arguments.size() < 1)
         {
@@ -40,6 +41,7 @@ public class SetLineCapStyle extends OperatorProcessor
         }
         int lineCapStyle = ((COSNumber)arguments.get( 0 )).intValue();
         context.getGraphicsState().setLineCap( lineCapStyle );
+        return null;
     }
 
     @Override

@@ -21,6 +21,7 @@ import java.util.List;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * q: Save the graphics state.
@@ -30,9 +31,10 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 public class Save extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments)
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments)
     {
         context.saveGraphicsState();
+        return null;
     }
 
     @Override

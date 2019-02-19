@@ -27,6 +27,7 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * d: Set the line dash pattern.
@@ -38,7 +39,7 @@ public class SetLineDashPattern extends OperatorProcessor
     private static final Log LOG = LogFactory.getLog(SetLineDashPattern.class);
     
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws MissingOperandException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws MissingOperandException
     {
         if (arguments.size() < 2)
         {
@@ -47,12 +48,12 @@ public class SetLineDashPattern extends OperatorProcessor
         COSBase base0 = arguments.get(0);
         if (!(base0 instanceof COSArray))
         {
-            return;
+            return null;
         }
         COSBase base1 = arguments.get(1);
         if (!(base1 instanceof COSNumber))
         {
-            return;
+            return null;
         }
         COSArray dashArray = (COSArray) base0;
         int dashPhase = ((COSNumber) base1).intValue();
@@ -82,6 +83,7 @@ public class SetLineDashPattern extends OperatorProcessor
             dashArray = new COSArray();
         }
         context.setLineDashPattern(dashArray, dashPhase);
+        return null;
     }
 
     @Override

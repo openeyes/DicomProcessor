@@ -18,6 +18,8 @@ package org.apache.pdfbox.contentstream.operator;
 
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.contentstream.PDFStreamEngine;
+import org.apache.pdfbox.text.TextPosition;
+
 import java.util.List;
 import java.io.IOException;
 
@@ -62,7 +64,7 @@ public abstract class OperatorProcessor
      * @param operands the operands to use when processing
      * @throws IOException if the operator cannot be processed
      */
-    public abstract void process(Operator operator, List<COSBase> operands) throws IOException;
+    public abstract List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException;
 
     /**
      * Returns the name of this operator, e.g. "BI".

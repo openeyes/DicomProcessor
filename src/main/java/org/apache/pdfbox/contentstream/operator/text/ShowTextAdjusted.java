@@ -23,6 +23,7 @@ import org.apache.pdfbox.cos.COSBase;
 import java.io.IOException;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * TJ: Show text, with position adjustments.
@@ -32,24 +33,25 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 public class ShowTextAdjusted extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         if (arguments.size() < 1)
         {
-            return;
+            return null;
         }
         COSBase base = arguments.get(0);
         if (!(base instanceof COSArray))
         {
-            return;
+            return null;
         }
         if (context.getTextMatrix() == null)
         {
             // ignore: outside of BT...ET
-            return;
+            return null;
         }
         COSArray array = (COSArray) base;
         context.showTextStrings(array);
+        return null;
     }
 
     @Override

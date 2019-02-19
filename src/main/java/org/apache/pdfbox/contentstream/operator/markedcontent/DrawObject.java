@@ -28,6 +28,7 @@ import java.util.List;
 import org.apache.pdfbox.contentstream.operator.MissingOperandException;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * Do: Draws an XObject.
@@ -38,7 +39,7 @@ import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 public class DrawObject extends OperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> arguments) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> arguments) throws IOException
     {
         if (arguments.size() < 1)
         {
@@ -47,7 +48,7 @@ public class DrawObject extends OperatorProcessor
         COSBase base0 = arguments.get(0);
         if (!(base0 instanceof COSName))
         {
-            return;
+            return null;
         }
         COSName name = (COSName) base0;
         PDXObject xobject =  context.getResources().getXObject(name);
@@ -62,6 +63,7 @@ public class DrawObject extends OperatorProcessor
             PDFormXObject form = (PDFormXObject) xobject;
             context.showForm(form);
         }
+        return null;
     }
 
     @Override

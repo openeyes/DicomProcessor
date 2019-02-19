@@ -33,6 +33,7 @@ import org.apache.pdfbox.pdmodel.font.PDType3Font;
 import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.fontbox.util.BoundingBox;
@@ -122,7 +123,7 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
      * @throws java.io.IOException if there is an error accessing the stream.
      */
     @Override
-    public void processPage(PDPage page) throws IOException
+    public List<TextObject> processPage(PDPage page) throws IOException
     {
         this.pageRotation = page.getRotation();
         this.pageSize = page.getCropBox();
@@ -136,15 +137,15 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
             // translation matrix for cropbox
             translateMatrix = Matrix.getTranslateInstance(-pageSize.getLowerLeftX(), -pageSize.getLowerLeftY());
         }
-        super.processPage(page);
+        return super.processPage(page);
     }
 
     /**
      * This method was originally written by Ben Litchfield for PDFStreamEngine.
      */
     @Override
-    protected void showGlyph(Matrix textRenderingMatrix, PDFont font, int code, String unicode,
-                             Vector displacement) throws IOException
+    protected TextPosition showGlyph(Matrix textRenderingMatrix, PDFont font, int code, String unicode,
+                                     Vector displacement) throws IOException
     {
         //
         // legacy calculations which were previously in PDFStreamEngine
@@ -300,7 +301,7 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
             {
                 // Acrobat doesn't seem to coerce composite font's character codes, instead it
                 // skips them. See the "allah2.pdf" TestTextStripper file.
-                return;
+                return null;
             }
         }
 
@@ -317,7 +318,7 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
             nextY -= pageSize.getLowerLeftY();
         }
 
-        processTextPosition(new TextPosition(pageRotation, pageSize.getWidth(),
+        return processTextPosition(new TextPosition(pageRotation, pageSize.getWidth(),
                 pageSize.getHeight(), translatedTextRenderingMatrix, nextX, nextY,
                 Math.abs(dyDisplay), dxDisplay,
                 Math.abs(spaceWidthDisplay), unicode, new int[] { code } , font, fontSize,
@@ -330,8 +331,9 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
      *
      * @param text The text to be processed.
      */
-    protected void processTextPosition(TextPosition text)
+    protected TextPosition processTextPosition(TextPosition text)
     {
         // subclasses can override to provide specific functionality
+        return text;
     }
 }

@@ -57,6 +57,8 @@ import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.pdmodel.graphics.state.PDTextState;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
+import org.apache.pdfbox.text.TextObject;
+import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.Vector;
 import org.apache.pdfbox.contentstream.operator.Operator;
@@ -141,15 +143,17 @@ public abstract class PDFStreamEngine
      * @param page the page to process
      * @throws IOException if there is an error accessing the stream
      */
-    public void processPage(PDPage page) throws IOException
+    public List<TextObject> processPage(PDPage page) throws IOException
     {
         initPage(page);
+        List<TextObject> textObjects = new ArrayList<>();
         if (page.hasContents())
         {
             isProcessingPage = true;
-            processStream(page);
+            textObjects = processStream(page);
             isProcessingPage = false;
         }
+        return textObjects;
     }
 
     /**
@@ -458,7 +462,7 @@ public abstract class PDFStreamEngine
      * @param contentStream the content stream
      * @throws IOException if there is an exception while processing the stream
      */
-    private void processStream(PDContentStream contentStream) throws IOException
+    private List<TextObject> processStream(PDContentStream contentStream) throws IOException
     {
         PDResources parent = pushResources(contentStream);
         Stack<PDGraphicsState> savedStack = saveGraphicsStack();
@@ -474,11 +478,12 @@ public abstract class PDFStreamEngine
         PDRectangle bbox = contentStream.getBBox();
         clipToRect(bbox);
 
-        processStreamOperators(contentStream);
+        List<TextObject> textObjects = processStreamOperators(contentStream);
 
         initialMatrix = parentMatrix;
         restoreGraphicsStack(savedStack);
         popResources(parent);
+        return textObjects;
     }
 
     /**
@@ -487,20 +492,30 @@ public abstract class PDFStreamEngine
      * @param contentStream to content stream to parse.
      * @throws IOException if there is an error reading or parsing the content stream.
      */
-    private void processStreamOperators(PDContentStream contentStream) throws IOException
+    private List<TextObject> processStreamOperators(PDContentStream contentStream) throws IOException
     {
-        List<COSBase> arguments = new ArrayList<COSBase>();
+        List<TextObject> pdfTextObjects = new ArrayList<>();
+        ArrayList<TextPosition> currentTextObject = new ArrayList<>();
+        List<COSBase> arguments = new ArrayList<>();
         PDFStreamParser parser = new PDFStreamParser(contentStream);
         Object token = parser.parseNextToken();
         while (token != null)
         {
-            if (token instanceof COSObject)
-            {
+            if (token instanceof COSObject) {
                 arguments.add(((COSObject) token).getObject());
             }
             else if (token instanceof Operator)
             {
-                processOperator((Operator) token, arguments);
+                List<TextPosition> textPositionsOrNull = processOperator((Operator) token, arguments);
+                if(textPositionsOrNull != null){
+                    currentTextObject.addAll(textPositionsOrNull);
+                }
+                if(((Operator) token).getName().equals("ET") && !currentTextObject.isEmpty()){
+                    List<TextPosition> textObjectAsList = (List<TextPosition>) currentTextObject.clone();
+                    TextObject textObject = new TextObject(textObjectAsList);
+                    pdfTextObjects.add(textObject);
+                    currentTextObject = new ArrayList<TextPosition>();
+                }
                 arguments = new ArrayList<COSBase>();
             }
             else
@@ -509,6 +524,7 @@ public abstract class PDFStreamEngine
             }
             token = parser.parseNextToken();
         }
+        return pdfTextObjects;
     }
 
     /**
@@ -590,9 +606,9 @@ public abstract class PDFStreamEngine
      * @param string the encoded text
      * @throws IOException if there was an error showing the text
      */
-    public void showTextString(byte[] string) throws IOException
+    public List<TextPosition> showTextString(byte[] string) throws IOException
     {
-        showText(string);
+        return showText(string);
     }
 
     /**
@@ -667,8 +683,9 @@ public abstract class PDFStreamEngine
      * @param string the encoded text
      * @throws IOException if there is an error processing the string
      */
-    protected void showText(byte[] string) throws IOException
+    protected List<TextPosition> showText(byte[] string) throws IOException
     {
+        List<TextPosition> textPositions = new ArrayList<TextPosition>();
         PDGraphicsState state = getGraphicsState();
         PDTextState textState = state.getTextState();
 
@@ -731,7 +748,7 @@ public abstract class PDFStreamEngine
             saveGraphicsState();
             Matrix textMatrixOld = textMatrix;
             Matrix textLineMatrixOld = textLineMatrix;
-            showGlyph(textRenderingMatrix, font, code, unicode, w);
+            textPositions.add(showGlyph(textRenderingMatrix, font, code, unicode, w));
             textMatrix = textMatrixOld;
             textLineMatrix = textLineMatrixOld;
             restoreGraphicsState();
@@ -752,6 +769,7 @@ public abstract class PDFStreamEngine
             // update the text matrix
             textMatrix.concatenate(Matrix.getTranslateInstance(tx, ty));
         }
+        return textPositions;
     }
 
     /**
@@ -765,8 +783,8 @@ public abstract class PDFStreamEngine
      * @param displacement the displacement (i.e. advance) of the glyph in text space
      * @throws IOException if the glyph cannot be processed
      */
-    protected void showGlyph(Matrix textRenderingMatrix, PDFont font, int code, String unicode,
-                             Vector displacement) throws IOException
+    protected TextPosition showGlyph(Matrix textRenderingMatrix, PDFont font, int code, String unicode,
+                                     Vector displacement) throws IOException
     {
         if (font instanceof PDType3Font)
         {
@@ -776,6 +794,7 @@ public abstract class PDFStreamEngine
         {
             showFontGlyph(textRenderingMatrix, font, code, unicode, displacement);
         }
+        return null;
     }
 
     /**
@@ -836,7 +855,7 @@ public abstract class PDFStreamEngine
      * @param operands The list of arguments.
      * @throws IOException If there is an error processing the operation.
      */
-    protected void processOperator(Operator operator, List<COSBase> operands) throws IOException
+    protected List<TextPosition> processOperator(Operator operator, List<COSBase> operands) throws IOException
     {
         String name = operator.getName();
         OperatorProcessor processor = operators.get(name);
@@ -845,7 +864,7 @@ public abstract class PDFStreamEngine
             processor.setContext(this);
             try
             {
-                processor.process(operator, operands);
+                return processor.process(operator, operands);
             }
             catch (IOException e)
             {
@@ -856,6 +875,7 @@ public abstract class PDFStreamEngine
         {
             unsupportedOperator(operator, operands);
         }
+        return null;
     }
 
     /**

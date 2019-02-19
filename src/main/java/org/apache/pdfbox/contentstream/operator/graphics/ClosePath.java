@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * h Close the path.
@@ -34,14 +35,15 @@ public final class ClosePath extends GraphicsOperatorProcessor
     private static final Log LOG = LogFactory.getLog(ClosePath.class);
     
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         if (context.getCurrentPoint() == null)
         {
             LOG.warn("ClosePath without initial MoveTo");
-            return;
+            return null;
         }
         context.closePath();
+        return null;
     }
 
     @Override

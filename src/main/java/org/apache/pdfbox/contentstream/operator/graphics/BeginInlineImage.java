@@ -23,6 +23,7 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImage;
 import org.apache.pdfbox.pdmodel.graphics.image.PDInlineImage;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.text.TextPosition;
 
 /**
  * BI Begins an inline image.
@@ -32,16 +33,17 @@ import org.apache.pdfbox.contentstream.operator.Operator;
 public final class BeginInlineImage extends GraphicsOperatorProcessor
 {
     @Override
-    public void process(Operator operator, List<COSBase> operands) throws IOException
+    public List<TextPosition> process(Operator operator, List<COSBase> operands) throws IOException
     {
         if (operator.getImageData() == null || operator.getImageData().length == 0)
         {
-            return;
+            return null;
         }
         PDImage image = new PDInlineImage(operator.getImageParameters(),
                                           operator.getImageData(),
                                           context.getResources());
         context.drawImage(image);
+        return null;
     }
 
     @Override
