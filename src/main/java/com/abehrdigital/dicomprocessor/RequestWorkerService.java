@@ -67,12 +67,10 @@ public class RequestWorkerService {
 
     public String getRoutineBodyWithConvertedJavaMethods(String routineName, String prefix) {
         String routineScript = getRoutineBody(routineName);
-        String convertedRoutineScript = null;
-        convertedRoutineScript = JavascriptRoutineMethodConverter.convertScriptJavaMethodsWithClassPrefix(
+        return JavascriptRoutineMethodConverter.convertScriptJavaMethodsWithClassPrefix(
                 routineScript,
-                RoutineScriptService.class.getMethods(),
+                RoutineScriptService.class.getDeclaredMethods(),
                 prefix
         );
-        return convertedRoutineScript;
     }
 }
