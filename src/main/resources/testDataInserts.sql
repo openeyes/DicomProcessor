@@ -94,7 +94,7 @@ VALUES
                data.id = attachmentPdf.getId().toString();
                 }
                 if(data.$$_XID_$$ == '$$_patient[1]_$$'){
-                 data.id = getPatientId(requestData.hosNum , requestData.dateOfBirth , requestData.gender).toString();
+                 data.id = requestData.patientId.toString();
                    }
                    });
 
