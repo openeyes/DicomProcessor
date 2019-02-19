@@ -20,14 +20,6 @@ public class RequestWorkerService {
         this.scriptService = new RoutineScriptService(daoManager, requestId, requestQueueName);
     }
 
-    public void createEvent(String eventData) {
-        DataAPI.magic("1", eventData);
-    }
-
-    public String getEventTemplate() {
-        return DataAPI.getEventTemplate();
-    }
-
     public String getRoutineBody(String routineName) {
         return daoManager.getRoutineLibraryDao().get(routineName).getRoutineBody();
     }

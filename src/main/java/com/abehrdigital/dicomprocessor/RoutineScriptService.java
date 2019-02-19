@@ -115,10 +115,15 @@ public class RoutineScriptService {
 
     public void createEvent(String eventData) {
         //TODO for light intergration
+        try {
+            DataAPI.magic("1", eventData);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public String getEmptyEventTemplate() {
         //TODO for light intergration
-        return "";
+        return DataAPI.getEventTemplate();
     }
 }
