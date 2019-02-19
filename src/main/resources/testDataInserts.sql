@@ -63,14 +63,15 @@ INSERT INTO routine_library (routine_name, routine_body)
 VALUES
   (
     "PAS_API",
-    "var eventData = JSON.parse(getJson('event_data', null));
+    "
      var requestData = JSON.parse(getJson('request_data', null));
      requestData.patientId = getPatientId(requestData.hosNum , requestData.dateOfBirth , requestData.gender);
         putJson(
-        'event_data',
-        JSON.stringify(eventData),
+        'request_data',
+        JSON.stringify(requestData),
          'request_json' ,
           null, 'json');
+
      "
   );
 
@@ -85,7 +86,7 @@ INSERT INTO routine_library (routine_name, routine_body)
 VALUES
   (
     "create_event",
-    " var eventData = JSON.parse(getJson('event_data', null));
+    "  var eventData = JSON.parse(getJson('event_data', null));
      var requestData = JSON.parse(getJson('request_data', null));
     var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf' , null);
 
@@ -94,7 +95,7 @@ VALUES
                data.id = attachmentPdf.getId().toString();
                 }
                 if(data.$$_XID_$$ == '$$_patient[1]_$$'){
-                 data.id = requestData.patientId.toString();
+                 data.id = requestData.patientId;
                    }
                    });
 
