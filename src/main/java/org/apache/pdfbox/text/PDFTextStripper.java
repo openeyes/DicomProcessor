@@ -352,9 +352,9 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
      * @throws IOException If there is an error processing the page.
      */
     @Override
-    public List<TextObject> processPage(PDPage page) throws IOException
+    public List<PDFTextBox> processPage(PDPage page) throws IOException
     {
-        List<TextObject> textObjects = new ArrayList<>();
+        List<PDFTextBox> PDFTextBoxes = new ArrayList<>();
         if (currentPageNo >= startPage && currentPageNo <= endPage
                 && (startBookmarkPageNumber == -1 || currentPageNo >= startBookmarkPageNumber)
                 && (endBookmarkPageNumber == -1 || currentPageNo <= endBookmarkPageNumber))
@@ -389,11 +389,11 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
                 }
             }
             characterListMapping.clear();
-            textObjects = super.processPage(page);
+            PDFTextBoxes = super.processPage(page);
             writePage();
             endPage(page);
         }
-        return textObjects;
+        return PDFTextBoxes;
     }
 
     private void fillBeadRectangles(PDPage page)

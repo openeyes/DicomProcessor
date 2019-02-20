@@ -57,7 +57,7 @@ import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 import org.apache.pdfbox.pdmodel.graphics.state.PDTextState;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
-import org.apache.pdfbox.text.TextObject;
+import org.apache.pdfbox.text.PDFTextBox;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.Vector;
@@ -143,17 +143,17 @@ public abstract class PDFStreamEngine
      * @param page the page to process
      * @throws IOException if there is an error accessing the stream
      */
-    public List<TextObject> processPage(PDPage page) throws IOException
+    public List<PDFTextBox> processPage(PDPage page) throws IOException
     {
         initPage(page);
-        List<TextObject> textObjects = new ArrayList<>();
+        List<PDFTextBox> PDFTextBoxes = new ArrayList<>();
         if (page.hasContents())
         {
             isProcessingPage = true;
-            textObjects = processStream(page);
+            PDFTextBoxes = processStream(page);
             isProcessingPage = false;
         }
-        return textObjects;
+        return PDFTextBoxes;
     }
 
     /**
@@ -462,7 +462,7 @@ public abstract class PDFStreamEngine
      * @param contentStream the content stream
      * @throws IOException if there is an exception while processing the stream
      */
-    private List<TextObject> processStream(PDContentStream contentStream) throws IOException
+    private List<PDFTextBox> processStream(PDContentStream contentStream) throws IOException
     {
         PDResources parent = pushResources(contentStream);
         Stack<PDGraphicsState> savedStack = saveGraphicsStack();
@@ -478,12 +478,12 @@ public abstract class PDFStreamEngine
         PDRectangle bbox = contentStream.getBBox();
         clipToRect(bbox);
 
-        List<TextObject> textObjects = processStreamOperators(contentStream);
+        List<PDFTextBox> PDFTextBoxes = processStreamOperators(contentStream);
 
         initialMatrix = parentMatrix;
         restoreGraphicsStack(savedStack);
         popResources(parent);
-        return textObjects;
+        return PDFTextBoxes;
     }
 
     /**
@@ -492,9 +492,9 @@ public abstract class PDFStreamEngine
      * @param contentStream to content stream to parse.
      * @throws IOException if there is an error reading or parsing the content stream.
      */
-    private List<TextObject> processStreamOperators(PDContentStream contentStream) throws IOException
+    private List<PDFTextBox> processStreamOperators(PDContentStream contentStream) throws IOException
     {
-        List<TextObject> pdfTextObjects = new ArrayList<>();
+        List<PDFTextBox> pdfPDFTextBoxes = new ArrayList<>();
         ArrayList<TextPosition> currentTextObject = new ArrayList<>();
         List<COSBase> arguments = new ArrayList<>();
         PDFStreamParser parser = new PDFStreamParser(contentStream);
@@ -512,8 +512,8 @@ public abstract class PDFStreamEngine
                 }
                 if(((Operator) token).getName().equals("ET") && !currentTextObject.isEmpty()){
                     List<TextPosition> textObjectAsList = (List<TextPosition>) currentTextObject.clone();
-                    TextObject textObject = new TextObject(textObjectAsList);
-                    pdfTextObjects.add(textObject);
+                    PDFTextBox PDFTextBox = new PDFTextBox(textObjectAsList);
+                    pdfPDFTextBoxes.add(PDFTextBox);
                     currentTextObject = new ArrayList<TextPosition>();
                 }
                 arguments = new ArrayList<COSBase>();
@@ -524,7 +524,7 @@ public abstract class PDFStreamEngine
             }
             token = parser.parseNextToken();
         }
-        return pdfTextObjects;
+        return pdfPDFTextBoxes;
     }
 
     /**

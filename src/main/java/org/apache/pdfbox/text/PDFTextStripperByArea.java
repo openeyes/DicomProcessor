@@ -32,7 +32,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
  */
 public class PDFTextStripperByArea extends PDFTextStripper
 {
-    private List<TextObject> textObjects;
+    private List<PDFTextBox> PDFTextBoxes;
     private final List<String> regions = new ArrayList<String>();
     private final Map<String, Rectangle2D> regionArea = new HashMap<String, Rectangle2D>();
     private final Map<String, ArrayList<List<TextPosition>>> regionCharacterList
@@ -127,15 +127,15 @@ public class PDFTextStripperByArea extends PDFTextStripper
         
         if( page.hasContents() )
         {
-            textObjects = processPage(page);
-            for (TextObject textObject : textObjects){
-                System.out.println(textObject);
-                for (TextPosition textPosition : textObject.getTextPositions()){
+            PDFTextBoxes = processPage(page);
+            for (PDFTextBox PDFTextBox : PDFTextBoxes){
+                System.out.println(PDFTextBox);
+                for (TextPosition textPosition : PDFTextBox.getTextPositions()){
                     System.out.println(textPosition.getX());
                     System.out.println(textPosition.getY());
                 }
             }
-            System.out.println(textObjects);
+            System.out.println(PDFTextBoxes);
         }
     }
 
@@ -175,7 +175,7 @@ public class PDFTextStripperByArea extends PDFTextStripper
         }
     }
 
-    public List<TextObject> getTextObjects() {
-        return textObjects;
+    public List<PDFTextBox> getPDFTextBoxes() {
+        return PDFTextBoxes;
     }
 }

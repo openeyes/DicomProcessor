@@ -2,12 +2,12 @@ package org.apache.pdfbox.text;
 
 import java.util.List;
 
-public class TextObject {
+public class PDFTextBox {
     private List<TextPosition> textPositions;
     private String asString;
     private float minX, minY, maxX, maxY;
 
-    public TextObject(List<TextPosition> textPositions){
+    public PDFTextBox(List<TextPosition> textPositions){
         this.textPositions = textPositions;
         storeString(textPositions);
     }

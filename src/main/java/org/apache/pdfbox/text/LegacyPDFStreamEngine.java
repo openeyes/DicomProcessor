@@ -123,7 +123,7 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
      * @throws java.io.IOException if there is an error accessing the stream.
      */
     @Override
-    public List<TextObject> processPage(PDPage page) throws IOException
+    public List<PDFTextBox> processPage(PDPage page) throws IOException
     {
         this.pageRotation = page.getRotation();
         this.pageSize = page.getCropBox();
