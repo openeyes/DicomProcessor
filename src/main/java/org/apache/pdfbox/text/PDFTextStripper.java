@@ -352,8 +352,9 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
      * @throws IOException If there is an error processing the page.
      */
     @Override
-    public void processPage(PDPage page) throws IOException
+    public List<TextObject> processPage(PDPage page) throws IOException
     {
+        List<TextObject> textObjects = new ArrayList<>();
         if (currentPageNo >= startPage && currentPageNo <= endPage
                 && (startBookmarkPageNumber == -1 || currentPageNo >= startBookmarkPageNumber)
                 && (endBookmarkPageNumber == -1 || currentPageNo <= endBookmarkPageNumber))
@@ -388,10 +389,11 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
                 }
             }
             characterListMapping.clear();
-            super.processPage(page);
+            textObjects = super.processPage(page);
             writePage();
             endPage(page);
         }
+        return textObjects;
     }
 
     private void fillBeadRectangles(PDPage page)
@@ -800,7 +802,7 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
      * @param text The text to process.
      */
     @Override
-    protected void processTextPosition(TextPosition text)
+    protected TextPosition processTextPosition(TextPosition text)
     {
         boolean showCharacter = true;
         if (suppressDuplicateOverlappingText)
@@ -956,6 +958,7 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
                 }
             }
         }
+        return text;
     }
 
     /**
