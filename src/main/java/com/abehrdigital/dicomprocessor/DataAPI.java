@@ -62,7 +62,7 @@ public class DataAPI {
                 DataAPI.printMap("DataAPI.map: ", DataAPI.dataDictionary);
 
                 // construct the SQL query based on the CRUD operation and the fields found in Query object
-                query.constructAndRunQuery();
+                query.constructAndRunQuery(DataAPI.getSession());
 
                 // remove query from array
                 queryIterator.remove();
@@ -287,15 +287,15 @@ public class DataAPI {
 
     /**
      * Get the current time if it is set. If not, get the time in sql format using a select query.
+     * If datetime cannot be retrieved, return default date:
      * @return current date time
-     * @throws Exception Cannot get current time.
      */
-    static String getTime() throws Exception {
+    static String getTime() {
         if (DataAPI.time == null) {
             DataAPI.time = Query.getTime(session);
         }
         if (session == null) {
-            throw new Exception("Could not get current date time!");
+            return "1901-01-01 00:00:00";
         }
         return DataAPI.time;
     }
@@ -308,7 +308,7 @@ public class DataAPI {
         try {
             JSONParser parser = new JSONParser();
 
-            FileReader reader = new FileReader("./src/JSON.json");
+            FileReader reader = new FileReader("./src/JSON5.json");
             JSONObject json = (JSONObject) parser.parse(reader);
 
             return json.toJSONString();

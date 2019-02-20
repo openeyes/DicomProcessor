@@ -45,7 +45,7 @@ public class Query {
     }
 
     // construct sql query
-    int constructAndRunQuery() throws Exception {
+    int constructAndRunQuery(Session session) {
         // before constructing the query, update the list of known fields
         updateKnownFields();
         updateKnownFieldsWithForeignKeys();
@@ -55,45 +55,51 @@ public class Query {
 
         switch (this.crud) {
             case retrieve:
-                constructSelectQuery();
-
+                if (!constructSelectQuery()) {
+                    return -1;
+                }
                 // execute select query
                 // there is no secondary query to be executed after select
-                rowsAffected = executeQuery(DataAPI.getSession(), null);
+                rowsAffected = executeQuery(session, null);
                 break;
             case merge:
-                // if id is known, try to update fields
                 String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
 
-                // no id, then try Retrieve.
-                //  if no rows are returned, then insert and get the newly introduced id
+                // pk is already in memory;
+                // try to update fields
+                if (isPrimaryKeyKnown()) {
+                    System.out.println("+++++++++++FOUND++++++++UPDATE++++++++");
+                    // update succeeded; return
+                    if (update(session)) {
+                        return 1;
+                    }
+                }
+
+                // pk is not in memory;
+                // construct retrieve operation (select)
                 this.crud = CRUD.retrieve;
-                constructSelectQuery();
+                if (constructSelectQuery()) {
+                    System.out.println("+++++++++++SELECT++++++++ ");
+                    rowsAffected = executeQuery(session, null);
+                }
 
-                // execute select query
-                // there is no secondary query to be executed after select
-                rowsAffected = executeQuery(DataAPI.getSession(), null);
-
+                // no records in the database: insert and save the newly introduced id into the dataDictionary
                 if (rowsAffected == 0) {
-                    // no rows returned: insert
+                    System.out.println("+++++++++++INSERT++++++++ ");
+
                     this.crud = CRUD.create;
                     secondaryQueryInsert = constructInsertQuery();
 
                     // execute query and the secondary query
-                    rowsAffected = executeQuery(DataAPI.getSession(), secondaryQueryInsert);
+                    rowsAffected = executeQuery(session, secondaryQueryInsert);
+
+                // records were in the database, but they are not in memory (dataDictionary)
                 } else if (rowsAffected == 1) {
-                    // records found
-                    if (DataAPI.dataDictionary.containsKey(XID) && DataAPI.dataDictionary.get(XID) != null &&
-                            DataAPI.dataDictionary.get(XID).knownFields != null && DataAPI.dataDictionary.get(XID).knownFields.get(primaryKey) != null) {
-                        constructUpdateQuery();
-                        this.crud = CRUD.create;
-                        // when the ID is not known -> do queryByExample to retrieve it
-                        // when the ID is known (present in the dataDictionary) -> update the rest of the columns
-                        // there is no secondary query to be executed after update: all information already in dataDictionary
-                        rowsAffected = executeQuery(DataAPI.getSession(), null);
-                        if (rowsAffected != 1) {
-                            throw new Exception("Could not update.");
-                        }
+                    System.out.println("+++++++++++UPDATE++++++++ ");
+
+                    // try to update fields
+                    if (isPrimaryKeyKnown()) {
+                        update(session);
                     }
                 }
                 break;
@@ -103,10 +109,37 @@ public class Query {
         return rowsAffected;
     }
 
+    public boolean update(Session session) {
+        if (!constructUpdateQuery()) {
+            return false;
+        }
+        // UPDATE
+        this.crud = CRUD.create;
+        // when the ID is not known -> do queryByExample to retrieve it
+        // when the ID is known (present in the dataDictionary) -> update the rest of the columns
+        // there is no secondary query to be executed after update: all information already in dataDictionary
+        int rowsAffected = executeQuery(session, null);
+        if (rowsAffected != 1) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * check if dataDictionary has the primary key in the knownFields for the current dataSet
+     * @return
+     */
+    public boolean isPrimaryKeyKnown() {
+        String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
+        return DataAPI.dataDictionary.get(XID) != null && DataAPI.dataDictionary.get(XID).knownFields != null &&
+                DataAPI.dataDictionary.get(XID).knownFields.get(primaryKey) != null;
+    }
+
     /**
      * add to the list of KnownFields those that have a value in dataDictionary and remove them from UnknownFields
      */
-    private void updateKnownFields() throws Exception {
+    private void updateKnownFields() {
         Iterator unknownFieldsIterator = unknownFields.entrySet().iterator();
         String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
 
@@ -163,32 +196,16 @@ public class Query {
     }
 
     /**
-     * Add key and value to the two stringbuilders with formatting
-     * @param keys StringBuilder
-     * @param values StringBuilder
-     * @param key String to be added to the keys
-     * @param value String to be added to the values
-     */
-    private void addFieldToStringBuilder(StringBuilder keys, StringBuilder values, String key, String value) {
-        keys.append(COMA_SPACE);
-        keys.append(key);
-
-        values.append(COMA_SPACE);
-        values.append(SINGLE_QUOTE);
-        values.append(value);
-        values.append(SINGLE_QUOTE);
-    }
-    /**
      * Construct the insert SQL query; then construct a select query to determine the PK of the newly inserted row
      * IMPORTANT: the tables must have AUTO-INCREMENT set to be able to insert any rows
      *
      * @return query for selecting the id of the inserted row
      * @throws Exception Validation error
      */
-    private String constructInsertQuery() throws Exception {
+    private String constructInsertQuery() {
         // if there are fields still unknown, return error
         if (!validateFieldsForInsertStatement(DataAPI.dataDictionary)) {
-            throw new Exception("Validation failed. Some information is not available.");
+            return null;
         }
 
         if (knownFields.size() < 1) {
@@ -218,58 +235,20 @@ public class Query {
         keys.delete(keys.length() - COMA_SPACE.length(), keys.length());
         fields.delete(fields.length() - COMA_SPACE.length(), fields.length());
 
-        if (knownFields.get("last_modified_date") == null) {
-            addFieldToStringBuilder(keys, fields,"last_modified_date", DataAPI.getTime());
-        }
-
-        if (knownFields.get("created_date") == null) {
-            addFieldToStringBuilder(keys, fields,"created_date", DataAPI.getTime());
-        }
-
         this.query = String.format("INSERT INTO %s (%s) VALUES (%s);", this.dataSet, keys, fields);
 
-        /*
-         * after the insert, we want to retrieve the PK and UKs inserted
-         * construct the SELECT query
-         */
-
-        // SELECT	-> the newly inserted PK and UKs
-        StringBuilder selectStatement = new StringBuilder();
-        selectStatement.append(DataAPI.keyIndex.get(dataSet).pk);
-        selectStatement.append(COMA_SPACE);
-
-        // add all the UK columns if exist
-        if (DataAPI.keyIndex.get(dataSet).uk != null) {
-            for (Map.Entry<String, ArrayList<String>> entry : DataAPI.keyIndex.get(dataSet).uk.entrySet()) {
-                for (String uniqueKeyColumnName : entry.getValue()) {
-                    selectStatement.append(uniqueKeyColumnName);
-                    selectStatement.append(COMA_SPACE);
-                }
-            }
-        }
-
-        // remove last ", "
-        selectStatement.delete(selectStatement.length() - COMA_SPACE.length(), selectStatement.length());
-
-        // WHERE	-> this.knownFields
-        String[] conditions = getEquals(knownFields, " is ");
-        if (conditions == null) {
-            return null;
-        }
-        String condition = String.join(" AND ", conditions);
-
-        // return as second sql query "SELECT id FROM ..."
-        return String.format("SELECT %s FROM %s WHERE %s;", selectStatement.toString(), this.dataSet, condition);
+        // return query for getting the newly inserted ID
+        return "SELECT LAST_INSERT_ID();";
     }
 
     /**
      * Construct the select SQL query to be executed
-     * @return second query to be executed
+     * @return true if the query could be constructed; false otherwise
      * @throws Exception Invalid request: there must be at least a field unknown
      */
-    private void constructSelectQuery() throws Exception {
+    private boolean constructSelectQuery() {
         if (unknownFields.keySet().size() < 1) {
-            throw new Exception("Invalid request: there are no fields specified for the retrieve operation!");
+            return false;
         }
 
         // SELECT	-> unknownFields
@@ -278,39 +257,32 @@ public class Query {
         // WHERE	-> this.knownFields
         String[] conditions = getEquals(knownFields, " is ");
         if (conditions == null) {
-            return;
+            return false;
         }
         String condition = String.join(" AND ", conditions);
 
         // select the SQL query
         this.query =  String.format("SELECT %s FROM %s WHERE %s;", selectStatement, this.dataSet, condition);
+        return true;
     }
 
     /**
      * Construct the update SQL query to be executed
      * @return second query to be executed
      */
-    private void constructUpdateQuery() throws Exception {
+    private boolean constructUpdateQuery() {
         XID xid = DataAPI.dataDictionary.get(XID);
         String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
         String[] values = getEquals(knownFields, "=");
         if (values == null) {
-            return;
+            return false;
         }
         String valuesConcatenated = String.join(" , ", values);
-
-        if (knownFields.get("last_modified_date") == null) {
-            valuesConcatenated += ", last_modified_date='" + DataAPI.getTime()+SINGLE_QUOTE;
-        }
-
-        if (knownFields.get("created_date") == null) {
-            valuesConcatenated += ", created_date='" + DataAPI.getTime()+SINGLE_QUOTE;
-        }
-
 
         // select the SQL query
         this.query = String.format("UPDATE %s SET %s WHERE %s='%s'",
                 this.dataSet, valuesConcatenated, primaryKey, xid.knownFields.get(primaryKey));
+        return true;
     }
 
     /**
@@ -370,6 +342,8 @@ public class Query {
      *
      * IMPORTANT: Assume there is only one record returned
      *
+     * Merge and insert act the same, the only difference being the merge has NO secondaryQueryInsert
+     *
      * @return array containing the columns returned by the sql query
      */
     private int executeQuery(Session session, String secondaryQueryInsert) {
@@ -385,7 +359,6 @@ public class Query {
             rowsAffected = sqlQuery.executeUpdate();
             session.getTransaction().commit();
 
-            // do the secondary query: for insert/update, it should be "SELECT id FROM TABLE WHERE (...)"
             if (secondaryQueryInsert != null) {
                 sqlQuery = session.createSQLQuery(secondaryQueryInsert);
             } else {
@@ -402,11 +375,24 @@ public class Query {
 
         System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
 
-        // append to the known fields of the XID object all the rows returned by the SQL
         TreeMap<String, String> knownFields = new TreeMap<>();
-        for (HashMap<String, Object> result : aliasToValueMapList) {
-            for (String key : result.keySet()) {
-                knownFields.put(key, result.get(key).toString());
+
+        if (crud == CRUD.create) {
+            String newlyInsertedId = aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString();
+
+            // the pk is not an auto-increment column -> the pk must have been specified by hand, so there is nothing to update
+            if (Integer.parseInt(newlyInsertedId) == 0) {
+                return -1;
+            }
+
+            String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
+            knownFields.put(primaryKey, newlyInsertedId);
+        } else {
+            // append to the known fields of the XID object all the rows returned by the SQL
+            for (HashMap<String, Object> result : aliasToValueMapList) {
+                for (String key : result.keySet()) {
+                    knownFields.put(key, result.get(key).toString());
+                }
             }
         }
 
@@ -442,15 +428,14 @@ public class Query {
     /**
      * Get SQL style date time
      * @param session Sql session
-     * @return string containing current system date time
-     * @throws Exception Cannot get time from SQL
+     * @return string containing current system date time; if time could not be retrieved, return null
      */
-    static String getTime(Session session) throws Exception {
+    static String getTime(Session session) {
         NativeQuery sqlQuery = session.createSQLQuery("SELECT NOW();");
         List<Object> requestRoutines = sqlQuery.getResultList();
 
         if (requestRoutines.size() != 1)
-            throw new Exception("Could not get current datetime");
+            return null;
 
         return requestRoutines.get(0).toString();
     }
