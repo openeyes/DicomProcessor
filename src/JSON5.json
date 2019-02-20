@@ -2,19 +2,25 @@
   "_OE_System": "ABEHR Jason Local v3.0",
   "_Version": "v0.1",
   "$$_XID_Map_$$": [
-    {
-      "$$_XID_$$": "$$_attachment_type[1]_$$",
-      "$$_DataSet_$$": "attachment_type",
-      "attachment_type": "NONE"
-    }
   ],
   "$$_SaveSet[1]_$$": [
     {
-      "$$_DataSet_$$": "attachment_type",
+      "$$_DataSet_$$": "et_ophciexamination_attachment",
       "$$_ROW_$$": [
         {
-          "$$_CRUD_$$": "retrieve",
-          "attachment_type": "$$_attachment_type[1]_$$"
+          "$$_CRUD_$$": "merge",
+          "id": "$$_et_ophciexamination_attachment[1]_$$",
+          "event_id": 230
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "et_ophciexamination_attachment",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "merge",
+          "id": "$$_et_ophciexamination_attachment[1]_$$",
+          "event_id": 231
         }
       ]
     }

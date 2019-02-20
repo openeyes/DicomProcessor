@@ -99,7 +99,12 @@ VALUES
                    }
                    });
 
-      createEvent(JSON.stringify(eventData));"
+    var updatedJson = createEvent(JSON.stringify(eventData));
+    putJson(
+          'event_data',
+         updatedJson ,
+         'event_data',
+         null, 'json');"
   );
 
 INSERT INTO routine_library (routine_name, routine_body)

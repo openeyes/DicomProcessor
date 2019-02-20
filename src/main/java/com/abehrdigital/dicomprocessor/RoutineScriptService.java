@@ -113,12 +113,13 @@ public class RoutineScriptService {
         return daoManager.getPatientDao().getIdByHospitalNumber(hospitalNumber, dateOfBirth, gender);
     }
 
-    public void createEvent(String eventData) {
+    public String createEvent(String eventData) {
         //TODO for light intergration
         try {
-            DataAPI.magic("1", eventData);
+            return DataAPI.magic("1", eventData);
         } catch (Exception e) {
             e.printStackTrace();
+            return "Exception: " + e.getStackTrace();
         }
     }
 

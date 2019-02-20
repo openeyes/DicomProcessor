@@ -248,7 +248,7 @@ public class DataAPI {
                             if (!value.equals("$$_SysDateTime_$$")) {
                                 // add the unknown variable to the lookup table only if it is not a date
                                 // date is set at the start of the program's execution
-                                dataDictionary.put(value, new XID(value, null, null));
+                                dataDictionary.put(value, new XID(value, dataSet, null));
                             }
                         }
                     // known fields
@@ -308,7 +308,7 @@ public class DataAPI {
         try {
             JSONParser parser = new JSONParser();
 
-            FileReader reader = new FileReader("./src/JSON5.json");
+            FileReader reader = new FileReader("./src/JSON.json");
             JSONObject json = (JSONObject) parser.parse(reader);
 
             return json.toJSONString();
@@ -324,7 +324,7 @@ public class DataAPI {
      * @param jsonData String json to be parsed
      * @throws Exception Nothing to parse; Could not open a new session!; Could not get current date time!
      */
-    static void magic(String id, String jsonData) throws Exception {
+    static String magic(String id, String jsonData) throws Exception {
         if (jsonData.isEmpty()) {
             throw new Exception("Nothing to parse");
         }
@@ -348,6 +348,37 @@ public class DataAPI {
         // DEBUG
         DataAPI.printMap("Final", DataAPI.dataDictionary);
         DataAPI.printKeyMap("Final", DataAPI.keyIndex);
+
+        // construct the json
+        return getUpdatedJson();
+    }
+
+    /**
+     * construct a new json with the updated ids found through running the first json
+     *
+     * @return String updated json
+     */
+    static String getUpdatedJson() {
+        JSONArray xidMap = new JSONArray();
+        for (Map.Entry<String, XID> entryDataDictionary : dataDictionary.entrySet()) {
+            String mappingName = entryDataDictionary.getKey();
+            XID xid = entryDataDictionary.getValue();
+            JSONObject xidMapEntry = new JSONObject();
+            xidMapEntry.put("$$_XID_$$", mappingName);
+            xidMapEntry.put("$$_DataSet_$$", xid.DataSet);
+            for (Map.Entry<String, String> entryKnownFields : xid.knownFields.entrySet()) {
+                xidMapEntry.put(entryKnownFields.getKey(), entryKnownFields.getValue());
+            }
+            xidMap.add(xidMapEntry);
+        }
+
+        JSONObject updatedJson = new JSONObject();
+        updatedJson.put("_OE_System", "ABEHR Jason Local v3.0");
+        updatedJson.put("_Version", "v0.1");
+        updatedJson.put("$$_SaveSet[1]_$$", new JSONArray());
+        updatedJson.put("$$_XID_Map_$$", xidMap);
+
+        return updatedJson.toJSONString();
     }
 
     /**
@@ -390,7 +421,11 @@ public class DataAPI {
             // apply the json on the database
             // DataAPI.magic("1", jsonFromTemplate);
 
-            DataAPI.magic("1", DataAPI.getEventTemplate());
+            String jsonData = DataAPI.getEventTemplate();
+            String modifiedJsonData = DataAPI.magic("1", jsonData);
+            System.out.println(jsonData);
+            System.out.println(modifiedJsonData);
+
         } catch (Exception e) {
             e.printStackTrace();
         }

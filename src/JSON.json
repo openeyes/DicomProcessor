@@ -11,19 +11,14 @@
 			"$$_XID_$$": "$$_attachment_data[1]_$$",
 			"$$_DataSet_$$": "attachment_data",
 			"id": "2"
+		},
+		{
+			"$$_XID_$$": "$$_user[1]_$$",
+			"$$_DataSet_$$": "user",
+			"id": "1"
 		}
 	],
 	"$$_SaveSet[1]_$$": [
-		{
-			"$$_DataSet_$$": "user",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "retrieve",
-					"id": "$$_user[1]_$$",
-					"username": "admin"
-				}
-			]
-		},
 		{
 			"$$_DataSet_$$": "event_type",
 			"$$_ROW_$$": [
