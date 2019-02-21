@@ -122,9 +122,4 @@ public class RoutineScriptService {
             return "Exception: " + e.getStackTrace();
         }
     }
-
-    public String getEmptyEventTemplate() {
-        //TODO for light intergration
-        return DataAPI.getEventTemplate();
-    }
 }
