@@ -437,7 +437,7 @@ public class DataAPI {
      * @param args args
      */
     public static void main(String[] args) {
-        try {
+       /* try {
             // create json template with all dependencies for a given dataSet
             // String jsonFromTemplate = createTemplate("event_attachment_item");
             // apply the json on the database
@@ -449,6 +449,24 @@ public class DataAPI {
             System.out.println(modifiedJsonData);
         } catch (Exception e) {
             e.printStackTrace();
+        }*/
+
+        try {
+            // hardcoded values
+            link_attachment(DataAPI.getSession(), "event_pdf", "40638003", "4686441", "313");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    public static void link_attachment(Session session, String attachment_mnemonic, String body_site_snomed_type,
+                                       String event_id, String element_type_id) {
+        int eventAttachmentGroupID = Query.insertIfNotExists(session, "event_attachment_group", event_id,element_type_id);
+        int attachment_data_id = Query.getAttachmentDataID(session, attachment_mnemonic, body_site_snomed_type);
+        int eventAttachmentItemID = Query.insert(session, "event_attachment_item", eventAttachmentGroupID, attachment_data_id);
+
+        System.out.println(eventAttachmentItemID);
+
+        Query.processAndAddThumbnails(session, attachment_data_id);
     }
 }

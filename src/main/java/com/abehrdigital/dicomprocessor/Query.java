@@ -6,6 +6,8 @@ import org.hibernate.transform.AliasToEntityMapResultTransformer;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 public class Query {
@@ -608,5 +610,107 @@ public class Query {
         _ROW_.add(_ROW_item_);
         saveSetItem.put("$$_ROW_$$", _ROW_);
         saveSets.push(saveSetItem);
+    }
+
+    public static int getAttachmentDataID(Session session, String attachment_mnemonic, String body_site_snomed_type) {
+        String query = String.format("SELECT id from attachment_data where attachment_mnemonic=\"%s\" and body_site_snomed_type=\"%s\"",
+                attachment_mnemonic, body_site_snomed_type);
+        NativeQuery sqlQuery = session.createSQLQuery(query);
+
+        sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        List<HashMap<String, Object>> aliasToValueMapList = sqlQuery.list();
+
+        System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
+
+        if (aliasToValueMapList.size() != 1) {
+            // exists; return the id
+            return -1;
+        }
+
+        int attachment_data_id = Integer.parseInt(aliasToValueMapList.get(0).get("id").toString());
+        System.err.println("=====SQL response:=========" + Integer.parseInt(aliasToValueMapList.get(0).get("id").toString()) + "================");
+        return attachment_data_id;
+    }
+
+    public static int insert(Session session, String dataSet, int eventAttachmentGroupID, int attachment_data_id) {
+        // does not exist, insert
+        String query = String.format("INSERT INTO %s (attachment_data_id, event_attachment_group_id, system_only_managed) VALUES (%s,%s, 1);", dataSet, attachment_data_id, eventAttachmentGroupID);
+        NativeQuery sqlQuery = session.createSQLQuery(query);
+
+        session.beginTransaction();
+        int rowsAffected = sqlQuery.executeUpdate();
+        if (rowsAffected == 1) {
+            session.getTransaction().commit();
+        }
+
+        // get the newly inserted ID
+        query = "SELECT LAST_INSERT_ID();";
+        sqlQuery = session.createSQLQuery(query);
+        sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        List<HashMap<String, Object>> aliasToValueMapList = sqlQuery.list();
+
+        System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
+
+        if (aliasToValueMapList.size() == 1) {
+            return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
+        }
+
+        return -1;
+    }
+
+    public static int insertIfNotExists(Session session, String dataSet, String event_id, String element_type_id){
+        String query = String.format("SELECT id from %s where event_id=%s and element_type_id=%s", dataSet, event_id, element_type_id);
+        NativeQuery sqlQuery = session.createSQLQuery(query);
+
+        sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        List<HashMap<String, Object>> aliasToValueMapList = sqlQuery.list();
+
+        System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
+
+        if (aliasToValueMapList.size() == 1) {
+            // exists; return the id
+            return Integer.parseInt(aliasToValueMapList.get(0).get("id").toString());
+        }
+
+        // does not exist, insert
+        query = String.format("INSERT INTO %s (event_id, element_type_id) VALUES (%s,%s);", dataSet, event_id, element_type_id);
+        sqlQuery = session.createSQLQuery(query);
+
+        session.beginTransaction();
+        int rowsAffected = sqlQuery.executeUpdate();
+        if (rowsAffected == 1) {
+            session.getTransaction().commit();
+        }
+
+        // get the newly inserted ID
+        query = "SELECT LAST_INSERT_ID();";
+        sqlQuery = session.createSQLQuery(query);
+        sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        aliasToValueMapList = sqlQuery.list();
+
+        System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
+
+        if (aliasToValueMapList.size() == 1) {
+            return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
+        }
+
+        return -1;
+    }
+
+    public static void processAndAddThumbnails(Session session, int attachment_data_id) {
+        String query = String.format("SELECT blob_data from attachment_data where id=%d", attachment_data_id);
+        NativeQuery sqlQuery = session.createSQLQuery(query);
+
+        sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        List<HashMap<String, Object>> aliasToValueMapList = sqlQuery.list();
+
+        byte[] bArr = (byte[])aliasToValueMapList.get(0).get("blob_data");
+        ByteBuffer blob_data = ByteBuffer.wrap(bArr);
+
+        try {
+            PdfToImage.convertPdfToImage(blob_data, "PDF_to_image");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
