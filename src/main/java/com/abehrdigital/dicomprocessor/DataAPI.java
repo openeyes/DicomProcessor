@@ -59,6 +59,7 @@ public class DataAPI {
                 Query query = (Query) queryIterator.next();
 
                 // DEBUG
+                System.out.println(query);
                 DataAPI.printMap("DataAPI.map: ", DataAPI.dataDictionary);
 
                 // construct the SQL query based on the CRUD operation and the fields found in Query object
@@ -213,17 +214,38 @@ public class DataAPI {
         // foreignKeys: {XID -> {field_in_XID_table, field_in_current_table}}
         TreeMap<String, ForeignKey> foreignKeys = new TreeMap<>();
         String XID = null;
+        ArrayList<ArrayList<String>> queriesParameters = null;
+        ArrayList<String> queriesSQL = null;
 
         // for each field in the json row, save the key and the value
         //   in either knownFields or unknownFields
         for (Object o : query.keySet()) {
             String key = (String) o;
-            String value = query.get(key).toString();
             switch (key) {
                 case "$$_CRUD_$$":
-                    crud = Query.CRUD.valueOf(value);
+                    crud = Query.CRUD.valueOf(query.get(key).toString());
+                    break;
+                case "$$_QUERIES_$$":
+                    JSONArray customQueries = (JSONArray) query.get(key);
+                    queriesParameters = new ArrayList<>();
+                    queriesSQL = new ArrayList<>();
+
+                    for (Object objectQuery : customQueries) {
+                        JSONObject customQuery = (JSONObject) objectQuery;
+
+                        JSONArray parameters = (JSONArray) customQuery.get("$$_PARAMETERS_$$");
+                        ArrayList<String> queryParameters = new ArrayList<>();
+                        for (Object objectParameter: parameters) {
+                            queryParameters.add(objectParameter.toString());
+                        }
+                        queriesParameters.add(queryParameters);
+
+                        String customSqlQuery = customQuery.get("$$_SQL_$$").toString();
+                        queriesSQL.add(customSqlQuery);
+                    }
                     break;
                 default:
+                    String value = query.get(key).toString();
                     // unknown fields have value prefixed and suffixed with '$$'
                     if (value.startsWith("$$") && value.endsWith("$$")) {
                         // if this is a reference to a field from another table
@@ -266,7 +288,7 @@ public class DataAPI {
         }
 
         // create and return new Query object with the information parsed
-        return new Query(dataSet, XID, crud, knownFields, unknownFields, foreignKeys);
+        return new Query(dataSet, XID, crud, knownFields, unknownFields, foreignKeys, queriesParameters, queriesSQL);
     }
 
     /**
@@ -308,7 +330,7 @@ public class DataAPI {
         try {
             JSONParser parser = new JSONParser();
 
-            FileReader reader = new FileReader("./src/JSON.json");
+            FileReader reader = new FileReader("./src/JSON5.json");
             JSONObject json = (JSONObject) parser.parse(reader);
 
             return json.toJSONString();
@@ -425,7 +447,6 @@ public class DataAPI {
             String modifiedJsonData = DataAPI.magic("1", jsonData);
             System.out.println(jsonData);
             System.out.println(modifiedJsonData);
-
         } catch (Exception e) {
             e.printStackTrace();
         }

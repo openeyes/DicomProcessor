@@ -17,6 +17,11 @@ public class Query {
     private TreeMap<String, String> unknownFields;
     private TreeMap<String, String> knownFields;
     private TreeMap<String, ForeignKey> foreignKeys;
+
+    // for custom sql to be run for this query
+    private ArrayList<ArrayList<String>> queriesParameters;
+    private ArrayList<String> queriesSQL;
+
     private final String SPACE = " ";
     private final String COMA_SPACE = ", ";
     private final String SINGLE_QUOTE  = "'";
@@ -26,13 +31,15 @@ public class Query {
     }
 
     Query(String dataSet, String XID, CRUD crud, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields,
-          TreeMap<String, ForeignKey> foreignKeys ) {
+          TreeMap<String, ForeignKey> foreignKeys, ArrayList<ArrayList<String>> queriesParameters, ArrayList<String> queriesSQL) {
         this.dataSet = dataSet;
         this.XID = XID;
         this.crud = crud;
         this.knownFields = knownFields;
         this.unknownFields = unknownFields;
         this.foreignKeys = foreignKeys;
+        this.queriesParameters = queriesParameters;
+        this.queriesSQL = queriesSQL;
     }
 
     @Override
@@ -49,6 +56,52 @@ public class Query {
         // before constructing the query, update the list of known fields
         updateKnownFields();
         updateKnownFieldsWithForeignKeys();
+
+        if (queriesSQL != null && queriesSQL.size() != 0) {
+            CRUD crudSave = this.crud;
+            this.crud = CRUD.retrieve;
+            boolean success = true;
+            System.out.println("SSS2 ");
+            for (int indexCustomQuery = 0; indexCustomQuery < queriesSQL.size(); indexCustomQuery++) {
+                String customSql = queriesSQL.get(indexCustomQuery);
+                System.out.println("SSS4: " + customSql);
+                for (int indexParameters = 0; indexParameters < queriesParameters.get(indexCustomQuery).size(); indexParameters++) {
+                    System.out.println(queriesParameters.get(indexCustomQuery).get(indexParameters));
+                    String parameterXID = queriesParameters.get(indexCustomQuery).get(indexParameters);
+
+                    String[] split = queriesParameters.get(indexCustomQuery).get(indexParameters).split("\\.");
+
+                    String parameterStrippedXID = split[0] + "_$$";
+                    String parameterStrippedField = split[1].substring(0,split[1].length() - 3);
+                    System.out.println(parameterStrippedXID);
+                    System.out.println(parameterStrippedField);
+                    System.out.println(DataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
+
+                    customSql = customSql.replace(parameterXID, DataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
+                }
+                System.out.println("SSS1 " + customSql);
+
+                // execute retrieve query
+                //TODO: if one query fails, should everything fail?
+                // (currently yes)
+                // or if ALL fail, then fail?
+                this.query = customSql;
+                System.out.println("trying to execute custom sql: " + this.query);
+
+                // if one fails, stop running other custom sql queries
+                if (executeQuery(session, null) != 1) {
+                    System.out.println("failed to execute");
+                    success = false;
+                    break;
+                }
+            }
+            this.crud = crudSave;
+
+            if (success) {
+                System.out.println("Succes, no need to go further");
+                return 1;
+            }
+        }
 
         String secondaryQueryInsert;
         int rowsAffected = 0;
@@ -171,6 +224,17 @@ public class Query {
                     knownFields.put(idUnknown, xidObject.knownFields.get(idUnknown));
                     unknownFieldsIterator.remove();
                 }
+            }
+        }
+
+
+        if (DataAPI.dataDictionary.containsKey(this.XID) && DataAPI.dataDictionary.get(this.XID).knownFields != null) {
+            System.out.println("SSS: " + DataAPI.dataDictionary.get(this.XID));
+            System.out.println("SSS: " + DataAPI.dataDictionary.get(this.XID).knownFields);
+            System.out.println("SSS: " + DataAPI.dataDictionary.get(this.XID).knownFields.entrySet());
+            for (Map.Entry<String, String> knownFieldDataDictionary : DataAPI.dataDictionary.get(this.XID).knownFields.entrySet()) {
+                this.knownFields.put(knownFieldDataDictionary.getKey(), knownFieldDataDictionary.getValue());
+                System.out.println("SS added" + knownFieldDataDictionary.getKey());
             }
         }
     }
