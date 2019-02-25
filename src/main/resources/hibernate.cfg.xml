@@ -20,7 +20,6 @@
         <property name="hibernate.hikari.dataSource.user">openeyes</property>
         <property name="hibernate.hikari.dataSource.password">openeyes</property>
 
-
         <!-- SQL dialect -->
         <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
         <!-- Echo all executed SQL to stdout -->

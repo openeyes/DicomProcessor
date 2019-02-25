@@ -16,6 +16,8 @@ import java.util.logging.Logger;
 import static com.abehrdigital.dicomprocessor.utils.StackTraceUtil.getStackTraceAsString;
 
 public class RequestQueueLocker {
+    private final static int FIVE_SECONDS = 5;
+
     private Session session;
     private RequestQueueLockDao requestQueueLockDao;
     private RequestQueueDao requestQueueDao;
@@ -57,7 +59,7 @@ public class RequestQueueLocker {
                 lockingFailed();
             }
         } else {
-            throw new Exception("Request queue doesn't exist");
+            throw new RequestQueueMissingException("Request queue: " + requestQueueName + " doesn't exist in the database");
         }
     }
 
@@ -81,7 +83,7 @@ public class RequestQueueLocker {
 
     private void sleepFiveSeconds() {
         try {
-            TimeUnit.SECONDS.sleep(5);
+            TimeUnit.SECONDS.sleep(FIVE_SECONDS);
         } catch (InterruptedException exception) {
             Logger.getLogger(RequestQueueLocker.class.getName()).log(Level.SEVERE, getStackTraceAsString(exception));
         }
