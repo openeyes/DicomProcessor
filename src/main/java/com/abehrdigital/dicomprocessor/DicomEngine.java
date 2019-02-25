@@ -5,6 +5,8 @@
  */
 package com.abehrdigital.dicomprocessor;
 
+import com.abehrdigital.dicomprocessor.exceptions.OrderlyExitSuccessException;
+import com.abehrdigital.dicomprocessor.exceptions.RequestQueueMissingException;
 import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
 import org.hibernate.cfg.Configuration;
 import java.util.logging.Level;

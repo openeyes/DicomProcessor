@@ -2,6 +2,7 @@ package com.abehrdigital.dicomprocessor;
 
 import com.abehrdigital.dicomprocessor.dao.RequestQueueDao;
 import com.abehrdigital.dicomprocessor.dao.RequestQueueLockDao;
+import com.abehrdigital.dicomprocessor.exceptions.RequestQueueMissingException;
 import com.abehrdigital.dicomprocessor.models.RequestQueueLock;
 import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
 import org.hibernate.HibernateException;
