@@ -119,6 +119,10 @@ public class AttachmentData {
         return mimeType;
     }
 
+    public int getId() {
+        return id;
+    }
+
     public String getAttachmentMnemonic() {
         return attachmentMnemonic;
     }
@@ -153,10 +157,6 @@ public class AttachmentData {
 
     public void setLargeThumbnail(Blob largeThumbnail) {
         this.largeThumbnail = largeThumbnail;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public void setBlobData(Blob value) {
