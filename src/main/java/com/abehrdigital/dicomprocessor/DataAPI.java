@@ -272,11 +272,9 @@ public class DataAPI {
                     } else {
                         // convert null value strings to null and insert them into knownFields
                         if (value.equals("null")) {
-                            knownFields.put(key, null);
-                        // insert value strings into knownFields
-                        } else {
-                            knownFields.put(key, value);
+                            value = null;
                         }
+                        knownFields.put(key, value);
                     }
                     break;
             }

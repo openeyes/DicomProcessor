@@ -45,7 +45,7 @@ public class Query {
 
     // TODO: CAPITALISE to match enum documentation; the prototype also needs changing
     enum CRUD {
-        retrieve, merge, create
+        create, retrieve, merge, delete
     }
 
     Query(String dataSet, String XID, CRUD crud, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields,
@@ -216,28 +216,28 @@ public class Query {
          * add it to the known fields and remove it from the unknownFields
          */
         while (unknownFieldsIterator.hasNext()) {
-            String idUnknown = ((Map.Entry<String, String>) unknownFieldsIterator.next()).getKey();
-            String XIDUnknown = unknownFields.get(idUnknown);
+            String unknownFieldId = ((Map.Entry<String, String>) unknownFieldsIterator.next()).getKey();
+            String xidUnknown = unknownFields.get(unknownFieldId);
 
             // do not remove PK from the unknown fields
-            if (primaryKey.equals(idUnknown)) {
+            if (primaryKey.equals(unknownFieldId)) {
                 continue;
             }
 
             // replace "$$_SysDateTime_$$" with the time set at the start of the program execution
-            if (XIDUnknown.equals("$$_SysDateTime_$$")) {
-                knownFields.put(idUnknown, DataAPI.getTime());
+            if (xidUnknown.equals("$$_SysDateTime_$$")) {
+                knownFields.put(unknownFieldId, DataAPI.getTime());
                 unknownFieldsIterator.remove();
                 continue;
             }
 
             // if the value of the XID was previously computed, remove it from the unknown fields
             // and move it to the known fields
-            if (DataAPI.dataDictionary.containsKey(XIDUnknown)) {
-                XID xidObject = DataAPI.dataDictionary.get(XIDUnknown);
+            if (DataAPI.dataDictionary.containsKey(xidUnknown)) {
+                XID xidObject = DataAPI.dataDictionary.get(xidUnknown);
 
-                if (xidObject != null && xidObject.knownFields != null && xidObject.knownFields.containsKey(idUnknown)) {
-                    knownFields.put(idUnknown, xidObject.knownFields.get(idUnknown));
+                if (xidObject != null && xidObject.knownFields != null && xidObject.knownFields.containsKey(unknownFieldId)) {
+                    knownFields.put(unknownFieldId, xidObject.knownFields.get(unknownFieldId));
                     unknownFieldsIterator.remove();
                 }
             }
