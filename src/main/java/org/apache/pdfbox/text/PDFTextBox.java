@@ -2,18 +2,23 @@ package org.apache.pdfbox.text;
 
 import java.util.List;
 
+/**
+ * This class represents a PDF Text Object as defined in the Adobe PDF Specification. The name "PDFTextBox" has been
+ * chosen instead of "PDFTextObject" to avoid confusion with objects in an OOP sense.
+ *
+ * @author Adrian Brenton
+ */
 public class PDFTextBox {
     private List<TextPosition> textPositions;
-    private String asString;
     private float minX, minY, maxX, maxY;
 
     public PDFTextBox(List<TextPosition> textPositions){
         this.textPositions = textPositions;
-        storeString(textPositions);
+        setTextBoxCoordinates();
     }
 
-    private void storeString(List<TextPosition> textPositions){
-        StringBuilder stringBuilder = new StringBuilder();
+
+    private void setTextBoxCoordinates(){
         if(!textPositions.isEmpty()) {
             this.minX = textPositions.get(0).getX();
             this.maxX = this.minX;
@@ -32,10 +37,7 @@ public class PDFTextBox {
                 if (textPosition.getY() > maxY) {
                     maxY = textPosition.getY();
                 }
-
-                stringBuilder.append(textPosition.getUnicode());
             }
-            this.asString = stringBuilder.toString();
         }
     }
 
@@ -47,9 +49,19 @@ public class PDFTextBox {
         return maxX - minX;
     }
 
+    /**
+     * Return a string representation of the PDFTextBox. This String representation is concatenation of the
+     * TextPositions in the textPositions member variable.
+     *
+     * @return The String representation of the instance.
+     */
     @Override
     public String toString(){
-        return asString;
+        StringBuilder stringBuilder = new StringBuilder();
+        for (TextPosition textPosition : textPositions) {
+            stringBuilder.append(textPosition.getUnicode());
+        }
+        return stringBuilder.toString();
     }
 
     public List<TextPosition> getTextPositions(){

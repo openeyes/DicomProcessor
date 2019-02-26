@@ -11,34 +11,31 @@ import java.util.ArrayList;
  *
  * @author Adrian Brenton
  */
-public class PDFTextObjectStripper extends PDFTextStripper{
+public class PDFTextBoxesStripper extends PDFTextStripper{
     private List<PDFTextBox> pdfTextBoxes;
+    private PDPage pdfPage;
 
     /**
      * Constructor.
      * @throws IOException If there is an error loading properties.
      */
-    public PDFTextObjectStripper() throws IOException {
+    public PDFTextBoxesStripper() throws IOException {
         super.setShouldSeparateByBeads(false);
     }
 
     /**
-     * Return a List of PDFTextBoxes on a given PDPage
+     * Extract the PDFTextBoxes on page and store in member variable pdfTextBoxes
      *
      * @param page The PDPage that will be searched for PDFTextBoxes
-     * @return A List of PDFTextBoxes on page
      * @throws IOException if processPage(page) encounters an error processing the page
      */
-    public List<PDFTextBox> extractPDFTextBoxes(PDPage page) throws IOException {
+    public void extractPDFTextBoxes(PDPage page) throws IOException {
         setStartPage(getCurrentPageNo());
         setEndPage(getCurrentPageNo());
-        ArrayList<List<TextPosition>> textPositions = new ArrayList<List<TextPosition>>();
-        textPositions.add( new ArrayList<TextPosition>() );
         if( page.hasContents() )
         {
             pdfTextBoxes = processPage(page);
         }
-        return pdfTextBoxes;
     }
 
     /**
@@ -65,6 +62,7 @@ public class PDFTextObjectStripper extends PDFTextStripper{
      *
      * @throws IOException If there is an error writing the text.
      */
+    @Override
     protected void writePage() throws IOException
     {
         output = new StringWriter();

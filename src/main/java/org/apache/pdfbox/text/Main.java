@@ -4,7 +4,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
@@ -22,25 +22,20 @@ public class Main {
         PDPage firstPage = pages.get(0);
         //PDFTextStripper stripper2 = new PDFTextStripper();
         //stripper2.getText(pdDoc);
-        System.out.println(getTextFromRectangle(0,0,2000,2000, firstPage));
+        getTextFromRectangle(0,0,2000,2000, firstPage);
 
     }
 
-    public static String getTextFromRectangle(double upperLeftX, double upperLeftY, double width, double height, PDPage page) throws IOException {
-        PDFTextStripperByArea stripper = new PDFTextStripperByArea(); //we only need 1, maybe move outside method
-        Rectangle2D region = new Rectangle.Double(upperLeftX, upperLeftY, width, height);
-        String regionName = "testRegion";
-        stripper.addRegion(regionName, region);
-        stripper.extractRegions(page);
-        String output = stripper.getTextForRegion("testRegion");
-        List<TextObject> textObjs = stripper.getTextObjects();
-        for (TextObject textObj : textObjs){
+    public static void getTextFromRectangle(double upperLeftX, double upperLeftY, double width, double height, PDPage page) throws IOException {
+        PDFTextBoxesStripper stripper = new PDFTextBoxesStripper(); //we only need 1, maybe move outside method
+        stripper.extractPDFTextBoxes(page);
+        List<PDFTextBox> textObjs = stripper.getPdfTextBoxes();
+        for (PDFTextBox textObj : textObjs){
             List<String> matchedGroups = checkForMatch(textObj, "([0-9]+)");
             for(String matchedText : matchedGroups){
                 System.out.println(matchedText + "!!!!!!!!");
             }
         }
-        return output;
     }
 
     public static String getTextFromRectangle(double upperLeftX, double upperLeftY, double width, double height, PDPage page, String expectedPattern) throws IOException {
@@ -52,8 +47,8 @@ public class Main {
         return stripper.getTextForRegion("testRegion");
     }
 
-    public static List<String> checkForMatch(TextObject textObj, String pattern){
-        return checkForMatch(textObj.toString(), pattern);
+    public static List<String> checkForMatch(PDFTextBox textBox, String pattern){
+        return checkForMatch(textBox.toString(), pattern);
     }
 
     public static List<String> checkForMatch(String text, String pattern){
