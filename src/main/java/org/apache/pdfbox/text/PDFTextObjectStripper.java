@@ -53,6 +53,7 @@ public class PDFTextObjectStripper extends PDFTextStripper{
     /**
      * Gets the PDFTextBox at the given index in the member variable PDF
      *
+     * @param index The integer index of the desired PDFTextBox
      * @return pdfTextBoxes member variable
      */
     public PDFTextBox getPDFTextBox(int index){
