@@ -5,7 +5,7 @@
 		{
 			"$$_XID_$$": "$$_patient[1]_$$",
 			"$$_DataSet_$$": "patient",
-			"id": "17891"
+			"id": "17906"
 		},
 		{
 			"$$_XID_$$": "$$_attachment_data[1]_$$",
@@ -16,6 +16,16 @@
 			"$$_XID_$$": "$$_user[1]_$$",
 			"$$_DataSet_$$": "user",
 			"id": "1"
+		},
+		{
+			"$$_XID_$$": "$$_subspecialty[1]_$$",
+			"$$_DataSet_$$": "subspecialty",
+			"name": "General Ophthalmology"
+		},
+		{
+			"$$_XID_$$": "$$_service[1]_$$",
+			"$$_DataSet_$$": "service",
+			"name": "Eye Casualty Service"
 		}
 	],
 	"$$_SaveSet[1]_$$": [
@@ -25,7 +35,7 @@
 				{
 					"$$_CRUD_$$": "retrieve",
 					"id": "$$_event_type[1]_$$",
-					"name": "Examination"
+					"class_name": "OphGeneric"
 				}
 			]
 		},
@@ -34,8 +44,7 @@
 			"$$_ROW_$$": [
 				{
 					"$$_CRUD_$$": "retrieve",
-					"id": "$$_subspecialty[1]_$$",
-					"name": "General Ophthalmology"
+					"id": "$$_subspecialty[1]_$$"
 				}
 			]
 		},
@@ -44,8 +53,7 @@
 			"$$_ROW_$$": [
 				{
 					"$$_CRUD_$$": "retrieve",
-					"id": "$$_service[1]_$$",
-					"name": "Eye Casualty Service"
+					"id": "$$_service[1]_$$"
 				}
 			]
 		},
@@ -77,7 +85,15 @@
 					"$$_CRUD_$$": "retrieve",
 					"id": "$$_episode[1]_$$",
 					"patient_id": "$$_patient[1].id_$$",
-					"firm_id": "$$_firm[1].id_$$"
+					"firm_id": "$$_firm[1].id_$$",
+					"$$_QUERIES_$$": [
+						{
+							"$$_PARAMETERS_$$": [
+								"$$_patient[1].id_$$"
+							],
+							"$$_SQL_$$": "(SELECT ep.id FROM openeyes.`episode` ep JOIN openeyes.`event` ev ON ev.`episode_id` = ep.`id`WHERE ep.`patient_id` = $$_patient[1].id_$$ ORDER BY ev.`event_date` DESC LIMIT 1) UNION ALL (SELECT ep.id FROM openeyes.`episode` ep WHERE ep.`patient_id` = $$_patient[1].id_$$ AND NOT EXISTS ( SELECT NULL FROM openeyes.`episode` ep2 JOIN openeyes.`event` ev2 ON ev2.`episode_id` = ep2.`id` WHERE ep2.`patient_id` = $$_patient[1].id_$$) ORDER BY ep.`created_date` DESC LIMIT 1);"
+						}
+					]
 				}
 			]
 		},
@@ -138,12 +154,22 @@
 			]
 		},
 		{
-			"$$_DataSet_$$": "et_ophciexamination_attachment",
+			"$$_DataSet_$$": "et_ophgeneric_attachment",
 			"$$_ROW_$$": [
 				{
 					"$$_CRUD_$$": "merge",
-					"id": "$$_et_ophciexamination_attachment[1]_$$",
-					"event_id": "$$_event[1].id_$$",
+					"id": "$$_et_ophgeneric_attachment[1]_$$",
+					"event_id": "$$_event[1].id_$$"
+				}
+			]
+		},
+		{
+			"$$_DataSet_$$": "et_ophgeneric_comments",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "merge",
+					"id": "$$_et_ophgeneric_comments[1]_$$",
+					"event_id": "$$_event[1].id_$$"
 				}
 			]
 		}

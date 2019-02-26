@@ -1,13 +1,28 @@
 package com.abehrdigital.dicomprocessor;
 
+import com.abehrdigital.dicomprocessor.models.AttachmentData;
+
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.tools.imageio.ImageIOUtil;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
+
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import javax.imageio.ImageIO;
+import javax.sql.rowset.serial.SerialBlob;
+
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.util.*;
 
 public class Query {
@@ -314,6 +329,22 @@ public class Query {
      */
     private boolean constructSelectQuery() {
         if (unknownFields.keySet().size() < 1) {
+            // TODO: there are no unkownFields: add all the knwonFields into DataAPI.dataDictionary
+            /*
+            {
+              "$$_DataSet_$$": "body_site_type",
+              "$$_ROW_$$": [
+                {
+                  "$$_CRUD_$$": "merge",
+                  "body_site_snomed_type": 12413,
+                  "title_short": "AB1",
+                  "title_full": "ABCDEFG",
+                  "title_abbreviated": "ABCD"
+                }
+              ]
+            },
+             */
+            System.out.println("+_+_+_+_+_++__++_+_+_+_+_+_+_+_");
             return false;
         }
 
@@ -612,45 +643,11 @@ public class Query {
         saveSets.push(saveSetItem);
     }
 
-    public static int getAttachmentDataID(Session session, String attachment_mnemonic, String body_site_snomed_type) {
-        String query = String.format("SELECT id from attachment_data where attachment_mnemonic=\"%s\" and body_site_snomed_type=\"%s\"",
-                attachment_mnemonic, body_site_snomed_type);
-        NativeQuery sqlQuery = session.createSQLQuery(query);
-
-        sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
-        List<HashMap<String, Object>> aliasToValueMapList = sqlQuery.list();
-
-        System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
-
-        if (aliasToValueMapList.size() != 1) {
-            // exists; return the id
-            return -1;
-        }
-
-        int attachment_data_id = Integer.parseInt(aliasToValueMapList.get(0).get("id").toString());
-        System.err.println("=====SQL response:=========" + Integer.parseInt(aliasToValueMapList.get(0).get("id").toString()) + "================");
-        return attachment_data_id;
-    }
-
-    public static int insert(Session session, String dataSet, int eventAttachmentGroupID, int attachment_data_id) {
-        // does not exist, insert
-        String query = String.format("INSERT INTO %s (attachment_data_id, event_attachment_group_id, system_only_managed) VALUES (%s,%s, 1);", dataSet, attachment_data_id, eventAttachmentGroupID);
-        NativeQuery sqlQuery = session.createSQLQuery(query);
-
-        session.beginTransaction();
-        int rowsAffected = sqlQuery.executeUpdate();
-        if (rowsAffected == 1) {
-            session.getTransaction().commit();
-        }
+    public static int insertAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id) {
+        executeInsert(session, String.format("INSERT INTO event_attachment_item (attachment_data_id, event_attachment_group_id, system_only_managed) VALUES (%s,%s, 1);", attachment_data_id, eventAttachmentGroupID));
 
         // get the newly inserted ID
-        query = "SELECT LAST_INSERT_ID();";
-        sqlQuery = session.createSQLQuery(query);
-        sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
-        List<HashMap<String, Object>> aliasToValueMapList = sqlQuery.list();
-
-        System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
-
+        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session, "SELECT LAST_INSERT_ID();");
         if (aliasToValueMapList.size() == 1) {
             return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
         }
@@ -658,14 +655,41 @@ public class Query {
         return -1;
     }
 
-    public static int insertIfNotExists(Session session, String dataSet, String event_id, String element_type_id){
-        String query = String.format("SELECT id from %s where event_id=%s and element_type_id=%s", dataSet, event_id, element_type_id);
-        NativeQuery sqlQuery = session.createSQLQuery(query);
+    public static List<HashMap<String, Object>> executeSelect(Session session, String selectQuery) {
+        NativeQuery sqlQuery = session.createSQLQuery(selectQuery);
 
         sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
         List<HashMap<String, Object>> aliasToValueMapList = sqlQuery.list();
 
         System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
+
+        return aliasToValueMapList;
+    }
+
+    public static int executeInsert(Session session, String insertQuery) {
+        NativeQuery sqlQuery = session.createSQLQuery(insertQuery);
+
+        session.beginTransaction();
+        int rowsAffected = sqlQuery.executeUpdate();
+        if (rowsAffected == 1) {
+            session.getTransaction().commit();
+        }
+
+        return rowsAffected;
+    }
+
+    public static int insertIfNotExistsAttachmentGroup(Session session, String dataSet, int event_id, String elementTypeClassName){
+        // get the id of the element_type of given class
+        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session, String.format("SELECT id from element_type where class_name='%s'", elementTypeClassName));
+        if (aliasToValueMapList.size() != 1) {
+            System.err.println("Element_type could not be found!");
+            return -1;
+        }
+        int elementTypeId = Integer.parseInt(aliasToValueMapList.get(0).get("id").toString());
+
+
+        aliasToValueMapList = executeSelect(session,
+                String.format("SELECT id from %s where event_id=%d and element_type_id='%d'", dataSet, event_id, elementTypeId));
 
         if (aliasToValueMapList.size() == 1) {
             // exists; return the id
@@ -673,23 +697,11 @@ public class Query {
         }
 
         // does not exist, insert
-        query = String.format("INSERT INTO %s (event_id, element_type_id) VALUES (%s,%s);", dataSet, event_id, element_type_id);
-        sqlQuery = session.createSQLQuery(query);
-
-        session.beginTransaction();
-        int rowsAffected = sqlQuery.executeUpdate();
-        if (rowsAffected == 1) {
-            session.getTransaction().commit();
-        }
+        executeInsert(session,
+                String.format("INSERT INTO %s (event_id, element_type_id) VALUES (%s,%s);", dataSet, event_id, elementTypeId));
 
         // get the newly inserted ID
-        query = "SELECT LAST_INSERT_ID();";
-        sqlQuery = session.createSQLQuery(query);
-        sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
-        aliasToValueMapList = sqlQuery.list();
-
-        System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
-
+        aliasToValueMapList = executeSelect(session, "SELECT LAST_INSERT_ID();");
         if (aliasToValueMapList.size() == 1) {
             return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
         }
@@ -697,20 +709,43 @@ public class Query {
         return -1;
     }
 
-    public static void processAndAddThumbnails(Session session, int attachment_data_id) {
-        String query = String.format("SELECT blob_data from attachment_data where id=%d", attachment_data_id);
-        NativeQuery sqlQuery = session.createSQLQuery(query);
-
-        sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
-        List<HashMap<String, Object>> aliasToValueMapList = sqlQuery.list();
-
-        byte[] bArr = (byte[])aliasToValueMapList.get(0).get("blob_data");
-        ByteBuffer blob_data = ByteBuffer.wrap(bArr);
+    public static boolean processAndAddThumbnails(AttachmentData attachmentData, Session session, int attachment_data_id) {
+        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session,
+                String.format("SELECT blob_data from attachment_data where id=%d", attachment_data_id));
 
         try {
-            PdfToImage.convertPdfToImage(blob_data, "PDF_to_image");
-        } catch (IOException e) {
+            PDDocument pdfBlobDocument = PDDocument.load(new ByteArrayInputStream((byte[]) aliasToValueMapList.get(0).get("blob_data")));
+            PDFRenderer pdfRenderer = new PDFRenderer(pdfBlobDocument);
+
+            System.out.println("8: wrote image");
+            Blob thumbnailSmallBlob = getThumbnail(20, pdfRenderer);
+            Blob thumbnailMediumBlob = getThumbnail(50, pdfRenderer);
+            Blob thumbnailLargeBlob = getThumbnail(100, pdfRenderer);
+
+            pdfBlobDocument.close();
+
+            // TODO: Save in the database the blob thumbnail
+            attachmentData.setSmallThumbnail(thumbnailSmallBlob);
+            attachmentData.setMediumThumbnail(thumbnailMediumBlob);
+            attachmentData.setLargeThumbnail(thumbnailLargeBlob);
+        } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
+    }
+
+    public static Blob getThumbnail(int dpiSize, PDFRenderer pdfRenderer) throws IOException, SQLException {
+        // using just the first page (index 0)
+        BufferedImage bufferedImageFromPDF = pdfRenderer.renderImageWithDPI(0, dpiSize, ImageType.RGB);
+        ImageIOUtil.writeImage(bufferedImageFromPDF, "output_new_" + dpiSize + ".png", dpiSize);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write(bufferedImageFromPDF, "jpg", byteArrayOutputStream);
+        byteArrayOutputStream.flush();
+        byte[] imageInByte = byteArrayOutputStream.toByteArray();
+        byteArrayOutputStream.close();
+
+        return new SerialBlob(imageInByte);
     }
 }

@@ -4,7 +4,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+import com.abehrdigital.dicomprocessor.models.AttachmentData;
 import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
+
 import org.hibernate.Session;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -330,7 +332,7 @@ public class DataAPI {
         try {
             JSONParser parser = new JSONParser();
 
-            FileReader reader = new FileReader("./src/JSON5.json");
+            FileReader reader = new FileReader("./src/JSON.json");
             JSONObject json = (JSONObject) parser.parse(reader);
 
             return json.toJSONString();
@@ -437,36 +439,44 @@ public class DataAPI {
      * @param args args
      */
     public static void main(String[] args) {
-       /* try {
+        try {
             // create json template with all dependencies for a given dataSet
             // String jsonFromTemplate = createTemplate("event_attachment_item");
             // apply the json on the database
             // DataAPI.magic("1", jsonFromTemplate);
 
+            /*
             String jsonData = DataAPI.getEventTemplate();
             String modifiedJsonData = DataAPI.magic("1", jsonData);
             System.out.println(jsonData);
             System.out.println(modifiedJsonData);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
+            */
 
-        try {
-            // hardcoded values
-            link_attachment(DataAPI.getSession(), "event_pdf", "40638003", "4686441", "313");
+            DataAPI.linkAttachmentDataWithEvent(16, 4686438,  "OEModule\\OphGeneric\\models\\Attachment");
+            DataAPI.createAndSetThumbnailsOnAttachmentData(null);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void link_attachment(Session session, String attachment_mnemonic, String body_site_snomed_type,
-                                       String event_id, String element_type_id) {
-        int eventAttachmentGroupID = Query.insertIfNotExists(session, "event_attachment_group", event_id,element_type_id);
-        int attachment_data_id = Query.getAttachmentDataID(session, attachment_mnemonic, body_site_snomed_type);
-        int eventAttachmentItemID = Query.insert(session, "event_attachment_item", eventAttachmentGroupID, attachment_data_id);
+    public static void createAndSetThumbnailsOnAttachmentData(AttachmentData attachmentData) throws Exception {
+        if (!Query.processAndAddThumbnails(attachmentData, DataAPI.getSession(), attachmentData.getId())) {
+            System.err.println("Error in creating and setting the thumbnails.");
+            return;
+        }
+    }
 
-        System.out.println(eventAttachmentItemID);
+    public static void linkAttachmentDataWithEvent(int attachmenDataId, int eventId, String elementTypeClassName) throws Exception {
+        int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(DataAPI.getSession(), "event_attachment_group", eventId, elementTypeClassName.replace("\\", "\\\\"));
+        if (eventAttachmentGroupID == -1) {
+            System.err.println("A new eventAttachmentGroup record could not be inserted.");
+            return;
+        }
 
-        Query.processAndAddThumbnails(session, attachment_data_id);
+        int eventAttachmentItemID = Query.insertAttachmentItem(DataAPI.getSession(), eventAttachmentGroupID, attachmenDataId);
+        if (eventAttachmentItemID == -1) {
+            System.err.println("A new eventAttachmentItem record could not be inserted.");
+            return;
+        }
     }
 }
