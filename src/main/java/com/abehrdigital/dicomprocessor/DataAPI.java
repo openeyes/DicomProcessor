@@ -452,8 +452,9 @@ public class DataAPI {
             System.out.println(modifiedJsonData);
             */
 
-            DataAPI.linkAttachmentDataWithEvent(16, 4686438,  "OEModule\\OphGeneric\\models\\Attachment");
-            DataAPI.createAndSetThumbnailsOnAttachmentData(null);
+            AttachmentData attachmentData = getSession().get(AttachmentData.class, 16);
+            DataAPI.linkAttachmentDataWithEvent(attachmentData, 4686438,  "OEModule\\OphGeneric\\models\\Attachment");
+            DataAPI.createAndSetThumbnailsOnAttachmentData(attachmentData);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -466,14 +467,14 @@ public class DataAPI {
         }
     }
 
-    public static void linkAttachmentDataWithEvent(int attachmenDataId, int eventId, String elementTypeClassName) throws Exception {
+    public static void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName) throws Exception {
         int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(DataAPI.getSession(), "event_attachment_group", eventId, elementTypeClassName.replace("\\", "\\\\"));
         if (eventAttachmentGroupID == -1) {
             System.err.println("A new eventAttachmentGroup record could not be inserted.");
             return;
         }
 
-        int eventAttachmentItemID = Query.insertAttachmentItem(DataAPI.getSession(), eventAttachmentGroupID, attachmenDataId);
+        int eventAttachmentItemID = Query.insertAttachmentItem(DataAPI.getSession(), eventAttachmentGroupID, attachmentData.getId());
         if (eventAttachmentItemID == -1) {
             System.err.println("A new eventAttachmentItem record could not be inserted.");
             return;
