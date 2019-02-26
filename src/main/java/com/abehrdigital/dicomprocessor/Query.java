@@ -43,6 +43,7 @@ public class Query {
     private final static String COMA_SPACE = ", ";
     private final static String SINGLE_QUOTE  = "'";
 
+    // TODO: CAPITALISE to match enum documentation; the prototype also needs changing
     enum CRUD {
         retrieve, merge, create
     }
