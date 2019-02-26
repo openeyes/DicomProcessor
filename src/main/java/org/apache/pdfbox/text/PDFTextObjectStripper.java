@@ -37,14 +37,6 @@ public class PDFTextObjectStripper extends PDFTextStripper{
         if( page.hasContents() )
         {
             pdfTextBoxes = processPage(page);
-            for (PDFTextBox PDFTextBox : pdfTextBoxes){
-                System.out.println(PDFTextBox);
-                for (TextPosition textPosition : PDFTextBox.getTextPositions()){
-                    System.out.println(textPosition.getX());
-                    System.out.println(textPosition.getY());
-                }
-            }
-            System.out.println(pdfTextBoxes);
         }
         return pdfTextBoxes;
     }
