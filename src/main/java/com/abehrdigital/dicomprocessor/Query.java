@@ -183,7 +183,7 @@ public class Query {
         if (!constructUpdateQuery()) {
             return false;
         }
-        // UPDATE
+        // update requires inserting into the table, so set the CRUD operation to create
         this.crud = CRUD.create;
         // when the ID is not known -> do queryByExample to retrieve it
         // when the ID is known (present in the dataDictionary) -> update the rest of the columns
@@ -200,10 +200,10 @@ public class Query {
      * check if dataDictionary has the primary key in the knownFields for the current dataSet
      * @return
      */
-    public boolean isPrimaryKeyKnown() {
+    private boolean isPrimaryKeyKnown() {
         String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
-        return DataAPI.dataDictionary.get(XID) != null && DataAPI.dataDictionary.get(XID).knownFields != null &&
-                DataAPI.dataDictionary.get(XID).knownFields.get(primaryKey) != null;
+        XID xid = DataAPI.dataDictionary.get(XID);
+        return xid != null && xid.knownFields != null && xid.knownFields.get(primaryKey) != null;
     }
 
     /**
@@ -416,7 +416,7 @@ public class Query {
     private String[] getEquals(TreeMap<String, String> map, String nullDelimiter) {
         String[] resultingConditions = new String[map.size()];
 
-        if (map.size() < 1) {
+        if (map.isEmpty()) {
             return null;
         }
 

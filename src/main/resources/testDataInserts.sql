@@ -104,7 +104,8 @@ VALUES
           'event_data',
          updatedJson ,
          'event_data',
-         null, 'json');"
+         null, 'json');
+    addRoutine('link_attachment_with_event');"
   );
 
 INSERT INTO routine_library (routine_name, routine_body)
@@ -117,6 +118,25 @@ VALUES
      eventTemplate,
      'event_data',
      null, 'json');"
+  );
+
+INSERT INTO routine_library (routine_name, routine_body)
+VALUES
+  (
+    "link_attachment_with_event",
+    "var eventData = JSON.parse(getJson('event_data', null));
+    var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf' , null);
+    var eventID;
+
+
+	eventData.$$_XID_Map_$$.forEach(function(data){
+		if(data.$$_XID_$$ == '$$_event[1]_$$'){
+	  		eventID = data.id;
+	   }
+	});
+
+    linkAttachmentDataWithEvent(attachmentPdf , eventID , 'OEModule\\OphGeneric\\models\\Attachment');
+    createAndSetThumbnailsOnAttachmentData(attachmentPdf);"
   );
 
 INSERT INTO request_queue (

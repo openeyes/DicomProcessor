@@ -69,9 +69,6 @@ public class DataAPI {
 
                 // remove query from array
                 queryIterator.remove();
-
-                // set query to null to be eligible to be removed by GC
-                query = null;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -113,8 +110,6 @@ public class DataAPI {
                     default:
                         break;
                 }
-                    break;
-                case JSONObject:
                     break;
                 case JSONArray:
                     if (key.toString().contains("XID_Map")) {
@@ -221,8 +216,7 @@ public class DataAPI {
 
         // for each field in the json row, save the key and the value
         //   in either knownFields or unknownFields
-        for (Object o : query.keySet()) {
-            String key = (String) o;
+        for (String key : (String []) query.keySet().toArray(String[] ::new)) {
             switch (key) {
                 case "$$_CRUD_$$":
                     crud = Query.CRUD.valueOf(query.get(key).toString());

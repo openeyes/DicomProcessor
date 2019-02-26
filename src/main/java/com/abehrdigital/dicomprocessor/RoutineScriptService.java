@@ -109,11 +109,19 @@ public class RoutineScriptService {
     }
 
     public void createAndSetThumbnailsOnAttachmentData(AttachmentData attachmentData){
-
+        try {
+            DataAPI.createAndSetThumbnailsOnAttachmentData(attachmentData);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public void linkAttachmentDataWithEvent(int attachmentId , int eventId , String elementTypeClassName){
-
+    public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName){
+        try {
+            DataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     //TODO REMOVE DATE OF BIRTH AND GENDER FROM THE QUERY
