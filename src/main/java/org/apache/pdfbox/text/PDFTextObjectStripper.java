@@ -1,7 +1,6 @@
 package org.apache.pdfbox.text;
 
 import org.apache.pdfbox.pdmodel.PDPage;
-
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.List;
