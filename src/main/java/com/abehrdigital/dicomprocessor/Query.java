@@ -724,10 +724,12 @@ public class Query {
 
             pdfBlobDocument.close();
 
-            // TODO: Save in the database the blob thumbnail
+            // save the blob thumbnails into the attachmentData
+            session.beginTransaction();
             attachmentData.setSmallThumbnail(thumbnailSmallBlob);
             attachmentData.setMediumThumbnail(thumbnailMediumBlob);
             attachmentData.setLargeThumbnail(thumbnailLargeBlob);
+            session.getTransaction().commit();
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -738,8 +740,6 @@ public class Query {
     public static Blob getThumbnail(int dpiSize, PDFRenderer pdfRenderer) throws IOException, SQLException {
         // using just the first page (index 0)
         BufferedImage bufferedImageFromPDF = pdfRenderer.renderImageWithDPI(0, dpiSize, ImageType.RGB);
-        ImageIOUtil.writeImage(bufferedImageFromPDF, "output_new_" + dpiSize + ".png", dpiSize);
-
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write(bufferedImageFromPDF, "jpg", byteArrayOutputStream);
         byteArrayOutputStream.flush();
