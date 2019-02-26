@@ -22,7 +22,7 @@ public class DataAPI {
     /* dataDictionary: keeps information about mappings $$_name[X]_$$ -> value */
     static HashMap<String, XID> dataDictionary;
     /* keyIndex: store information about the keys in the table: PK and UKs */
-    static HashMap<String, Key> keyIndex;
+    static HashMap<String, TableKey> keyIndex;
     private static String _OE_System;
     private static String _Version;
     private static Session session;
@@ -43,10 +43,10 @@ public class DataAPI {
         System.out.println("============");
     }
 
-    static void printKeyMap(String message, HashMap<String, Key> dataDictionary) {
+    static void printKeyMap(String message, HashMap<String, TableKey> dataDictionary) {
         System.out.println("============");
         System.out.println(message);
-        for (Map.Entry<String, Key> entry : dataDictionary.entrySet()) {
+        for (Map.Entry<String, TableKey> entry : dataDictionary.entrySet()) {
             System.out.println(entry.getKey() + "  =>  " + entry.getValue());
         }
         System.out.println("============");
@@ -93,7 +93,7 @@ public class DataAPI {
         JSONObject json = (JSONObject) jsonParser.parse(jsonData);
 
 
-        for (String key : (String []) json.keySet().toArray(String[] ::new)) {
+        for (String key : (String []) json.keySet().stream().toArray(String[] ::new)) {
             Object data = json.get(key);
 
             // depending on the current object class, parse the data
@@ -215,7 +215,7 @@ public class DataAPI {
 
         // for each field in the json row, save the key and the value
         //   in either knownFields or unknownFields
-        for (String key : (String []) query.keySet().toArray(String[] ::new)) {
+        for (String key : (String []) query.keySet().stream().toArray(String[] ::new)) {
             switch (key) {
                 case "$$_CRUD_$$":
                     crudOperation = Query.CRUD.valueOf(query.get(key).toString());
@@ -254,7 +254,7 @@ public class DataAPI {
                             foreignKeys.put(referencedXID, new ForeignKey(referencedColumn, referencingColumn));
                         } else {
                             // save the XID encoding for the primary key field:
-                            String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
+                            String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
                             if (key.equals(primaryKey)) {
                                 XID = value;
                             }

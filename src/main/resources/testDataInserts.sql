@@ -135,7 +135,7 @@ VALUES
 	   }
 	});
 
-    linkAttachmentDataWithEvent(attachmentPdf , eventID , 'OEModule\\OphGeneric\\models\\Attachment');
+    linkAttachmentDataWithEvent(attachmentPdf , eventID , 'OEModule\\\\OphGeneric\\\\models\\\\Attachment');
     createAndSetThumbnailsOnAttachmentData(attachmentPdf);"
   );
 

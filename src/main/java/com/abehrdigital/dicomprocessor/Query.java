@@ -132,7 +132,7 @@ public class Query {
                 rowsAffected = executeQuery(session, null);
                 break;
             case merge:
-                String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
+                String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
 
                 // pk is already in memory;
                 // try to update fields
@@ -200,7 +200,7 @@ public class Query {
      * @return
      */
     private boolean isPrimaryKeyKnown() {
-        String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
+        String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
         XID xid = DataAPI.dataDictionary.get(XID);
         return xid != null && xid.knownFields != null && xid.knownFields.get(primaryKey) != null;
     }
@@ -210,7 +210,7 @@ public class Query {
      */
     private void updateKnownFields() {
         Iterator unknownFieldsIterator = unknownFields.entrySet().iterator();
-        String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
+        String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
 
         /* search through all unknown fields and if the encoding "$$_..._$$" has a value in DataAPI.dataDictionary,
          * add it to the known fields and remove it from the unknownFields
@@ -370,7 +370,7 @@ public class Query {
      */
     private boolean constructUpdateQuery() {
         XID xid = DataAPI.dataDictionary.get(XID);
-        String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
+        String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
         String[] values = getEquals(knownFields, "=");
         if (values == null) {
             return false;
@@ -394,7 +394,7 @@ public class Query {
             String id = entry.getKey();
 
             // skip the pk field (it cannot exist in the database)
-            String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
+            String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
             if (!id.equals(primaryKey)) {
                 // if the value is still unknown in the global map (still null)
                 if (dataDictionarry.containsKey(XID)) {
@@ -483,7 +483,7 @@ public class Query {
                 return -1;
             }
 
-            String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
+            String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
             knownFields.put(primaryKey, newlyInsertedId);
         } else {
             // append to the known fields of the XID object all the rows returned by the SQL
@@ -503,7 +503,7 @@ public class Query {
         // ex: insert with a known id
         if (unknownFields.size() > 0) {
             // get the XID corresponding to the PK
-            String XID = unknownFields.get(DataAPI.keyIndex.get(dataSet).pk);
+            String XID = unknownFields.get(DataAPI.keyIndex.get(dataSet).primaryKey);
 
             // if the XID is already in the MAP,
             // update known fields in the map with ones returned as a result of running the current sql query
@@ -545,7 +545,7 @@ public class Query {
         }
 
         // add an entry for the current dataSet in the keyIndex data structure
-        DataAPI.keyIndex.put(dataSet, new Key());
+        DataAPI.keyIndex.put(dataSet, new TableKey());
 
         String getKeysQuery = "SELECT innerTable.constraint_type AS 'CONSTRAINT_TYPE', keyCol.`COLUMN_NAME` AS 'COLUMN_NAME', `keyCol`.`REFERENCED_TABLE_NAME` AS 'REFERENCED_TABLE_NAME', innerTable.constraint_name AS 'CONSTRAINT_NAME' " +
         "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
@@ -566,19 +566,19 @@ public class Query {
             String constraintType = row.get("CONSTRAINT_TYPE");
             switch (constraintType) {
                 case "PRIMARY KEY":
-                    DataAPI.keyIndex.put(dataSet, new Key(row.get("COLUMN_NAME")));
+                    DataAPI.keyIndex.put(dataSet, new TableKey(row.get("COLUMN_NAME")));
                     break;
                 case "UNIQUE":
-                    HashMap<String, ArrayList<String>> uk = DataAPI.keyIndex.get(dataSet).uk;
-                    if (uk == null) {
-                        DataAPI.keyIndex.get(dataSet).uk = new HashMap<>();
-                        uk = DataAPI.keyIndex.get(dataSet).uk;
+                    HashMap<String, ArrayList<String>> uniqueKeys = DataAPI.keyIndex.get(dataSet).uniqueKeys;
+                    if (uniqueKeys == null) {
+                        DataAPI.keyIndex.get(dataSet).uniqueKeys = new HashMap<>();
+                        uniqueKeys = DataAPI.keyIndex.get(dataSet).uniqueKeys;
                     }
 
-                    ArrayList<String> columnNames = uk.get(row.get("CONSTRAINT_NAME"));
+                    ArrayList<String> columnNames = uniqueKeys.get(row.get("CONSTRAINT_NAME"));
                     if (columnNames == null) {
-                        uk.put(row.get("CONSTRAINT_NAME"), new ArrayList<>());
-                        columnNames = uk.get(row.get("CONSTRAINT_NAME"));
+                        uniqueKeys.put(row.get("CONSTRAINT_NAME"), new ArrayList<>());
+                        columnNames = uniqueKeys.get(row.get("CONSTRAINT_NAME"));
                     }
 
                     columnNames.add(row.get("COLUMN_NAME"));
