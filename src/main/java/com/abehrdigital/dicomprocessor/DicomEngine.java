@@ -32,7 +32,7 @@ public class DicomEngine {
         long shutdownMsClock = System.currentTimeMillis() + 60 * 1000 * SHUTDOWN_AFTER_MINUTES;
         RequestQueueExecutor requestQueueExecutor = new RequestQueueExecutor(testRequestQueue);
 
-        //  Stability recovery loop
+        // Stability recovery loop
         while (System.currentTimeMillis() < shutdownMsClock) {
             try {
                 // Main request handler iterator
