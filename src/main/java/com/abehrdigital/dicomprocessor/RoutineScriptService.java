@@ -108,6 +108,14 @@ public class RoutineScriptService {
         }
     }
 
+    public void createAndSetThumbnailsOnAttachmentData(AttachmentData attachmentData){
+
+    }
+
+    public void linkAttachmentDataWithEvent(int attachmentId , int eventId , String elementTypeClassName){
+
+    }
+
     //TODO REMOVE DATE OF BIRTH AND GENDER FROM THE QUERY
     public int getPatientId(int hospitalNumber, int dateOfBirth, String gender) {
         return daoManager.getPatientDao().getIdByHospitalNumber(hospitalNumber, dateOfBirth, gender);
