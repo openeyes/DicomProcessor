@@ -4,14 +4,9 @@ import com.abehrdigital.dicomprocessor.models.Request;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RequestRoutineExecution;
 import com.abehrdigital.dicomprocessor.utils.DaoFactory;
-import com.abehrdigital.dicomprocessor.utils.RandomStringGenerator;
 import com.abehrdigital.dicomprocessor.utils.Status;
 
 import javax.persistence.OptimisticLockException;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,9 +14,6 @@ import java.util.logging.Logger;
 import static com.abehrdigital.dicomprocessor.utils.StackTraceUtil.getStackTraceAsString;
 
 public class RequestWorker implements Runnable {
-    private static final String ENGINE_NAME = "JavaScript";
-    private static final int JAVA_CLASS_NAME_IN_ENGINE_LENGTH = 6;
-
     private int requestId;
     private final RequestThreadListener threadListener;
     private RequestWorkerService service;
@@ -54,7 +46,8 @@ public class RequestWorker implements Runnable {
 
                 RequestRoutine routineForProcessing = service.getNextRoutineToProcess();
                 if (routineForProcessing != null) {
-                    evaluateEngineExecution(executeRequestRoutine(routineForProcessing), routineForProcessing);
+                    String engineLogMessage = executeRequestRoutine(routineForProcessing);
+                    evaluateRoutineScriptExecution(engineLogMessage, routineForProcessing);
                 } else {
                     break;
                 }
@@ -67,63 +60,51 @@ public class RequestWorker implements Runnable {
         }
     }
 
-    private EngineExecution executeRequestRoutine(RequestRoutine routineForProcessing) {
+    private String executeRequestRoutine(RequestRoutine routineForProcessing) {
         String logMessage = "";
-        Status routineStatus = Status.FAILED;
-        StringWriter engineScriptWriter = new StringWriter();
-        String javaClassNameInJavaScriptEngine = RandomStringGenerator.generateWithDefaultChars(JAVA_CLASS_NAME_IN_ENGINE_LENGTH);
-
         try {
-            String routineBody = service.getRoutineBodyWithConvertedJavaMethods(
-                    routineForProcessing.getRoutineName(),
-                    javaClassNameInJavaScriptEngine
+            JavascriptScriptExecutor scriptExecutor = new JavascriptScriptExecutor(
+                    service.getRoutineBody(routineForProcessing.getRoutineName()),
+                    service.getScriptService()
             );
-            ScriptEngine engine = new ScriptEngineManager().getEngineByName(ENGINE_NAME);
-            redirectEngineOutputToWriter(engine, engineScriptWriter);
-            engine.put(javaClassNameInJavaScriptEngine, service.getScriptService());
-            engine.eval(routineBody);
-            logMessage += engineScriptWriter;
-            routineStatus = Status.COMPLETE;
-            routineForProcessing.updateFieldsByStatus(routineStatus);
+            logMessage += scriptExecutor.execute();
+            routineForProcessing.updateFieldsByStatus(Status.COMPLETE);
             service.updateRequestRoutine(routineForProcessing);
             //Request table lock released when transaction is committed
             service.commit();
         } catch (OptimisticLockException lockException) {
+            // We dont update the routine if the exception is optimistic lock as the request was changed while
+            // we we're executing the engine and we don't know what the changes were
+            // so we leave it as it is and it will run again if it has the right conditions
             service.rollback();
             logMessage += lockException.toString();
-            routineStatus = Status.RETRY;
         } catch (Exception exception) {
             service.rollback();
             Logger.getLogger(RequestWorker.class.getName()).log(Level.SEVERE,
                     "REQUEST WORKER EXCEPTION WHEN EVALUATING JAVASCRIPT ->  " + getStackTraceAsString(exception));
             logMessage += getStackTraceAsString(exception);
+            routineForProcessing.updateFieldsByStatus(Status.FAILED);
         }
 
-        return new EngineExecution(routineStatus, logMessage);
+        return logMessage;
     }
 
-    private void evaluateEngineExecution(EngineExecution engineExecution, RequestRoutine routineForProcessing) {
+    private void evaluateRoutineScriptExecution(String logMessage, RequestRoutine routineForProcessing) {
         try {
             service.beginTransaction();
-            if (engineExecution.getStatus() == Status.FAILED) {
-                routineForProcessing.updateFieldsByStatus(engineExecution.getStatus());
+            if (routineForProcessing.getStatus() == Status.FAILED || routineForProcessing.getStatus() == Status.RETRY) {
                 service.updateRequestRoutine(routineForProcessing);
                 failedRoutineCount++;
-            } else if (engineExecution.getStatus() == Status.COMPLETE) {
+            } else if (routineForProcessing.getStatus() == Status.COMPLETE) {
                 successfulRoutineCount++;
             }
-            service.saveRequestRoutineExecution(createRequestExecution(routineForProcessing, engineExecution.getLog()));
+            RequestRoutineExecution routineExecution = createRequestExecution(routineForProcessing, logMessage);
+            service.saveRequestRoutineExecution(routineExecution);
             service.commit();
         } catch (Exception exception) {
             service.rollback();
             Logger.getLogger(RequestWorker.class.getName(), getStackTraceAsString(exception));
         }
-    }
-
-    private void redirectEngineOutputToWriter(ScriptEngine engine, StringWriter engineScriptWriter) {
-        ScriptContext context = engine.getContext();
-        context.setWriter(engineScriptWriter);
-        context.setErrorWriter(engineScriptWriter);
     }
 
     private RequestRoutineExecution createRequestExecution(RequestRoutine routineForProcessing, String logMessage) {

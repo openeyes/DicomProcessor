@@ -23,6 +23,13 @@ public class AttachmentData {
     private Integer requestId;
     @Column(name = "blob_data")
     private Blob blobData;
+    @Column(name = "thumbnail_small_blob")
+    private Blob smallThumbnail;
+    @Column(name = "thumbnail_medium_blob")
+    private Blob mediumThumbnail;
+
+    @Column(name = "thumbnail_large_blob")
+    private Blob largeThumbnail;
     @Column(name = "json_data", columnDefinition = "LONGTEXT")
     private String jsonData;
     @Column(name = "attachment_type")
@@ -122,6 +129,30 @@ public class AttachmentData {
 
     public Blob getBlobData() {
         return blobData;
+    }
+
+    public Blob getSmallThumbnail() {
+        return smallThumbnail;
+    }
+
+    public Blob getMediumThumbnail() {
+        return mediumThumbnail;
+    }
+
+    public Blob getLargeThumbnail() {
+        return largeThumbnail;
+    }
+
+    public void setSmallThumbnail(Blob smallThumbnail) {
+        this.smallThumbnail = smallThumbnail;
+    }
+
+    public void setMediumThumbnail(Blob mediumThumbnail) {
+        this.mediumThumbnail = mediumThumbnail;
+    }
+
+    public void setLargeThumbnail(Blob largeThumbnail) {
+        this.largeThumbnail = largeThumbnail;
     }
 
     public int getId() {
