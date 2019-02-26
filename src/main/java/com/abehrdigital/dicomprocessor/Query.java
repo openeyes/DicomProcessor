@@ -30,7 +30,7 @@ public class Query {
     private String query;
     private String dataSet;
     private String XID;
-    private CRUD crud;
+    private CRUD crudOperation;
     private TreeMap<String, String> unknownFields;
     private TreeMap<String, String> knownFields;
     private TreeMap<String, ForeignKey> foreignKeys;
@@ -39,9 +39,9 @@ public class Query {
     private ArrayList<ArrayList<String>> queriesParameters;
     private ArrayList<String> queriesSQL;
 
-    private final String SPACE = " ";
-    private final String COMA_SPACE = ", ";
-    private final String SINGLE_QUOTE  = "'";
+    private final static String SPACE = " ";
+    private final static String COMA_SPACE = ", ";
+    private final static String SINGLE_QUOTE  = "'";
 
     enum CRUD {
         retrieve, merge, create
@@ -51,7 +51,7 @@ public class Query {
           TreeMap<String, ForeignKey> foreignKeys, ArrayList<ArrayList<String>> queriesParameters, ArrayList<String> queriesSQL) {
         this.dataSet = dataSet;
         this.XID = XID;
-        this.crud = crud;
+        this.crudOperation = crud;
         this.knownFields = knownFields;
         this.unknownFields = unknownFields;
         this.foreignKeys = foreignKeys;
@@ -61,7 +61,7 @@ public class Query {
 
     @Override
     public String toString() {
-        return "Query [dataSet=" + dataSet + ", crud=" + crud +
+        return "Query [dataSet=" + dataSet + ", crud=" + crudOperation +
                 ", \n\tunknownFields=" + unknownFields +
                 ", \n\tknownFields=" + knownFields +
                 ", \n\tforeignKeys=" + foreignKeys +
@@ -71,12 +71,10 @@ public class Query {
     // construct sql query
     int constructAndRunQuery(Session session) {
         // before constructing the query, update the list of known fields
-        updateKnownFields();
-        updateKnownFieldsWithForeignKeys();
-
+        updateKnownFieldsForeignKeys();
         if (queriesSQL != null && queriesSQL.size() != 0) {
-            CRUD crudSave = this.crud;
-            this.crud = CRUD.retrieve;
+            CRUD crudSave = this.crudOperation;
+            this.crudOperation = CRUD.retrieve;
             boolean success = true;
             System.out.println("SSS2 ");
             for (int indexCustomQuery = 0; indexCustomQuery < queriesSQL.size(); indexCustomQuery++) {
@@ -112,7 +110,7 @@ public class Query {
                     break;
                 }
             }
-            this.crud = crudSave;
+            this.crudOperation = crudSave;
 
             if (success) {
                 System.out.println("Succes, no need to go further");
@@ -123,7 +121,7 @@ public class Query {
         String secondaryQueryInsert;
         int rowsAffected = 0;
 
-        switch (this.crud) {
+        switch (this.crudOperation) {
             case retrieve:
                 if (!constructSelectQuery()) {
                     return -1;
@@ -147,7 +145,7 @@ public class Query {
 
                 // pk is not in memory;
                 // construct retrieve operation (select)
-                this.crud = CRUD.retrieve;
+                this.crudOperation = CRUD.retrieve;
                 if (constructSelectQuery()) {
                     System.out.println("+++++++++++SELECT++++++++ ");
                     rowsAffected = executeQuery(session, null);
@@ -157,7 +155,7 @@ public class Query {
                 if (rowsAffected == 0) {
                     System.out.println("+++++++++++INSERT++++++++ ");
 
-                    this.crud = CRUD.create;
+                    this.crudOperation = CRUD.create;
                     secondaryQueryInsert = constructInsertQuery();
 
                     // execute query and the secondary query
@@ -184,7 +182,7 @@ public class Query {
             return false;
         }
         // update requires inserting into the table, so set the CRUD operation to create
-        this.crud = CRUD.create;
+        this.crudOperation = CRUD.create;
         // when the ID is not known -> do queryByExample to retrieve it
         // when the ID is known (present in the dataDictionary) -> update the rest of the columns
         // there is no secondary query to be executed after update: all information already in dataDictionary
@@ -259,7 +257,9 @@ public class Query {
     /**
      * add to the list of KnownFields the foreign keys that have a value in dataDictionary
      */
-    private void updateKnownFieldsWithForeignKeys() {
+    private void updateKnownFieldsForeignKeys() {
+        updateKnownFields();
+
         /* Add to the known fields the foreign keys with a value received previously and saved in DataAPI.dataDictionary */
         for (Map.Entry<String, ForeignKey> foreignKeyEntry : foreignKeys.entrySet()) {
             String XIDForeignKey = foreignKeyEntry.getKey();
@@ -451,7 +451,7 @@ public class Query {
         int rowsAffected = -1;
 
         /* only if the crud is "create", execute the secondary query */
-        if (crud == CRUD.create) {
+        if (this.crudOperation == CRUD.create) {
             session.beginTransaction();
             rowsAffected = sqlQuery.executeUpdate();
             session.getTransaction().commit();
@@ -474,7 +474,7 @@ public class Query {
 
         TreeMap<String, String> knownFields = new TreeMap<>();
 
-        if (crud == CRUD.create) {
+        if (this.crudOperation == CRUD.create) {
             String newlyInsertedId = aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString();
 
             // the pk is not an auto-increment column -> the pk must have been specified by hand, so there is nothing to update

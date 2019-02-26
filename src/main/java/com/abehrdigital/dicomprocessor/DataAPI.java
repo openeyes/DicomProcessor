@@ -15,6 +15,10 @@ import org.json.simple.parser.ParseException;
 
 public class DataAPI {
 
+    private enum JsonObjectClassType {
+        String, JSONObject, JSONArray
+    }
+
     /* dataDictionary: keeps information about mappings $$_name[X]_$$ -> value */
     static HashMap<String, XID> dataDictionary;
     /* keyIndex: store information about the keys in the table: PK and UKs */
@@ -75,10 +79,6 @@ public class DataAPI {
         }
     }
 
-    enum JsonObjectClassType {
-        String, JSONObject, JSONArray
-    }
-
     /**
      * Open and parse a JSON file and return a list of Query objects
      *
@@ -88,13 +88,13 @@ public class DataAPI {
      * @throws ParseException parser exception
      */
     private static ArrayList<Query> parseJson(String jsonData) throws Exception {
-        ArrayList<Query> ret = new ArrayList<>();
-        JSONParser parser = new JSONParser();
-        JSONObject json = (JSONObject) parser.parse(jsonData);
+        ArrayList<Query> saveSets = new ArrayList<>();
+        JSONParser jsonParser = new JSONParser();
+        JSONObject json = (JSONObject) jsonParser.parse(jsonData);
 
 
-        for (Object key : json.keySet()) {
-            Object data = json.get(key.toString());
+        for (String key : (String []) json.keySet().toArray(String[] ::new)) {
+            Object data = json.get(key);
 
             // depending on the current object class, parse the data
             JsonObjectClassType jsonClass = JsonObjectClassType.valueOf(data.getClass().getSimpleName());
@@ -113,47 +113,46 @@ public class DataAPI {
                     break;
                 case JSONArray:
                     if (key.toString().contains("XID_Map")) {
-                        parseXID_Map((JSONArray) data);
+                        parseXidMap((JSONArray) data);
                     } else if (key.toString().contains("SaveSet")) {
-                        ret.addAll(parseSaveSet((JSONArray) data));
+                        saveSets.addAll(parseSaveSet((JSONArray) data));
                     }
                     break;
                 default:
                     break;
             }
         }
-        return ret;
+        return saveSets;
     }
 
     /**
      * Parse array of JSON objects
-     * @param saveSet array of JSON objects
+     * @param saveSets array of JSON objects
      * @return list of Query objects containing parsed information
      */
-    private static ArrayList<Query> parseSaveSet(JSONArray saveSet) throws Exception {
+    private static ArrayList<Query> parseSaveSet(JSONArray saveSets) throws Exception {
         ArrayList<Query> ret = new ArrayList<>();
         // get the list of commands
-        for (Object o : saveSet) {
-            JSONObject command = (JSONObject) o;
-            // get table name
+        for (Object saveSet : saveSets) {
+            JSONObject command = (JSONObject) saveSet;
             String dataSet = (String) command.get("$$_DataSet_$$");
 
             // get keys for this table and set them in DataAPI.keyIndex
             Query.setKeys(getSession(), dataSet);
 
             // get the row
-            Object o3 = command.get("$$_ROW_$$");
+            Object rowContent = command.get("$$_ROW_$$");
             // row may be a JSON array
-            if (o3 instanceof JSONArray) {
+            if (rowContent instanceof JSONArray) {
                 // parse all JSON objects in the array
-                for (Object o2 : (JSONArray) o3) {
+                for (Object jsonContent : (JSONArray) rowContent) {
                     // add Query object resulted to the array result
-                    ret.add(parseJsonQuery((JSONObject) o2, dataSet));
+                    ret.add(parseJsonQuery((JSONObject) jsonContent, dataSet));
                 }
             // or a JSON object
-            } else if (o3 instanceof JSONObject) {
+            } else if (rowContent instanceof JSONObject) {
                 // parse JSON object and add the Query object resulted to the array result
-                ret.add(parseJsonQuery((JSONObject) o3, dataSet));
+                ret.add(parseJsonQuery((JSONObject) rowContent, dataSet));
             }
         }
         return ret;
@@ -163,27 +162,27 @@ public class DataAPI {
      * Parse initial information given as array of JSONObjects;
      * Save info into XID_map
      *
-     * @param XID_MapJSON array of JSON objects to be parsed
+     * @param XidMapJSON array of JSON objects to be parsed
      */
-    private static void parseXID_Map(JSONArray XID_MapJSON) throws Exception {
+    private static void parseXidMap(JSONArray XidMapJSON) throws Exception {
         // create a map of XID string pointing to a XID object: eg. "$$_event_type[1]_$$" => XID Object
-        for (Object o : XID_MapJSON) {
-            JSONObject XIDData = (JSONObject) o;
+        for (Object xidDataObject : XidMapJSON) {
+            JSONObject xidData = (JSONObject) xidDataObject;
 
-            // get all information needed to create a new Query object
+            // get all information needed to create a new Query object and insert the Query object to the dataDictionary
             TreeMap<String, String> knownFields = new TreeMap<>();
             String XID = null, dataSet = null;
-            for (Object key1 : XIDData.keySet()) {
-                String keyStr = (String) key1;
+            for (Object keyObject : xidData.keySet()) {
+                String keyStr = (String) keyObject;
                 switch (keyStr) {
                     case "$$_XID_$$":
-                        XID = XIDData.get("$$_XID_$$").toString();
+                        XID = xidData.get("$$_XID_$$").toString();
                         break;
                     case "$$_DataSet_$$":
-                        dataSet = XIDData.get("$$_DataSet_$$").toString();
+                        dataSet = xidData.get("$$_DataSet_$$").toString();
                         break;
                     default:
-                        knownFields.put(keyStr, XIDData.get(keyStr).toString());
+                        knownFields.put(keyStr, xidData.get(keyStr).toString());
                         break;
                 }
             }
@@ -203,7 +202,7 @@ public class DataAPI {
      * @return a new Query object with parsed information
      */
     private static Query parseJsonQuery(JSONObject query, String dataSet) {
-        Query.CRUD crud = null;
+        Query.CRUD crudOperation = null;
         // unknownFields: {id -> XID}
         TreeMap<String, String> unknownFields = new TreeMap<>();
         // knownFields: {id -> String:value}
@@ -219,7 +218,7 @@ public class DataAPI {
         for (String key : (String []) query.keySet().toArray(String[] ::new)) {
             switch (key) {
                 case "$$_CRUD_$$":
-                    crud = Query.CRUD.valueOf(query.get(key).toString());
+                    crudOperation = Query.CRUD.valueOf(query.get(key).toString());
                     break;
                 case "$$_QUERIES_$$":
                     JSONArray customQueries = (JSONArray) query.get(key);
@@ -255,8 +254,8 @@ public class DataAPI {
                             foreignKeys.put(referencedXID, new ForeignKey(referencedColumn, referencingColumn));
                         } else {
                             // save the XID encoding for the primary key field:
-                            String pk = DataAPI.keyIndex.get(dataSet).pk;
-                            if (key.equals(pk)) {
+                            String primaryKey = DataAPI.keyIndex.get(dataSet).pk;
+                            if (key.equals(primaryKey)) {
                                 XID = value;
                             }
 
@@ -284,7 +283,7 @@ public class DataAPI {
         }
 
         // create and return new Query object with the information parsed
-        return new Query(dataSet, XID, crud, knownFields, unknownFields, foreignKeys, queriesParameters, queriesSQL);
+        return new Query(dataSet, XID, crudOperation, knownFields, unknownFields, foreignKeys, queriesParameters, queriesSQL);
     }
 
     /**
@@ -294,13 +293,13 @@ public class DataAPI {
      */
     static Session getSession() throws Exception {
         // if a session does not exists, open a new session
-        if (session == null) {
-            session = HibernateUtil.getSessionFactory().openSession();
+        if (DataAPI.session == null) {
+            DataAPI.session = HibernateUtil.getSessionFactory().openSession();
         }
-        if (session == null) {
+        if (DataAPI.session == null) {
             throw new Exception("Could not open a new session!");
         }
-        return session;
+        return DataAPI.session;
     }
 
     /**
@@ -309,11 +308,15 @@ public class DataAPI {
      * @return current date time
      */
     static String getTime() {
-        if (DataAPI.time == null) {
-            DataAPI.time = Query.getTime(session);
-        }
-        if (session == null) {
+        if (DataAPI.session == null) {
             return "1901-01-01 00:00:00";
+        }
+        if (DataAPI.time == null) {
+            DataAPI.time = Query.getTime(DataAPI.session);
+        }
+        if (DataAPI.time == null) {
+            System.err.println("Could not get the time from the current session. Setting default to 1901-01-01.");
+            DataAPI.time = "1901-01-01 00:00:00";
         }
         return DataAPI.time;
     }
@@ -336,26 +339,31 @@ public class DataAPI {
         return null;
     }
 
+    private static void init(String userId) throws Exception {
+        dataDictionary = new HashMap<>();
+        keyIndex = new HashMap<>();
+        DataAPI.userId = userId;
+
+        // set session and time at the start of the execution
+        session = getSession();
+        time = getTime();
+    }
+
     /**
      * Apply all sql queries after parsing the json string
-     * @param id int id of user who makes the changes
+     * @param userId String id of user who makes the changes
      * @param jsonData String json to be parsed
      * @throws Exception Nothing to parse; Could not open a new session!; Could not get current date time!
      */
-    static String magic(String id, String jsonData) throws Exception {
+    static String magic(String userId, String jsonData) throws Exception {
+        // TODO: needs renaming
+        // TODO: use "user_id" for insert/merge operations
         if (jsonData.isEmpty()) {
             throw new Exception("Nothing to parse");
         }
         try {
-            // TODO: use "user_id" for insert/merge operations
             /* basic initialization */
-            dataDictionary = new HashMap<>();
-            keyIndex = new HashMap<>();
-            userId = id;
-
-            // set session and time at the start of the execution
-            session = getSession();
-            time = getTime();
+            init(userId);
 
             // parse and execute the sql queries from the json string
             applyQueries(parseJson(jsonData));
