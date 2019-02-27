@@ -1,11 +1,5 @@
 package com.abehrdigital.dicomprocessor;
 
-import com.abehrdigital.dicomprocessor.models.AttachmentData;
-
-import org.apache.pdfbox.rendering.ImageType;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.PDFRenderer;
-
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
@@ -13,15 +7,6 @@ import org.hibernate.transform.AliasToEntityMapResultTransformer;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import javax.imageio.ImageIO;
-import javax.sql.rowset.serial.SerialBlob;
-
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.sql.Blob;
-import java.sql.SQLException;
 import java.util.*;
 
 public class Query {
@@ -29,7 +14,7 @@ public class Query {
     private NativeQuery sqlQuery;
     private String dataSet;
     private String XID;
-    private CRUD crudOperation;
+    private crudOperation crudOperation;
     private TreeMap<String, String> unknownFields;
     private TreeMap<String, String> knownFields;
     private TreeMap<String, ForeignKey> foreignKeys;
@@ -40,11 +25,11 @@ public class Query {
 
     private final static String COMA_SPACE = ", ";
 
-    enum CRUD {
+    enum crudOperation {
         CREATE, RETRIEVE, MERGE, DELETE
     }
 
-    Query(String dataSet, String XID, CRUD crud, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields,
+    Query(String dataSet, String XID, crudOperation crud, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields,
           TreeMap<String, ForeignKey> foreignKeys, ArrayList<ArrayList<String>> queriesParameters, ArrayList<String> queriesSQL) {
         this.dataSet = dataSet;
         this.XID = XID;
@@ -70,8 +55,8 @@ public class Query {
         // before constructing the query, update the list of known fields
         updateKnownFieldsForeignKeys();
         if (queriesSQL != null && queriesSQL.size() != 0) {
-            CRUD crudSave = this.crudOperation;
-            this.crudOperation = CRUD.RETRIEVE;
+            crudOperation crudSave = this.crudOperation;
+            this.crudOperation = crudOperation.RETRIEVE;
             boolean success = true;
             for (int indexCustomQuery = 0; indexCustomQuery < queriesSQL.size(); indexCustomQuery++) {
                 String customSql = queriesSQL.get(indexCustomQuery);
@@ -147,7 +132,7 @@ public class Query {
 
                 // pk is not in memory;
                 // construct retrieve operation (select)
-                this.crudOperation = CRUD.RETRIEVE;
+                this.crudOperation = crudOperation.RETRIEVE;
                 if (constructSelectQuery(session)) {
                     System.out.println("+++++++++++SELECT++++++++ ");
                     rowsAffected = executeQuery(session, null);
@@ -157,7 +142,7 @@ public class Query {
                 if (rowsAffected == 0) {
                     System.out.println("+++++++++++INSERT++++++++ ");
 
-                    this.crudOperation = CRUD.CREATE;
+                    this.crudOperation = crudOperation.CREATE;
                     secondaryQueryInsert = constructInsertQuery(session);
 
                     // execute query and the secondary query
@@ -183,7 +168,7 @@ public class Query {
             return false;
         }
         // update requires inserting into the table, so set the CRUD operation to create
-        this.crudOperation = CRUD.CREATE;
+        this.crudOperation = crudOperation.CREATE;
         // when the ID is not known -> do queryByExample to retrieve it
         // when the ID is known (present in the dataDictionary) -> update the rest of the columns
         // there is no secondary query to be executed after update: all information already in dataDictionary
@@ -471,7 +456,7 @@ public class Query {
         int rowsAffected = -1;
 
         /* only if the crud is "create", execute the secondary query */
-        if (this.crudOperation == CRUD.CREATE) {
+        if (this.crudOperation == crudOperation.CREATE) {
             session.beginTransaction();
             rowsAffected = this.sqlQuery.executeUpdate();
             session.getTransaction().commit();
@@ -494,7 +479,7 @@ public class Query {
 
         TreeMap<String, String> knownFields = new TreeMap<>();
 
-        if (this.crudOperation == CRUD.CREATE) {
+        if (this.crudOperation == crudOperation.CREATE) {
             String newlyInsertedId = aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString();
 
             // the pk is not an auto-increment column -> the pk must have been specified by hand, so there is nothing to update
@@ -666,6 +651,16 @@ public class Query {
         saveSets.push(saveSetItem);
     }
 
+    private static int getNewlyInsertedId(Session session) {
+        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(
+                session,
+                session.createSQLQuery("SELECT LAST_INSERT_ID();"));
+        if (aliasToValueMapList.size() == 1) {
+            return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
+        }
+        return -1;
+    }
+
     public static int insertAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id) {
         executeInsert(
             session,
@@ -674,14 +669,7 @@ public class Query {
                 .setParameter("attachment_data_id", attachment_data_id)
                 .setParameter("eventAttachmentGroupID", eventAttachmentGroupID));
         // get the newly inserted ID
-        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(
-                session,
-                session.createSQLQuery("SELECT LAST_INSERT_ID();"));
-        if (aliasToValueMapList.size() == 1) {
-            return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
-        }
-
-        return -1;
+        return getNewlyInsertedId(session);
     }
 
     private static List<HashMap<String, Object>> executeSelect(Session session, NativeQuery sqlQuery) {
@@ -735,12 +723,7 @@ public class Query {
             .setParameter("elementTypeId", elementTypeId));
 
         // get the newly inserted ID
-        aliasToValueMapList = executeSelect(session, session.createSQLQuery("SELECT LAST_INSERT_ID();"));
-        if (aliasToValueMapList.size() == 1) {
-            return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
-        }
-
-        return -1;
+        return getNewlyInsertedId(session);
     }
 
 

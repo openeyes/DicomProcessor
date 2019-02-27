@@ -129,6 +129,8 @@ public class RoutineScriptService {
 
     public String createEvent(String eventData) {
         //TODO for light intergration
+        // pass session as parameter + savepoint at begining of transaction; after each transaction, set a save point;
+        // one save point in each transaction
         try {
             return DataAPI.magic("1", eventData);
         } catch (Exception e) {

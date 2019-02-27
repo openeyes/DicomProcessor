@@ -203,7 +203,7 @@ public class DataAPI {
      * @return a new Query object with parsed information
      */
     private static Query parseJsonQuery(JSONObject query, String dataSet) {
-        Query.CRUD crudOperation = null;
+        Query.crudOperation crudOperation = null;
         // unknownFields: {id -> XID}
         TreeMap<String, String> unknownFields = new TreeMap<>();
         // knownFields: {id -> String:value}
@@ -219,7 +219,7 @@ public class DataAPI {
         for (String key : (String []) query.keySet().stream().toArray(String[] ::new)) {
             switch (key) {
                 case "$$_CRUD_$$":
-                    crudOperation = Query.CRUD.valueOf(query.get(key).toString());
+                    crudOperation = Query.crudOperation.valueOf(query.get(key).toString());
                     break;
                 case "$$_QUERIES_$$":
                     JSONArray customQueries = (JSONArray) query.get(key);
