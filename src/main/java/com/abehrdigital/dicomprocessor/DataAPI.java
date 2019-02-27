@@ -447,14 +447,17 @@ public class DataAPI {
             // DataAPI.magic("1", jsonFromTemplate);
 
 
-            String jsonData = DataAPI.getEventTemplate();
+            /*String jsonData = DataAPI.getEventTemplate();
             String modifiedJsonData = DataAPI.magic("1", jsonData);
             System.out.println(jsonData);
-            System.out.println(modifiedJsonData);
+            System.out.println(modifiedJsonData);*/
 
-/*            AttachmentData attachmentData = getSession().get(AttachmentData.class, 16);
-            DataAPI.linkAttachmentDataWithEvent(attachmentData, 3686613,  "OEModule\\OphGeneric\\models\\Attachment");
-            DataAPI.createAndSetThumbnailsOnAttachmentData(attachmentData);*/
+//            AttachmentData attachmentData = getSession().get(AttachmentData.class, 16);
+//            DataAPI.linkAttachmentDataWithEvent(attachmentData, 3686613,  "OEModule\\OphGeneric\\models\\Attachment");
+//            DataAPI.createAndSetThumbnailsOnAttachmentData(attachmentData);
+
+//            AttachmentDataThumbnailAdder.addThumbnails(attachmentData);
+//            daoManager.getAttachmentDataDao().save(attachmentData);
         } catch (Exception e) {
             e.printStackTrace();
         }

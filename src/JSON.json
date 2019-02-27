@@ -172,6 +172,16 @@
 					"event_id": "$$_event[1].id_$$"
 				}
 			]
+		},
+		{
+			"$$_DataSet_$$": "et_ophgeneric_medical_report",
+			"$$_ROW_$$": [
+				{
+					"$$_CRUD_$$": "MERGE",
+					"id": "$$_et_ophgeneric_medical_report[1]_$$",
+					"event_id": "$$_event[1].id_$$"
+				}
+			]
 		}
 	]
 }
