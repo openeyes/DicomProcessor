@@ -3,6 +3,7 @@ package com.abehrdigital.dicomprocessor;
 import com.abehrdigital.dicomprocessor.dao.ScriptEngineDaoManager;
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
+import com.abehrdigital.dicomprocessor.utils.AttachmentDataThumbnailAdder;
 import org.hibernate.HibernateException;
 
 import java.sql.Blob;
@@ -108,12 +109,9 @@ public class RoutineScriptService {
         }
     }
 
-    public void createAndSetThumbnailsOnAttachmentData(AttachmentData attachmentData){
-        try {
-            DataAPI.createAndSetThumbnailsOnAttachmentData(attachmentData);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void createAndSetThumbnailsOnAttachmentData(AttachmentData attachmentData) throws Exception {
+            AttachmentDataThumbnailAdder.addThumbnails(attachmentData);
+            daoManager.getAttachmentDataDao().save(attachmentData);
     }
 
     public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName){

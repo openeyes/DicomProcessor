@@ -1,22 +1,17 @@
 package com.abehrdigital.dicomprocessor;
 
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
-
-import org.apache.pdfbox.rendering.ImageType;
-import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
-
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import javax.imageio.ImageIO;
 import javax.sql.rowset.serial.SerialBlob;
-
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -41,7 +36,7 @@ public class Query {
 
     private final static String SPACE = " ";
     private final static String COMA_SPACE = ", ";
-    private final static String SINGLE_QUOTE  = "'";
+    private final static String SINGLE_QUOTE = "'";
 
     enum CRUD {
         CREATE, RETRIEVE, MERGE, DELETE
@@ -87,7 +82,7 @@ public class Query {
                     String[] split = queriesParameters.get(indexCustomQuery).get(indexParameters).split("\\.");
 
                     String parameterStrippedXID = split[0] + "_$$";
-                    String parameterStrippedField = split[1].substring(0,split[1].length() - 3);
+                    String parameterStrippedField = split[1].substring(0, split[1].length() - 3);
                     System.out.println(parameterStrippedXID);
                     System.out.println(parameterStrippedField);
                     System.out.println(DataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
@@ -161,7 +156,7 @@ public class Query {
                     // execute query and the secondary query
                     rowsAffected = executeQuery(session, secondaryQueryInsert);
 
-                // records were in the database, but they are not in memory (dataDictionary)
+                    // records were in the database, but they are not in memory (dataDictionary)
                 } else if (rowsAffected == 1) {
                     System.out.println("+++++++++++UPDATE++++++++ ");
 
@@ -196,6 +191,7 @@ public class Query {
 
     /**
      * check if dataDictionary has the primary key in the knownFields for the current dataSet
+     *
      * @return
      */
     private boolean isPrimaryKeyKnown() {
@@ -324,6 +320,7 @@ public class Query {
 
     /**
      * Construct the select SQL query to be executed
+     *
      * @return true if the query could be constructed; false otherwise
      * @throws Exception Invalid request: there must be at least a field unknown
      */
@@ -349,7 +346,7 @@ public class Query {
         }
 
         // SELECT	-> unknownFields
-        String selectStatement = String.join(" , ", unknownFields.keySet().stream().toArray(String[] ::new));
+        String selectStatement = String.join(" , ", unknownFields.keySet().stream().toArray(String[]::new));
 
         // WHERE	-> this.knownFields
         String[] conditions = getEquals(knownFields, " is ");
@@ -359,12 +356,13 @@ public class Query {
         String condition = String.join(" AND ", conditions);
 
         // select the SQL query
-        this.query =  String.format("SELECT %s FROM %s WHERE %s;", selectStatement, this.dataSet, condition);
+        this.query = String.format("SELECT %s FROM %s WHERE %s;", selectStatement, this.dataSet, condition);
         return true;
     }
 
     /**
      * Construct the update SQL query to be executed
+     *
      * @return second query to be executed
      */
     private boolean constructUpdateQuery() {
@@ -384,11 +382,12 @@ public class Query {
 
     /**
      * Search if the unknown fields were assigned by a previous query
+     *
      * @param dataDictionarry hashmap to be validated
      * @return true if all unknownFields are found in the DataAPI.dataDictionary; false if one unknown field was not found
      */
     private boolean validateFieldsForInsertStatement(HashMap<String, XID> dataDictionarry) {
-        for (Map.Entry<String,String> entry : unknownFields.entrySet()) {
+        for (Map.Entry<String, String> entry : unknownFields.entrySet()) {
             String XID = entry.getValue();
             String id = entry.getKey();
 
@@ -436,9 +435,9 @@ public class Query {
 
     /**
      * Execute SQL query
-     *
+     * <p>
      * IMPORTANT: Assume there is only one record returned
-     *
+     * <p>
      * Merge and insert act the same, the only difference being the merge has NO secondaryQueryInsert
      *
      * @return array containing the columns returned by the sql query
@@ -524,6 +523,7 @@ public class Query {
 
     /**
      * Get SQL style date time
+     *
      * @param session Sql session
      * @return string containing current system date time; if time could not be retrieved, return null
      */
@@ -547,11 +547,11 @@ public class Query {
         DataAPI.keyIndex.put(dataSet, new TableKey());
 
         String getKeysQuery = "SELECT innerTable.constraint_type AS 'CONSTRAINT_TYPE', keyCol.`COLUMN_NAME` AS 'COLUMN_NAME', `keyCol`.`REFERENCED_TABLE_NAME` AS 'REFERENCED_TABLE_NAME', innerTable.constraint_name AS 'CONSTRAINT_NAME' " +
-        "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
+                "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
                 "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS constr " +
-                "WHERE constr.table_name='"+dataSet+"') innerTable " +
-        "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE keyCol ON keyCol.table_name=innerTable.table_name AND keyCol.`CONSTRAINT_NAME`=innerTable.`CONSTRAINT_NAME` " +
-        "ORDER BY constraint_type;";
+                "WHERE constr.table_name='" + dataSet + "') innerTable " +
+                "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE keyCol ON keyCol.table_name=innerTable.table_name AND keyCol.`CONSTRAINT_NAME`=innerTable.`CONSTRAINT_NAME` " +
+                "ORDER BY constraint_type;";
 
         NativeQuery sqlQuery = session.createSQLQuery(getKeysQuery);
 
@@ -603,7 +603,7 @@ public class Query {
                 "`keyCol`.`REFERENCED_COLUMN_NAME` AS 'REFERENCED_COLUMN_NAME' " +
                 "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
                 "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS constr " +
-                "WHERE constr.table_name='"+dataSet+"') innerTable " +
+                "WHERE constr.table_name='" + dataSet + "') innerTable " +
                 "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE keyCol ON keyCol.table_name=innerTable.table_name AND keyCol.`CONSTRAINT_NAME`=innerTable.`CONSTRAINT_NAME` " +
                 "ORDER BY constraint_type;";
 
@@ -628,7 +628,7 @@ public class Query {
             String refTable = row.get("REFERENCED_TABLE_NAME");
             switch (constraintType) {
                 case "PRIMARY KEY":
-                   _ROW_item_.put(row.get("COLUMN_NAME"), String.format("$$_%s[%d]_$$", dataSet, count));
+                    _ROW_item_.put(row.get("COLUMN_NAME"), String.format("$$_%s[%d]_$$", dataSet, count));
                     break;
                 case "FOREIGN KEY":
                     _ROW_item_.put(row.get("COLUMN_NAME"), String.format("$$_%s[%d].%s_$$", refTable, count, row.get("REFERENCED_COLUMN_NAME")));
@@ -678,7 +678,7 @@ public class Query {
         return rowsAffected;
     }
 
-    public static int insertIfNotExistsAttachmentGroup(Session session, String dataSet, int event_id, String elementTypeClassName){
+    public static int insertIfNotExistsAttachmentGroup(Session session, String dataSet, int event_id, String elementTypeClassName) {
         // get the id of the element_type of given class
         List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session, String.format("SELECT id from element_type where class_name='%s'", elementTypeClassName));
         if (aliasToValueMapList.size() != 1) {
@@ -709,43 +709,6 @@ public class Query {
         return -1;
     }
 
-    public static boolean processAndAddThumbnails(AttachmentData attachmentData, Session session, int attachment_data_id) {
-        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session,
-                String.format("SELECT blob_data from attachment_data where id=%d", attachment_data_id));
 
-        try {
-            PDDocument pdfBlobDocument = PDDocument.load(new ByteArrayInputStream((byte[]) aliasToValueMapList.get(0).get("blob_data")));
-            PDFRenderer pdfRenderer = new PDFRenderer(pdfBlobDocument);
 
-            System.out.println("8: wrote image");
-            Blob thumbnailSmallBlob = getThumbnail(20, pdfRenderer);
-            Blob thumbnailMediumBlob = getThumbnail(50, pdfRenderer);
-            Blob thumbnailLargeBlob = getThumbnail(100, pdfRenderer);
-
-            pdfBlobDocument.close();
-
-            // save the blob thumbnails into the attachmentData
-            session.beginTransaction();
-            attachmentData.setSmallThumbnail(thumbnailSmallBlob);
-            attachmentData.setMediumThumbnail(thumbnailMediumBlob);
-            attachmentData.setLargeThumbnail(thumbnailLargeBlob);
-            session.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
-    public static Blob getThumbnail(int dpiSize, PDFRenderer pdfRenderer) throws IOException, SQLException {
-        // using just the first page (index 0)
-        BufferedImage bufferedImageFromPDF = pdfRenderer.renderImageWithDPI(0, dpiSize, ImageType.RGB);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ImageIO.write(bufferedImageFromPDF, "jpg", byteArrayOutputStream);
-        byteArrayOutputStream.flush();
-        byte[] imageInByte = byteArrayOutputStream.toByteArray();
-        byteArrayOutputStream.close();
-
-        return new SerialBlob(imageInByte);
-    }
 }

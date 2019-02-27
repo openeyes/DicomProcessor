@@ -461,13 +461,6 @@ public class DataAPI {
         }
     }
 
-    public static void createAndSetThumbnailsOnAttachmentData(AttachmentData attachmentData) throws Exception {
-        if (!Query.processAndAddThumbnails(attachmentData, DataAPI.getSession(), attachmentData.getId())) {
-            System.err.println("Error in creating and setting the thumbnails.");
-            return;
-        }
-    }
-
     public static void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName) throws Exception {
         int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(DataAPI.getSession(), "event_attachment_group", eventId, elementTypeClassName.replace("\\", "\\\\"));
         if (eventAttachmentGroupID == -1) {
