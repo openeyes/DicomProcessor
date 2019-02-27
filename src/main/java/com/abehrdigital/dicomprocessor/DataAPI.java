@@ -212,7 +212,7 @@ public class DataAPI {
         TreeMap<String, ForeignKey> foreignKeys = new TreeMap<>();
         String XID = null;
         ArrayList<ArrayList<String>> queriesParameters = null;
-        ArrayList<String> queriesSQL = null;
+        ArrayList<String> customSqlQueries = null;
 
         // for each field in the json row, save the key and the value
         //   in either knownFields or unknownFields
@@ -224,7 +224,7 @@ public class DataAPI {
                 case "$$_QUERIES_$$":
                     JSONArray customQueries = (JSONArray) query.get(key);
                     queriesParameters = new ArrayList<>();
-                    queriesSQL = new ArrayList<>();
+                    customSqlQueries = new ArrayList<>();
 
                     for (Object objectQuery : customQueries) {
                         JSONObject customQuery = (JSONObject) objectQuery;
@@ -237,7 +237,7 @@ public class DataAPI {
                         queriesParameters.add(queryParameters);
 
                         String customSqlQuery = customQuery.get("$$_SQL_$$").toString();
-                        queriesSQL.add(customSqlQuery);
+                        customSqlQueries.add(customSqlQuery);
                     }
                     break;
                 default:
@@ -282,7 +282,7 @@ public class DataAPI {
         }
 
         // create and return new Query object with the information parsed
-        return new Query(dataSet, XID, crudOperation, knownFields, unknownFields, foreignKeys, queriesParameters, queriesSQL);
+        return new Query(dataSet, XID, crudOperation, knownFields, unknownFields, foreignKeys, queriesParameters, customSqlQueries);
     }
 
     /**

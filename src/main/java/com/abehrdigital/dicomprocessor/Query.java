@@ -21,7 +21,7 @@ public class Query {
 
     // for custom sql to be run for this query
     private ArrayList<ArrayList<String>> queriesParameters;
-    private ArrayList<String> queriesSQL;
+    private ArrayList<String> customSqlQueries;
 
     private final static String COMA_SPACE = ", ";
 
@@ -30,7 +30,7 @@ public class Query {
     }
 
     Query(String dataSet, String XID, crudOperation crud, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields,
-          TreeMap<String, ForeignKey> foreignKeys, ArrayList<ArrayList<String>> queriesParameters, ArrayList<String> queriesSQL) {
+          TreeMap<String, ForeignKey> foreignKeys, ArrayList<ArrayList<String>> queriesParameters, ArrayList<String> customSqlQueries) {
         this.dataSet = dataSet;
         this.XID = XID;
         this.crudOperation = crud;
@@ -38,7 +38,7 @@ public class Query {
         this.unknownFields = unknownFields;
         this.foreignKeys = foreignKeys;
         this.queriesParameters = queriesParameters;
-        this.queriesSQL = queriesSQL;
+        this.customSqlQueries = customSqlQueries;
     }
 
     @Override
@@ -54,21 +54,21 @@ public class Query {
     void constructAndRunQuery(Session session) {
         // before constructing the query, update the list of known fields
         updateKnownFieldsForeignKeys();
-        if (queriesSQL != null && queriesSQL.size() != 0) {
+        if (customSqlQueries != null && customSqlQueries.size() != 0) {
             crudOperation crudSave = this.crudOperation;
             this.crudOperation = crudOperation.RETRIEVE;
             boolean success = true;
-            for (int indexCustomQuery = 0; indexCustomQuery < queriesSQL.size(); indexCustomQuery++) {
-                String customSql = queriesSQL.get(indexCustomQuery);
+            for (int cusomSqlQueryIndex = 0; cusomSqlQueryIndex < customSqlQueries.size(); cusomSqlQueryIndex++) {
+                String customSql = customSqlQueries.get(cusomSqlQueryIndex);
                 HashMap<String, String> xidParameterList = new HashMap<>();
                 System.out.println("SSS4: " + customSql);
-                for (int indexParameters = 0; indexParameters < queriesParameters.get(indexCustomQuery).size(); indexParameters++) {
-                    String parameterXID = queriesParameters.get(indexCustomQuery).get(indexParameters);
+                ArrayList<String> queryParameters = queriesParameters.get(cusomSqlQueryIndex);
+                for (int indexParameters = 0; indexParameters < queryParameters.size(); indexParameters++) {
+                    String parameterXID = queryParameters.get(indexParameters);
+                    String[] parameterXidSplit = parameterXID.split("\\.");
 
-                    String[] split = queriesParameters.get(indexCustomQuery).get(indexParameters).split("\\.");
-
-                    String parameterStrippedXID = split[0] + "_$$";
-                    String parameterStrippedField = split[1].substring(0,split[1].length() - 3);
+                    String parameterStrippedXID = parameterXidSplit[0] + "_$$";
+                    String parameterStrippedField = parameterXidSplit[1].substring(0,parameterXidSplit[1].length() - 3);
 
                     customSql = customSql.replace(parameterXID, " :parameter_" + indexParameters);
                     xidParameterList.put("parameter_" + indexParameters, DataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
@@ -651,6 +651,7 @@ public class Query {
         saveSets.push(saveSetItem);
     }
 
+    // TODO: throw error if there is no insert (size != 1)
     private static int getNewlyInsertedId(Session session) {
         List<HashMap<String, Object>> aliasToValueMapList = executeSelect(
                 session,
