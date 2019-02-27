@@ -8,8 +8,8 @@ class TableKey {
     HashMap<String, ArrayList<String>> uniqueKeys;
 
     TableKey(){}
-    TableKey(String pk){
-        this.uniqueKeys = uniqueKeys;
+    TableKey(String primaryKey){
+        this.primaryKey = primaryKey;
     }
 
     @Override

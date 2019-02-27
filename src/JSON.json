@@ -33,7 +33,7 @@
 			"$$_DataSet_$$": "event_type",
 			"$$_ROW_$$": [
 				{
-					"$$_CRUD_$$": "retrieve",
+					"$$_CRUD_$$": "RETRIEVE",
 					"id": "$$_event_type[1]_$$",
 					"class_name": "OphGeneric"
 				}
@@ -43,7 +43,7 @@
 			"$$_DataSet_$$": "subspecialty",
 			"$$_ROW_$$": [
 				{
-					"$$_CRUD_$$": "retrieve",
+					"$$_CRUD_$$": "RETRIEVE",
 					"id": "$$_subspecialty[1]_$$"
 				}
 			]
@@ -52,7 +52,7 @@
 			"$$_DataSet_$$": "service",
 			"$$_ROW_$$": [
 				{
-					"$$_CRUD_$$": "retrieve",
+					"$$_CRUD_$$": "RETRIEVE",
 					"id": "$$_service[1]_$$"
 				}
 			]
@@ -61,7 +61,7 @@
 			"$$_DataSet_$$": "service_subspecialty_assignment",
 			"$$_ROW_$$": [
 				{
-					"$$_CRUD_$$": "retrieve",
+					"$$_CRUD_$$": "RETRIEVE",
 					"id": "$$_service_subspecialty_assignment[1]_$$",
 					"service_id": "$$_service[1].id_$$",
 					"subspecialty_id": "$$_subspecialty[1].id_$$"
@@ -72,7 +72,7 @@
 			"$$_DataSet_$$": "firm",
 			"$$_ROW_$$": [
 				{
-					"$$_CRUD_$$": "retrieve",
+					"$$_CRUD_$$": "RETRIEVE",
 					"id": "$$_firm[1]_$$",
 					"service_subspecialty_assignment_id": "$$_service_subspecialty_assignment[1].id_$$"
 				}
@@ -82,7 +82,7 @@
 			"$$_DataSet_$$": "episode",
 			"$$_ROW_$$": [
 				{
-					"$$_CRUD_$$": "retrieve",
+					"$$_CRUD_$$": "RETRIEVE",
 					"id": "$$_episode[1]_$$",
 					"patient_id": "$$_patient[1].id_$$",
 					"firm_id": "$$_firm[1].id_$$",
@@ -100,7 +100,7 @@
 		{
 			"$$_DataSet_$$": "event",
 			"$$_ROW_$$": {
-				"$$_CRUD_$$": "merge",
+				"$$_CRUD_$$": "MERGE",
 				"id": "$$_event[1]_$$",
 				"episode_id": "$$_episode[1].id_$$",
 				"created_user_id": "$$_user[1].id_$$",
@@ -124,7 +124,7 @@
 			"$$_DataSet_$$": "element_type",
 			"$$_ROW_$$": [
 				{
-					"$$_CRUD_$$": "retrieve",
+					"$$_CRUD_$$": "RETRIEVE",
 					"id": "$$_element_type[1]_$$",
 					"name": "Attachment"
 				}
@@ -134,7 +134,7 @@
 			"$$_DataSet_$$": "event_attachment_group",
 			"$$_ROW_$$": [
 				{
-					"$$_CRUD_$$": "merge",
+					"$$_CRUD_$$": "MERGE",
 					"id": "$$_event_attachment_group[1]_$$",
 					"event_id": "$$_event[1].id_$$",
 					"element_type_id": "$$_element_type[1].id_$$"
@@ -145,7 +145,7 @@
 			"$$_DataSet_$$": "event_attachment_item",
 			"$$_ROW_$$": [
 				{
-					"$$_CRUD_$$": "merge",
+					"$$_CRUD_$$": "MERGE",
 					"id": "$$_event_attachment_item[1]_$$",
 					"event_attachment_group_id": "$$_event_attachment_group[1].id_$$",
 					"attachment_data_id": "$$_attachment_data[1].id_$$",
@@ -157,7 +157,7 @@
 			"$$_DataSet_$$": "et_ophgeneric_attachment",
 			"$$_ROW_$$": [
 				{
-					"$$_CRUD_$$": "merge",
+					"$$_CRUD_$$": "MERGE",
 					"id": "$$_et_ophgeneric_attachment[1]_$$",
 					"event_id": "$$_event[1].id_$$"
 				}
@@ -167,7 +167,7 @@
 			"$$_DataSet_$$": "et_ophgeneric_comments",
 			"$$_ROW_$$": [
 				{
-					"$$_CRUD_$$": "merge",
+					"$$_CRUD_$$": "MERGE",
 					"id": "$$_et_ophgeneric_comments[1]_$$",
 					"event_id": "$$_event[1].id_$$"
 				}
