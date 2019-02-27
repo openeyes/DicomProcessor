@@ -132,10 +132,10 @@ public class DataAPI {
      * @return list of Query objects containing parsed information
      */
     private static ArrayList<Query> parseSaveSet(JSONArray saveSets) throws Exception {
-        ArrayList<Query> ret = new ArrayList<>();
+        ArrayList<Query> saveSet = new ArrayList<>();
         // get the list of commands
-        for (Object saveSet : saveSets) {
-            JSONObject command = (JSONObject) saveSet;
+        for (Object saveSetObject : saveSet) {
+            JSONObject command = (JSONObject) saveSetObject;
             String dataSet = (String) command.get("$$_DataSet_$$");
 
             // get keys for this table and set them in DataAPI.keyIndex
@@ -148,15 +148,15 @@ public class DataAPI {
                 // parse all JSON objects in the array
                 for (Object jsonContent : (JSONArray) rowContent) {
                     // add Query object resulted to the array result
-                    ret.add(parseJsonQuery((JSONObject) jsonContent, dataSet));
+                    saveSet.add(parseJsonQuery((JSONObject) jsonContent, dataSet));
                 }
             // or a JSON object
             } else if (rowContent instanceof JSONObject) {
                 // parse JSON object and add the Query object resulted to the array result
-                ret.add(parseJsonQuery((JSONObject) rowContent, dataSet));
+                saveSet.add(parseJsonQuery((JSONObject) rowContent, dataSet));
             }
         }
-        return ret;
+        return saveSet;
     }
 
     /**
