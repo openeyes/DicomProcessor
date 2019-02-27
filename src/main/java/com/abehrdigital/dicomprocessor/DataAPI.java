@@ -67,7 +67,7 @@ public class DataAPI {
                 // DEBUG
                 System.out.println(query);
                 DataAPI.printMap("DataAPI.map: ", DataAPI.dataDictionary);
-                DataAPI.printKeyMap("DataAPI.map: ", DataAPI.keyIndex);
+                DataAPI.printKeyMap("KEY.map: ", DataAPI.keyIndex);
 
                 // construct the SQL query based on the CRUD operation and the fields found in Query object
                 query.constructAndRunQuery(DataAPI.getSession());
@@ -452,17 +452,16 @@ public class DataAPI {
             System.out.println(jsonData);
             System.out.println(modifiedJsonData);
 
-
-//            AttachmentData attachmentData = getSession().get(AttachmentData.class, 16);
-//            DataAPI.linkAttachmentDataWithEvent(attachmentData, 4686438,  "OEModule\\OphGeneric\\models\\Attachment");
-//            DataAPI.createAndSetThumbnailsOnAttachmentData(attachmentData);
+/*            AttachmentData attachmentData = getSession().get(AttachmentData.class, 16);
+            DataAPI.linkAttachmentDataWithEvent(attachmentData, 3686613,  "OEModule\\OphGeneric\\models\\Attachment");
+            DataAPI.createAndSetThumbnailsOnAttachmentData(attachmentData);*/
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public static void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName) throws Exception {
-        int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(DataAPI.getSession(), "event_attachment_group", eventId, elementTypeClassName.replace("\\", "\\\\"));
+        int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(DataAPI.getSession(), eventId, elementTypeClassName);
         if (eventAttachmentGroupID == -1) {
             System.err.println("A new eventAttachmentGroup record could not be inserted.");
             return;

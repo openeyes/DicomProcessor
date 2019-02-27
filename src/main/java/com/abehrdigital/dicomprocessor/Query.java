@@ -1,17 +1,21 @@
 package com.abehrdigital.dicomprocessor;
 
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
-import org.apache.pdfbox.pdmodel.PDDocument;
+
 import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import javax.imageio.ImageIO;
 import javax.sql.rowset.serial.SerialBlob;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -22,7 +26,7 @@ import java.util.*;
 
 public class Query {
 
-    private String query;
+    private NativeQuery sqlQuery;
     private String dataSet;
     private String XID;
     private CRUD crudOperation;
@@ -34,9 +38,7 @@ public class Query {
     private ArrayList<ArrayList<String>> queriesParameters;
     private ArrayList<String> queriesSQL;
 
-    private final static String SPACE = " ";
     private final static String COMA_SPACE = ", ";
-    private final static String SINGLE_QUOTE = "'";
 
     enum CRUD {
         CREATE, RETRIEVE, MERGE, DELETE
@@ -64,30 +66,27 @@ public class Query {
     }
 
     // construct sql query
-    int constructAndRunQuery(Session session) {
+    void constructAndRunQuery(Session session) {
         // before constructing the query, update the list of known fields
         updateKnownFieldsForeignKeys();
         if (queriesSQL != null && queriesSQL.size() != 0) {
             CRUD crudSave = this.crudOperation;
             this.crudOperation = CRUD.RETRIEVE;
             boolean success = true;
-            System.out.println("SSS2 ");
             for (int indexCustomQuery = 0; indexCustomQuery < queriesSQL.size(); indexCustomQuery++) {
                 String customSql = queriesSQL.get(indexCustomQuery);
+                HashMap<String, String> xidParameterList = new HashMap<>();
                 System.out.println("SSS4: " + customSql);
                 for (int indexParameters = 0; indexParameters < queriesParameters.get(indexCustomQuery).size(); indexParameters++) {
-                    System.out.println(queriesParameters.get(indexCustomQuery).get(indexParameters));
                     String parameterXID = queriesParameters.get(indexCustomQuery).get(indexParameters);
 
                     String[] split = queriesParameters.get(indexCustomQuery).get(indexParameters).split("\\.");
 
                     String parameterStrippedXID = split[0] + "_$$";
-                    String parameterStrippedField = split[1].substring(0, split[1].length() - 3);
-                    System.out.println(parameterStrippedXID);
-                    System.out.println(parameterStrippedField);
-                    System.out.println(DataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
+                    String parameterStrippedField = split[1].substring(0,split[1].length() - 3);
 
-                    customSql = customSql.replace(parameterXID, DataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
+                    customSql = customSql.replace(parameterXID, " :parameter_" + indexParameters);
+                    xidParameterList.put("parameter_" + indexParameters, DataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
                 }
                 System.out.println("SSS1 " + customSql);
 
@@ -95,8 +94,12 @@ public class Query {
                 //TODO: if one query fails, should everything fail?
                 // (currently yes)
                 // or if ALL fail, then fail?
-                this.query = customSql;
-                System.out.println("trying to execute custom sql: " + this.query);
+                this.sqlQuery = session.createSQLQuery(customSql);
+                for (Map.Entry<String, String> entryParameter : xidParameterList.entrySet()) {
+                    System.out.println("Replacing: " + entryParameter.getKey() + "  with " + entryParameter.getValue());
+                    this.sqlQuery.setParameter(entryParameter.getKey(), entryParameter.getValue());
+                }
+                System.out.println("trying to execute custom sql: " + this.sqlQuery);
 
                 // if one fails, stop running other custom sql queries
                 if (executeQuery(session, null) != 1) {
@@ -109,39 +112,43 @@ public class Query {
 
             if (success) {
                 System.out.println("Succes, no need to go further");
-                return 1;
+                return;
             }
         }
 
-        String secondaryQueryInsert;
+        NativeQuery secondaryQueryInsert;
         int rowsAffected = 0;
 
         switch (this.crudOperation) {
             case RETRIEVE:
-                if (!constructSelectQuery()) {
-                    return -1;
+                if (!constructSelectQuery(session)) {
+                    // TODO: throw exception (return -1)
+                    return;
                 }
                 // execute select query
                 // there is no secondary query to be executed after select
                 rowsAffected = executeQuery(session, null);
+                if (rowsAffected != 1) {
+                    // TODO throw exception("could not retrieve!!")
+                    System.err.println("Could not retrieve for " + dataSet);
+                    return;
+                }
                 break;
             case MERGE:
-                String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
-
                 // pk is already in memory;
                 // try to update fields
                 if (isPrimaryKeyKnown()) {
                     System.out.println("+++++++++++FOUND++++++++UPDATE++++++++");
                     // update succeeded; return
                     if (update(session)) {
-                        return 1;
+                        return;
                     }
                 }
 
                 // pk is not in memory;
                 // construct retrieve operation (select)
                 this.crudOperation = CRUD.RETRIEVE;
-                if (constructSelectQuery()) {
+                if (constructSelectQuery(session)) {
                     System.out.println("+++++++++++SELECT++++++++ ");
                     rowsAffected = executeQuery(session, null);
                 }
@@ -151,12 +158,12 @@ public class Query {
                     System.out.println("+++++++++++INSERT++++++++ ");
 
                     this.crudOperation = CRUD.CREATE;
-                    secondaryQueryInsert = constructInsertQuery();
+                    secondaryQueryInsert = constructInsertQuery(session);
 
                     // execute query and the secondary query
-                    rowsAffected = executeQuery(session, secondaryQueryInsert);
+                    executeQuery(session, secondaryQueryInsert);
 
-                    // records were in the database, but they are not in memory (dataDictionary)
+                // records were in the database, but they are not in memory (dataDictionary)
                 } else if (rowsAffected == 1) {
                     System.out.println("+++++++++++UPDATE++++++++ ");
 
@@ -169,11 +176,10 @@ public class Query {
             default:
                 break;
         }
-        return rowsAffected;
     }
 
     public boolean update(Session session) {
-        if (!constructUpdateQuery()) {
+        if (!constructUpdateQuery(session)) {
             return false;
         }
         // update requires inserting into the table, so set the CRUD operation to create
@@ -182,17 +188,12 @@ public class Query {
         // when the ID is known (present in the dataDictionary) -> update the rest of the columns
         // there is no secondary query to be executed after update: all information already in dataDictionary
         int rowsAffected = executeQuery(session, null);
-        if (rowsAffected != 1) {
-            return false;
-        }
-
-        return true;
+        return rowsAffected == 1;
     }
 
     /**
      * check if dataDictionary has the primary key in the knownFields for the current dataSet
-     *
-     * @return
+     * @return true if the primary key is known, false otherwise
      */
     private boolean isPrimaryKeyKnown() {
         String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
@@ -279,7 +280,7 @@ public class Query {
      * @return query for selecting the id of the inserted row
      * @throws Exception Validation error
      */
-    private String constructInsertQuery() {
+    private NativeQuery constructInsertQuery(Session session) {
         // if there are fields still unknown, return error
         if (!validateFieldsForInsertStatement(DataAPI.dataDictionary)) {
             return null;
@@ -287,7 +288,7 @@ public class Query {
 
         if (knownFields.size() < 1) {
             System.err.println("Nothing to insert.");
-            this.query = null;
+            this.sqlQuery = null;
             return null;
         }
 
@@ -302,9 +303,8 @@ public class Query {
                 fields.append(knownFields.get(knownField));
                 fields.append(COMA_SPACE);
             } else {
-                fields.append(SINGLE_QUOTE);
-                fields.append(knownFields.get(knownField));
-                fields.append(SINGLE_QUOTE);
+                fields.append(" :");
+                fields.append(knownField);
                 fields.append(COMA_SPACE);
             }
         }
@@ -312,19 +312,21 @@ public class Query {
         keys.delete(keys.length() - COMA_SPACE.length(), keys.length());
         fields.delete(fields.length() - COMA_SPACE.length(), fields.length());
 
-        this.query = String.format("INSERT INTO %s (%s) VALUES (%s);", this.dataSet, keys, fields);
+        this.sqlQuery = session.createSQLQuery(String.format("INSERT INTO %s (%s) VALUES (%s);", this.dataSet, keys, fields));
+
+        // add parameters from knownFields to the NativeQuery
+        updateSqlQueryWithParameters();
 
         // return query for getting the newly inserted ID
-        return "SELECT LAST_INSERT_ID();";
+        return session.createSQLQuery("SELECT LAST_INSERT_ID();");
     }
 
     /**
      * Construct the select SQL query to be executed
-     *
      * @return true if the query could be constructed; false otherwise
      * @throws Exception Invalid request: there must be at least a field unknown
      */
-    private boolean constructSelectQuery() {
+    private boolean constructSelectQuery(Session session) {
         if (unknownFields.keySet().size() < 1) {
             // TODO: there are no unkownFields: add all the knwonFields into DataAPI.dataDictionary
             /*
@@ -356,33 +358,53 @@ public class Query {
         String condition = String.join(" AND ", conditions);
 
         // select the SQL query
-        this.query = String.format("SELECT %s FROM %s WHERE %s;", selectStatement, this.dataSet, condition);
+        this.sqlQuery = session.createSQLQuery(String.format("SELECT %s FROM %s WHERE %s ;", selectStatement, dataSet, condition));
+
+        // add parameters from knownFields to the NativeQuery
+        updateSqlQueryWithParameters();
+
         return true;
     }
 
     /**
      * Construct the update SQL query to be executed
-     *
      * @return second query to be executed
      */
-    private boolean constructUpdateQuery() {
+    private boolean constructUpdateQuery(Session session) {
         XID xid = DataAPI.dataDictionary.get(XID);
         String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
-        String[] values = getEquals(knownFields, "=");
+        String[] values = getEquals(knownFields, " = ");
         if (values == null) {
             return false;
         }
         String valuesConcatenated = String.join(" , ", values);
 
         // select the SQL query
-        this.query = String.format("UPDATE %s SET %s WHERE %s='%s'",
-                this.dataSet, valuesConcatenated, primaryKey, xid.knownFields.get(primaryKey));
+        this.sqlQuery = session.createSQLQuery(String.format("UPDATE %s SET %s WHERE :primaryKeyName = :primaryKeyValue",
+                this.dataSet, valuesConcatenated))
+        .setParameter("primaryKeyName", primaryKey)
+        .setParameter("primaryKeyValue", xid.knownFields.get(primaryKey));
+
+        // add parameters from knownFields to the NativeQuery
+        updateSqlQueryWithParameters();
+
         return true;
     }
 
     /**
+     * add known fields as parameters to the sqlQuery
+     */
+    private void updateSqlQueryWithParameters() {
+        for (Map.Entry<String, String> entryKnownField : knownFields.entrySet()) {
+            if (entryKnownField.getValue() != null) {
+                System.out.println("Replacing: " + entryKnownField.getKey() + "  with " + entryKnownField.getValue());
+                this.sqlQuery.setParameter(entryKnownField.getKey(), entryKnownField.getValue());
+            }
+        }
+    }
+
+    /**
      * Search if the unknown fields were assigned by a previous query
-     *
      * @param dataDictionarry hashmap to be validated
      * @return true if all unknownFields are found in the DataAPI.dataDictionary; false if one unknown field was not found
      */
@@ -426,7 +448,7 @@ public class Query {
                 resultingConditions[currentIndex++] = entry.getKey() + nullDelimiter + entry.getValue();
             } else {
                 // else, use "key = value"
-                resultingConditions[currentIndex++] = entry.getKey() + "='" + entry.getValue() + SINGLE_QUOTE;
+                resultingConditions[currentIndex++] = entry.getKey() + " = :" + entry.getKey();
             }
         }
 
@@ -442,32 +464,31 @@ public class Query {
      *
      * @return array containing the columns returned by the sql query
      */
-    private int executeQuery(Session session, String secondaryQueryInsert) {
-        if (this.query == null)
+    private int executeQuery(Session session, NativeQuery secondaryQueryInsert) {
+        if (this.sqlQuery == null)
             return -1;
 
-        NativeQuery sqlQuery = session.createSQLQuery(query);
         int rowsAffected = -1;
 
         /* only if the crud is "create", execute the secondary query */
         if (this.crudOperation == CRUD.CREATE) {
             session.beginTransaction();
-            rowsAffected = sqlQuery.executeUpdate();
+            rowsAffected = this.sqlQuery.executeUpdate();
             session.getTransaction().commit();
 
             if (secondaryQueryInsert != null) {
-                sqlQuery = session.createSQLQuery(secondaryQueryInsert);
+                this.sqlQuery = secondaryQueryInsert;
             } else {
                 return rowsAffected;
             }
         }
 
         // get all the fields from the sql query
-        sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        this.sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
 
         // !! Returned fields can be Integers, so the value in the HashMap must be a parent of all types:
         // Strings, Integer, etc. => Object must be used
-        List<HashMap<String, Object>> aliasToValueMapList = sqlQuery.list();
+        List<HashMap<String, Object>> aliasToValueMapList = this.sqlQuery.list();
 
         System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
 
@@ -547,13 +568,14 @@ public class Query {
         DataAPI.keyIndex.put(dataSet, new TableKey());
 
         String getKeysQuery = "SELECT innerTable.constraint_type AS 'CONSTRAINT_TYPE', keyCol.`COLUMN_NAME` AS 'COLUMN_NAME', `keyCol`.`REFERENCED_TABLE_NAME` AS 'REFERENCED_TABLE_NAME', innerTable.constraint_name AS 'CONSTRAINT_NAME' " +
-                "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
+        "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
                 "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS constr " +
-                "WHERE constr.table_name='" + dataSet + "') innerTable " +
-                "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE keyCol ON keyCol.table_name=innerTable.table_name AND keyCol.`CONSTRAINT_NAME`=innerTable.`CONSTRAINT_NAME` " +
-                "ORDER BY constraint_type;";
+                "WHERE constr.table_name = :dataSet) innerTable " +
+        "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE keyCol ON keyCol.table_name=innerTable.table_name AND keyCol.`CONSTRAINT_NAME`=innerTable.`CONSTRAINT_NAME` " +
+        "ORDER BY constraint_type;";
 
-        NativeQuery sqlQuery = session.createSQLQuery(getKeysQuery);
+        NativeQuery sqlQuery = session.createSQLQuery(getKeysQuery)
+            .setParameter("dataSet", dataSet);
 
         // get all the fields from the sql query
         sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
@@ -599,15 +621,16 @@ public class Query {
 
         // construct query for selecting constraints
         String getKeysQuery = "SELECT innerTable.constraint_type AS 'CONSTRAINT_TYPE', keyCol.`COLUMN_NAME` AS 'COLUMN_NAME', " +
-                "`keyCol`.`REFERENCED_TABLE_NAME` AS 'REFERENCED_TABLE_NAME', innerTable.constraint_name AS 'CONSTRAINT_NAME', " +
-                "`keyCol`.`REFERENCED_COLUMN_NAME` AS 'REFERENCED_COLUMN_NAME' " +
-                "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
-                "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS constr " +
-                "WHERE constr.table_name='" + dataSet + "') innerTable " +
-                "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE keyCol ON keyCol.table_name=innerTable.table_name AND keyCol.`CONSTRAINT_NAME`=innerTable.`CONSTRAINT_NAME` " +
-                "ORDER BY constraint_type;";
+            "`keyCol`.`REFERENCED_TABLE_NAME` AS 'REFERENCED_TABLE_NAME', innerTable.constraint_name AS 'CONSTRAINT_NAME', " +
+            "`keyCol`.`REFERENCED_COLUMN_NAME` AS 'REFERENCED_COLUMN_NAME' " +
+            "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
+            "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS constr " +
+            "WHERE constr.table_name= :dataSet) innerTable " +
+            "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE keyCol ON keyCol.table_name=innerTable.table_name AND keyCol.`CONSTRAINT_NAME`=innerTable.`CONSTRAINT_NAME` " +
+            "ORDER BY constraint_type;";
 
-        NativeQuery sqlQuery = session.createSQLQuery(getKeysQuery);
+        NativeQuery sqlQuery = session.createSQLQuery(getKeysQuery)
+            .setParameter("dataSet", dataSet);
 
         // get all the fields from the sql query
         sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
@@ -628,7 +651,7 @@ public class Query {
             String refTable = row.get("REFERENCED_TABLE_NAME");
             switch (constraintType) {
                 case "PRIMARY KEY":
-                    _ROW_item_.put(row.get("COLUMN_NAME"), String.format("$$_%s[%d]_$$", dataSet, count));
+                   _ROW_item_.put(row.get("COLUMN_NAME"), String.format("$$_%s[%d]_$$", dataSet, count));
                     break;
                 case "FOREIGN KEY":
                     _ROW_item_.put(row.get("COLUMN_NAME"), String.format("$$_%s[%d].%s_$$", refTable, count, row.get("REFERENCED_COLUMN_NAME")));
@@ -644,10 +667,16 @@ public class Query {
     }
 
     public static int insertAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id) {
-        executeInsert(session, String.format("INSERT INTO event_attachment_item (attachment_data_id, event_attachment_group_id, system_only_managed) VALUES (%s,%s, 1);", attachment_data_id, eventAttachmentGroupID));
-
+        executeInsert(
+            session,
+            session.createSQLQuery("INSERT INTO event_attachment_item (attachment_data_id, event_attachment_group_id," +
+                " system_only_managed) VALUES ( :attachment_data_id , :eventAttachmentGroupID, 1);")
+                .setParameter("attachment_data_id", attachment_data_id)
+                .setParameter("eventAttachmentGroupID", eventAttachmentGroupID));
         // get the newly inserted ID
-        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session, "SELECT LAST_INSERT_ID();");
+        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(
+                session,
+                session.createSQLQuery("SELECT LAST_INSERT_ID();"));
         if (aliasToValueMapList.size() == 1) {
             return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
         }
@@ -655,9 +684,7 @@ public class Query {
         return -1;
     }
 
-    public static List<HashMap<String, Object>> executeSelect(Session session, String selectQuery) {
-        NativeQuery sqlQuery = session.createSQLQuery(selectQuery);
-
+    private static List<HashMap<String, Object>> executeSelect(Session session, NativeQuery sqlQuery) {
         sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
         List<HashMap<String, Object>> aliasToValueMapList = sqlQuery.list();
 
@@ -666,9 +693,7 @@ public class Query {
         return aliasToValueMapList;
     }
 
-    public static int executeInsert(Session session, String insertQuery) {
-        NativeQuery sqlQuery = session.createSQLQuery(insertQuery);
-
+    private static int executeInsert(Session session, NativeQuery sqlQuery) {
         session.beginTransaction();
         int rowsAffected = sqlQuery.executeUpdate();
         if (rowsAffected == 1) {
@@ -678,18 +703,24 @@ public class Query {
         return rowsAffected;
     }
 
-    public static int insertIfNotExistsAttachmentGroup(Session session, String dataSet, int event_id, String elementTypeClassName) {
+    static int insertIfNotExistsAttachmentGroup(Session session, int event_id, String elementTypeClassName){
+
+        NativeQuery sqlQuery = session.createSQLQuery("SELECT id from element_type where class_name = :elementTypeClassName")
+                .setParameter("elementTypeClassName", elementTypeClassName);
+
         // get the id of the element_type of given class
-        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session, String.format("SELECT id from element_type where class_name='%s'", elementTypeClassName));
+        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session, sqlQuery);
         if (aliasToValueMapList.size() != 1) {
             System.err.println("Element_type could not be found!");
             return -1;
         }
         int elementTypeId = Integer.parseInt(aliasToValueMapList.get(0).get("id").toString());
 
-
-        aliasToValueMapList = executeSelect(session,
-                String.format("SELECT id from %s where event_id=%d and element_type_id='%d'", dataSet, event_id, elementTypeId));
+        aliasToValueMapList = executeSelect(
+            session,
+            session.createSQLQuery("SELECT id from event_attachment_group where event_id = :event_id and element_type_id = :elementTypeId")
+            .setParameter("event_id", event_id)
+            .setParameter("elementTypeId", elementTypeId));
 
         if (aliasToValueMapList.size() == 1) {
             // exists; return the id
@@ -697,11 +728,14 @@ public class Query {
         }
 
         // does not exist, insert
-        executeInsert(session,
-                String.format("INSERT INTO %s (event_id, element_type_id) VALUES (%s,%s);", dataSet, event_id, elementTypeId));
+        executeInsert(
+            session,
+            session.createSQLQuery("INSERT INTO event_attachment_group (event_id, element_type_id) VALUES ( :event_id , :elementTypeId );")
+            .setParameter("event_id", event_id)
+            .setParameter("elementTypeId", elementTypeId));
 
         // get the newly inserted ID
-        aliasToValueMapList = executeSelect(session, "SELECT LAST_INSERT_ID();");
+        aliasToValueMapList = executeSelect(session, session.createSQLQuery("SELECT LAST_INSERT_ID();"));
         if (aliasToValueMapList.size() == 1) {
             return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
         }
