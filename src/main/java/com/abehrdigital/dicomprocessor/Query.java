@@ -54,32 +54,103 @@ public class Query {
     void constructAndRunQuery(Session session) {
         // before constructing the query, update the list of known fields
         updateKnownFieldsForeignKeys();
+
+        // try running the custom queries, defined in the prototype for the current saveSet item
+        if (runCustomQueries(session)) {
+            System.out.println("+++++++++++++++++no need to go further");
+            // no need to go further
+            return;
+        }
+
+        switch (this.crudOperation) {
+            case RETRIEVE:
+                runRetrieveStatement(session);
+                break;
+            case MERGE:
+                runMergeStatement(session);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void runMergeStatement(Session session) {
+        int rowsAffected = 0;
+
+        // pk is already in memory;
+        // try to update fields
+        if (isPrimaryKeyKnown()) {
+            System.out.println("+++++++++++FOUND++++++++UPDATE++++++++");
+            // update succeeded; return
+            if (update(session)) {
+                return;
+            }
+        }
+
+        // pk is not in memory;
+        // construct retrieve operation (select)
+        this.crudOperation = crudOperation.RETRIEVE;
+        if (constructSelectQuery(session)) {
+            System.out.println("+++++++++++SELECT++++++++ ");
+            rowsAffected = executeQuery(session, null);
+        }
+
+        // no records in the database: insert and save the newly introduced id into the dataDictionary
+        if (rowsAffected == 0) {
+            System.out.println("+++++++++++INSERT++++++++ ");
+
+            this.crudOperation = crudOperation.CREATE;
+            NativeQuery secondaryQueryInsert = constructInsertQuery(session);
+
+            // execute query and the secondary query
+            executeQuery(session, secondaryQueryInsert);
+
+            // records were in the database, but they are not in memory (dataDictionary)
+        } else if (rowsAffected == 1) {
+            System.out.println("+++++++++++UPDATE++++++++ ");
+
+            // try to update fields
+            if (isPrimaryKeyKnown()) {
+                update(session);
+            }
+        }
+    }
+
+    private void runRetrieveStatement(Session session) {
+        if (!constructSelectQuery(session)) {
+            // TODO: throw exception (return -1)
+            return;
+        }
+        // execute select query
+        // there is no secondary query to be executed after select
+        int rowsAffected = executeQuery(session, null);
+        if (rowsAffected != 1) {
+            // TODO throw exception("could not retrieve!!")
+            System.err.println("Could not retrieve for " + dataSet);
+            return;
+        }
+    }
+
+    /**
+     * Run custom queries defined in the prototype for the current saveSet
+     * @param session current session
+     * @return true if all queries finished successfully, false if one failed
+     */
+    private boolean runCustomQueries(Session session) {
         if (customSqlQueries != null && customSqlQueries.size() != 0) {
             crudOperation crudSave = this.crudOperation;
             this.crudOperation = crudOperation.RETRIEVE;
             boolean success = true;
             for (int cusomSqlQueryIndex = 0; cusomSqlQueryIndex < customSqlQueries.size(); cusomSqlQueryIndex++) {
-                String customSql = customSqlQueries.get(cusomSqlQueryIndex);
                 HashMap<String, String> xidParameterList = new HashMap<>();
-                System.out.println("SSS4: " + customSql);
-                ArrayList<String> queryParameters = queriesParameters.get(cusomSqlQueryIndex);
-                for (int indexParameters = 0; indexParameters < queryParameters.size(); indexParameters++) {
-                    String parameterXID = queryParameters.get(indexParameters);
-                    String[] parameterXidSplit = parameterXID.split("\\.");
-
-                    String parameterStrippedXID = parameterXidSplit[0] + "_$$";
-                    String parameterStrippedField = parameterXidSplit[1].substring(0,parameterXidSplit[1].length() - 3);
-
-                    customSql = customSql.replace(parameterXID, " :parameter_" + indexParameters);
-                    xidParameterList.put("parameter_" + indexParameters, DataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
-                }
-                System.out.println("SSS1 " + customSql);
 
                 // execute retrieve query
-                //TODO: if one query fails, should everything fail?
-                // (currently yes)
-                // or if ALL fail, then fail?
-                this.sqlQuery = session.createSQLQuery(customSql);
+                //TODO: if one query fails, should everything fail? (currently yes) or if ALL fail, then fail?
+                this.sqlQuery = session.createSQLQuery(
+                        resolveCustomQueryParameters(
+                                customSqlQueries.get(cusomSqlQueryIndex),
+                                queriesParameters.get(cusomSqlQueryIndex),
+                                xidParameterList));
                 for (Map.Entry<String, String> entryParameter : xidParameterList.entrySet()) {
                     System.out.println("Replacing: " + entryParameter.getKey() + "  with " + entryParameter.getValue());
                     this.sqlQuery.setParameter(entryParameter.getKey(), entryParameter.getValue());
@@ -96,71 +167,35 @@ public class Query {
             this.crudOperation = crudSave;
 
             if (success) {
-                System.out.println("Succes, no need to go further");
-                return;
+                System.out.println("Success, no need to go further");
+                return true;
             }
         }
+        System.out.println("++Ret false");
+        return false;
+    }
 
-        NativeQuery secondaryQueryInsert;
-        int rowsAffected = 0;
+    /**
+     * Replace parameters of custom query with corresponding values from DataDictionary.
+     * @param customSql String custom sql query to be parsed and
+     * @param queryParameters list of parameters to be replaced with corresponding values
+     * @param xidParameterList map to store pairs of (":param" => valueOfParam), which is used to set parameters to NativeQuery
+     * @return String updated custom sql query
+     */
+    private String resolveCustomQueryParameters(String customSql, ArrayList<String> queryParameters, HashMap<String, String> xidParameterList) {
+        System.out.println("SSS4: " + customSql);
+        for (int indexParameters = 0; indexParameters < queryParameters.size(); indexParameters++) {
+            String parameterXID = queryParameters.get(indexParameters);
+            String[] parameterXidSplit = parameterXID.split("\\.");
 
-        switch (this.crudOperation) {
-            case RETRIEVE:
-                if (!constructSelectQuery(session)) {
-                    // TODO: throw exception (return -1)
-                    return;
-                }
-                // execute select query
-                // there is no secondary query to be executed after select
-                rowsAffected = executeQuery(session, null);
-                if (rowsAffected != 1) {
-                    // TODO throw exception("could not retrieve!!")
-                    System.err.println("Could not retrieve for " + dataSet);
-                    return;
-                }
-                break;
-            case MERGE:
-                // pk is already in memory;
-                // try to update fields
-                if (isPrimaryKeyKnown()) {
-                    System.out.println("+++++++++++FOUND++++++++UPDATE++++++++");
-                    // update succeeded; return
-                    if (update(session)) {
-                        return;
-                    }
-                }
+            String parameterStrippedXID = parameterXidSplit[0] + "_$$";
+            String parameterStrippedField = parameterXidSplit[1].substring(0,parameterXidSplit[1].length() - 3);
 
-                // pk is not in memory;
-                // construct retrieve operation (select)
-                this.crudOperation = crudOperation.RETRIEVE;
-                if (constructSelectQuery(session)) {
-                    System.out.println("+++++++++++SELECT++++++++ ");
-                    rowsAffected = executeQuery(session, null);
-                }
-
-                // no records in the database: insert and save the newly introduced id into the dataDictionary
-                if (rowsAffected == 0) {
-                    System.out.println("+++++++++++INSERT++++++++ ");
-
-                    this.crudOperation = crudOperation.CREATE;
-                    secondaryQueryInsert = constructInsertQuery(session);
-
-                    // execute query and the secondary query
-                    executeQuery(session, secondaryQueryInsert);
-
-                // records were in the database, but they are not in memory (dataDictionary)
-                } else if (rowsAffected == 1) {
-                    System.out.println("+++++++++++UPDATE++++++++ ");
-
-                    // try to update fields
-                    if (isPrimaryKeyKnown()) {
-                        update(session);
-                    }
-                }
-                break;
-            default:
-                break;
+            customSql = customSql.replace(parameterXID, " :parameter_" + indexParameters);
+            xidParameterList.put("parameter_" + indexParameters, DataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
         }
+        System.out.println("SSS1 " + customSql);
+        return customSql;
     }
 
     public boolean update(Session session) {

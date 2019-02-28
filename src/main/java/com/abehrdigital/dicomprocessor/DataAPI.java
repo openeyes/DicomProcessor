@@ -58,6 +58,9 @@ public class DataAPI {
      * @param queries Query object which needs to be run.
      */
     private static void applyQueries(ArrayList<Query> queries) {
+        System.out.println("WTH "+ queries.size());
+        System.out.println("WTH "+ queries);
+
         try {
             Iterator queryIterator = queries.iterator();
 
@@ -94,14 +97,18 @@ public class DataAPI {
         JSONObject json = (JSONObject) jsonParser.parse(jsonData);
 
 
+        System.out.println("==1: ");
+        System.out.println("==1: "+(String []) json.keySet().stream().toArray(String[] ::new));
+        System.out.println("==1: "+((String []) json.keySet().stream().toArray(String[] ::new)).length);
         for (String key : (String []) json.keySet().stream().toArray(String[] ::new)) {
             Object data = json.get(key);
 
             // depending on the current object class, parse the data
             JsonObjectClassType jsonClass = JsonObjectClassType.valueOf(data.getClass().getSimpleName());
+            System.out.println("==2: "+jsonClass + "     " + key);
             switch (jsonClass) {
                 case String:
-                    switch (key.toString()) {
+                    switch (key) {
                     case "_OE_System":
                         DataAPI._OE_System = data.toString();
                         break;
@@ -113,9 +120,11 @@ public class DataAPI {
                 }
                     break;
                 case JSONArray:
-                    if (key.toString().contains("XID_Map")) {
+                    if (key.contains("XID_Map")) {
+                        System.out.println("parseMap");
                         parseXidMap((JSONArray) data);
-                    } else if (key.toString().contains("SaveSet")) {
+                    } else if (key.contains("SaveSet")) {
+                        System.out.println("parseSaveSet");
                         saveSets.addAll(parseSaveSet((JSONArray) data));
                     }
                     break;
@@ -134,9 +143,10 @@ public class DataAPI {
     private static ArrayList<Query> parseSaveSet(JSONArray saveSets) throws Exception {
         ArrayList<Query> saveSet = new ArrayList<>();
         // get the list of commands
-        for (Object saveSetObject : saveSet) {
+        for (Object saveSetObject : saveSets) {
             JSONObject command = (JSONObject) saveSetObject;
             String dataSet = (String) command.get("$$_DataSet_$$");
+            System.out.println("33: " + dataSet);
 
             // get keys for this table and set them in DataAPI.keyIndex
             Query.setKeys(getSession(), dataSet);
@@ -220,6 +230,7 @@ public class DataAPI {
             switch (key) {
                 case "$$_CRUD_$$":
                     crudOperation = Query.crudOperation.valueOf(query.get(key).toString());
+                    System.out.println("crudOp: " + crudOperation);
                     break;
                 case "$$_QUERIES_$$":
                     JSONArray customQueries = (JSONArray) query.get(key);
@@ -357,13 +368,16 @@ public class DataAPI {
     static String magic(String userId, String jsonData) throws Exception {
         // TODO: needs renaming
         // TODO: use "user_id" for insert/merge operations
+        System.out.println("magic1");
         if (jsonData.isEmpty()) {
             throw new Exception("Nothing to parse");
         }
         try {
             /* basic initialization */
+            System.out.println("basic init");
             init(userId);
 
+            System.out.println("applyQBefore");
             // parse and execute the sql queries from the json string
             applyQueries(parseJson(jsonData));
         } catch (Exception e) {
@@ -447,10 +461,10 @@ public class DataAPI {
             // DataAPI.magic("1", jsonFromTemplate);
 
 
-            /*String jsonData = DataAPI.getEventTemplate();
+            String jsonData = DataAPI.getEventTemplate();
             String modifiedJsonData = DataAPI.magic("1", jsonData);
             System.out.println(jsonData);
-            System.out.println(modifiedJsonData);*/
+            System.out.println(modifiedJsonData);
 
 //            AttachmentData attachmentData = getSession().get(AttachmentData.class, 16);
 //            DataAPI.linkAttachmentDataWithEvent(attachmentData, 3686613,  "OEModule\\OphGeneric\\models\\Attachment");
