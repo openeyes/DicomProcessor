@@ -5,6 +5,7 @@
           eventData.$$_XID_Map_$$.forEach(function(data){
               if(data.$$_XID_$$ == '$$_attachment_data[1]_$$'){
                data.id = attachmentPdf.getId().toString();
+               data.requestId = attachmentPdf.getRequestId().toString();
                 }
                 if(data.$$_XID_$$ == '$$_patient[1]_$$'){
                  data.id = requestData.patientId;
@@ -38,6 +39,7 @@
                    medicalReportRow.instance_number = requestData.instance_number;
                    medicalReportRow.modifying_system = requestData.modifying_system;
                    medicalReportRow.operator_identification_sequence = requestData.operator_identification_sequence;
+
                    }});
 
 

@@ -134,6 +134,10 @@ public class AttachmentData {
         return blobData;
     }
 
+    public Integer getRequestId() {
+        return requestId;
+    }
+
     public Blob getSmallThumbnail() {
         return smallThumbnail;
     }
