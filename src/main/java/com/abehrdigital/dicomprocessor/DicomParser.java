@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DicomParser {
-    private Study study;
+    private DicomFile dicomFile;
     private Blob dicomBlob;
     private DicomInputStream dicomInputStream;
     private Attributes attributes;
@@ -22,7 +22,7 @@ public class DicomParser {
     public DicomParser(Blob dicomBlob) {
         this.dicomBlob = dicomBlob;
         //this.file = dicomFile;
-        this.study = new Study(); //TODO: consider injecting this dependency
+        this.dicomFile = new DicomFile(); //TODO: consider injecting this dependency
         this.pdfTagNumber = 4325393; // TODO: change so that this is not hardcoded
         try {
             run();
@@ -57,13 +57,13 @@ public class DicomParser {
 
     public void run() throws IOException, SQLException {
         init();
-        // Put set study pdf member variables:
+        // Put set dicomFile pdf member variables:
         byte[] pdfBytes = attributes.getBytes(pdfTagNumber);
-        study.setPdfFields(pdfBytes, PDFUtils.extractPdfFromBytes(pdfBytes));
-        study.setSimpleDicomElements(simpleElements());
+        dicomFile.setPdfFields(pdfBytes, PDFUtils.extractPdfFromBytes(pdfBytes));
+        dicomFile.setSimpleDicomElements(simpleElements());
     }
 
-    public Study getStudy() {
-        return study;
+    public DicomFile getDicomFile() {
+        return dicomFile;
     }
 }

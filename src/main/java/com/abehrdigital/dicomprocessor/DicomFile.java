@@ -14,14 +14,14 @@ import java.util.Map;
  *
  * @author Adrian Brenton
  */
-public class Study {
+public class DicomFile {
 
     private PDDocument pdfDoc;
     private byte[] pdfAsBytes; //We want to keep this to make sure pdf/a docs appear untampered
     private Map<Integer, String> nonSequenceDicomElements;
     private Map<Integer, Sequence> sequenceDicomElements;
 
-    public Study() {
+    public DicomFile() {
 
     }
 
