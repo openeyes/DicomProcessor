@@ -1,3 +1,28 @@
+INSERT INTO routine_library (routine_name)
+VALUES
+  (
+    "dicom_routine"
+  );
+
+INSERT INTO routine_library (routine_name)
+VALUES
+  (
+    "PAS_API"
+  );
+
+INSERT INTO routine_library (routine_name)
+VALUES
+  (
+    "create_event"
+  );
+
+INSERT INTO routine_library (routine_name)
+VALUES
+  (
+    "prototype_event"
+  );
+
+
 INSERT INTO routine_library (routine_name, routine_body)
 VALUES
   (
