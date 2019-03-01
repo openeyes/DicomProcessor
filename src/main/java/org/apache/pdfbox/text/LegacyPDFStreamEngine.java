@@ -33,7 +33,6 @@ import org.apache.pdfbox.pdmodel.font.PDType3Font;
 import org.apache.pdfbox.pdmodel.graphics.state.PDGraphicsState;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.fontbox.util.BoundingBox;
@@ -123,7 +122,7 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
      * @throws java.io.IOException if there is an error accessing the stream.
      */
     @Override
-    public List<PDFTextBox> processPage(PDPage page) throws IOException
+    public void processPage(PDPage page) throws IOException
     {
         this.pageRotation = page.getRotation();
         this.pageSize = page.getCropBox();
@@ -137,7 +136,7 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
             // translation matrix for cropbox
             translateMatrix = Matrix.getTranslateInstance(-pageSize.getLowerLeftX(), -pageSize.getLowerLeftY());
         }
-        return super.processPage(page);
+        super.processPage(page);
     }
 
     /**

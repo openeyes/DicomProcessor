@@ -352,7 +352,7 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
      * @throws IOException If there is an error processing the page.
      */
     @Override
-    public List<PDFTextBox> processPage(PDPage page) throws IOException
+    public void processPage(PDPage page) throws IOException
     {
         List<PDFTextBox> PDFTextBoxes = new ArrayList<>();
         if (currentPageNo >= startPage && currentPageNo <= endPage
@@ -389,11 +389,10 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
                 }
             }
             characterListMapping.clear();
-            PDFTextBoxes = super.processPage(page);
+            super.processPage(page);
             writePage();
             endPage(page);
         }
-        return PDFTextBoxes;
     }
 
     private void fillBeadRectangles(PDPage page)
