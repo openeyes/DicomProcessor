@@ -32,7 +32,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
  */
 public class PDFTextStripperByArea extends PDFTextStripper
 {
-    private List<PDFTextBox> PDFTextBoxes;
     private final List<String> regions = new ArrayList<String>();
     private final Map<String, Rectangle2D> regionArea = new HashMap<String, Rectangle2D>();
     private final Map<String, ArrayList<List<TextPosition>>> regionCharacterList
@@ -59,7 +58,7 @@ public class PDFTextStripperByArea extends PDFTextStripper
     {
     }
 
-   /**
+    /**
      * Add a new region to group text by.
      *
      * @param regionName The name of the region.
@@ -81,7 +80,7 @@ public class PDFTextStripperByArea extends PDFTextStripper
         regions.remove(regionName);
         regionArea.remove(regionName);
     }
-    
+
     /**
      * Get the list of regions that have been setup.
      *
@@ -124,22 +123,14 @@ public class PDFTextStripperByArea extends PDFTextStripper
             regionCharacterList.put( regionName, regionCharactersByArticle );
             regionText.put( regionName, new StringWriter() );
         }
-        
+
         if( page.hasContents() )
         {
-            PDFTextBoxes = processPage(page);
-            for (PDFTextBox PDFTextBox : PDFTextBoxes){
-                System.out.println(PDFTextBox);
-                for (TextPosition textPosition : PDFTextBox.getTextPositions()){
-                    System.out.println(textPosition.getX());
-                    System.out.println(textPosition.getY());
-                }
-            }
-            System.out.println(PDFTextBoxes);
+            processPage( page );
         }
     }
 
-    
+
     /**
      * {@inheritDoc}
      */
@@ -158,7 +149,7 @@ public class PDFTextStripperByArea extends PDFTextStripper
         return text;
     }
 
-    
+
     /**
      * This will print the processed page text to the output stream.
      *
@@ -173,9 +164,5 @@ public class PDFTextStripperByArea extends PDFTextStripper
             output = regionText.get( region );
             super.writePage();
         }
-    }
-
-    public List<PDFTextBox> getPDFTextBoxes() {
-        return PDFTextBoxes;
     }
 }
