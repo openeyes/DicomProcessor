@@ -70,6 +70,8 @@ public class RequestRoutine {
     private Timestamp nextTryDateTime;
     @Column(name = "execute_sequence")
     private int executeSequence;
+    @Column(name = "hash_code" , columnDefinition = "BIGINT")
+    private Integer hashCode;
 
     public RequestRoutine() {
     }
@@ -100,10 +102,6 @@ public class RequestRoutine {
         }
     }
 
-    public void setExecuteSequence(int value) {
-        executeSequence = value;
-    }
-
     public void updateFieldsByStatus(Status routineStatus) {
         if (routineStatus == Status.COMPLETE) {
             successfulExecution();
@@ -112,6 +110,14 @@ public class RequestRoutine {
         } else {
             setStatus(routineStatus);
         }
+    }
+
+    public void setExecuteSequence(int value) {
+        executeSequence = value;
+    }
+
+    public void setHashCode(Integer hashCode) {
+        this.hashCode = hashCode;
     }
 
     public static class Builder {
@@ -193,5 +199,6 @@ public class RequestRoutine {
         status = Status.NEW;
         tryCount = 0;
         nextTryDateTime = null;
+        hashCode = null;
     }
 }

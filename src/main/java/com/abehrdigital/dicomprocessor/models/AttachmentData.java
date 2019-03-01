@@ -23,12 +23,11 @@ public class AttachmentData {
     private Integer requestId;
     @Column(name = "blob_data")
     private Blob blobData;
-    @Column(name = "thumbnail_small_blob")
+    @Column(name = "thumbnail_small_blob" ,columnDefinition = "MEDIUMBLOB")
     private Blob smallThumbnail;
-    @Column(name = "thumbnail_medium_blob")
+    @Column(name = "thumbnail_medium_blob" , columnDefinition = "MEDIUMBLOB")
     private Blob mediumThumbnail;
-
-    @Column(name = "thumbnail_large_blob")
+    @Column(name = "thumbnail_large_blob" , columnDefinition = "MEDIUMBLOB")
     private Blob largeThumbnail;
     @Column(name = "json_data", columnDefinition = "LONGTEXT")
     private String jsonData;

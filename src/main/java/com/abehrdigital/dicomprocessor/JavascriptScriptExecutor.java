@@ -18,6 +18,7 @@ public class JavascriptScriptExecutor {
     private String scriptForExecution;
     private ScriptEngine scriptEngine;
     private RoutineScriptService scriptService;
+    private int scriptHashCodeBeforeConversion;
 
     public JavascriptScriptExecutor(String scriptForExecution, RoutineScriptService scriptService) {
         this.scriptForExecution = scriptForExecution;
@@ -27,6 +28,7 @@ public class JavascriptScriptExecutor {
 
     private void init() {
         engineScriptWriter = new StringWriter();
+        scriptHashCodeBeforeConversion = scriptForExecution.hashCode();
         javaClassNameInJavaScriptEngine = RandomStringGenerator.generateWithDefaultChars(JAVA_CLASS_NAME_IN_ENGINE_LENGTH);
         scriptEngine = new ScriptEngineManager().getEngineByName(ENGINE_NAME);
         scriptEngine.put(javaClassNameInJavaScriptEngine, scriptService);
@@ -52,5 +54,9 @@ public class JavascriptScriptExecutor {
     public String execute() throws ScriptException {
         scriptEngine.eval(scriptForExecution);
         return engineScriptWriter.toString();
+    }
+
+    public int getScriptHashCode(){
+        return scriptHashCodeBeforeConversion;
     }
 }

@@ -1,0 +1,52 @@
+var requestData = JSON.parse(getJson('request_data', null));
+
+ var dicomParser = getDicom('request_blob', null);
+
+ var dicom = dicomParser.getStudy();
+
+ var dicomHeader = JSON.parse(dicom.getHeaderJsonString());
+
+ requestData.manufacturer = dicomHeader['524400'];
+ requestData.model = dicomHeader['528528'].trim();
+ requestData.version = dicomHeader['570494977'];
+
+     requestData.hosNum = dicomHeader['1048608'];
+     requestData.dateOfBirth = dicomHeader['1048624'];
+     requestData.gender = dicomHeader['1048640'].trim();
+     putJson(
+             'dicom_header',
+             JSON.stringify(dicomHeader),
+             'dicom_header',
+             null,
+             'dicom');
+
+     var pdf = dicom.getPdfAsBlob();
+
+     putPdf('event_pdf',
+             pdf,
+             'event_pdf',
+             null,
+             'application/pdf');
+
+
+     putJson(
+             'request_data',
+             JSON.stringify(requestData),
+             'request_json',
+             null, 'json');
+     addRoutine('prototype_event');
+     addRoutine('PAS_API');
+
+     var biometry = JSON.parse(getJson('biometry_data', null));
+     biometry.studyId = dicomHeader['2097168'];
+     biometry.time = dicomHeader['524336'];
+     biometry.date = dicomHeader['4194884'];
+
+     putJson(
+             'biometry_data',
+             JSON.stringify(biometry),
+             'biometry_report',
+             null,
+             'dicom');
+
+     addRoutine('create_event');

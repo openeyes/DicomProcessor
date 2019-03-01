@@ -4,6 +4,7 @@ import com.abehrdigital.dicomprocessor.models.Request;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RequestRoutineExecution;
 import com.abehrdigital.dicomprocessor.utils.DaoFactory;
+import com.abehrdigital.dicomprocessor.utils.RoutineScriptAccessor;
 import com.abehrdigital.dicomprocessor.utils.Status;
 
 import javax.persistence.OptimisticLockException;
@@ -19,6 +20,7 @@ public class RequestWorker implements Runnable {
     private RequestWorkerService service;
     private int successfulRoutineCount;
     private int failedRoutineCount;
+    private String logMessage;
 
     public RequestWorker(int requestId, String requestQueueName, RequestThreadListener threadListener) {
         this.requestId = requestId;
@@ -26,7 +28,8 @@ public class RequestWorker implements Runnable {
         service = new RequestWorkerService(
                 DaoFactory.createScriptEngineDaoManager(),
                 requestId,
-                requestQueueName
+                requestQueueName,
+                new RoutineScriptAccessor()
         );
         successfulRoutineCount = 0;
         failedRoutineCount = 0;
@@ -46,6 +49,7 @@ public class RequestWorker implements Runnable {
 
                 RequestRoutine routineForProcessing = service.getNextRoutineToProcess();
                 if (routineForProcessing != null) {
+                    resetRoutineVariables();
                     String engineLogMessage = executeRequestRoutine(routineForProcessing);
                     evaluateRoutineScriptExecution(engineLogMessage, routineForProcessing);
                 } else {
@@ -60,13 +64,18 @@ public class RequestWorker implements Runnable {
         }
     }
 
+    private void resetRoutineVariables() {
+        logMessage = "";
+    }
+
     private String executeRequestRoutine(RequestRoutine routineForProcessing) {
-        String logMessage = "";
+
         try {
             JavascriptScriptExecutor scriptExecutor = new JavascriptScriptExecutor(
                     service.getRoutineBody(routineForProcessing.getRoutineName()),
                     service.getScriptService()
             );
+            routineForProcessing.setHashCode(scriptExecutor.getScriptHashCode());
             logMessage += scriptExecutor.execute();
             routineForProcessing.updateFieldsByStatus(Status.COMPLETE);
             service.updateRequestRoutine(routineForProcessing);
