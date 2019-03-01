@@ -7,7 +7,7 @@ import org.hibernate.Transaction;
 public abstract class BaseDaoManager {
     private Session session;
 
-    protected Session getConnection() {
+    public Session getConnection() {
         if (this.session == null) {
             this.session = HibernateUtil.getSessionFactory().openSession();
         }

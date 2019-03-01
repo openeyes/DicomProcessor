@@ -2,12 +2,20 @@ package com.abehrdigital.dicomprocessor;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.util.*;
 
+import com.abehrdigital.dicomprocessor.exceptions.EmptyKnownFieldsException;
+import com.abehrdigital.dicomprocessor.exceptions.InvalidNumberOfRowsAffectedException;
+import com.abehrdigital.dicomprocessor.exceptions.InvalidSqlResponse;
+import com.abehrdigital.dicomprocessor.exceptions.ValuesNotFoundException;
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
 import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
 
 import org.hibernate.Session;
+import org.hibernate.jdbc.Work;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -15,19 +23,45 @@ import org.json.simple.parser.ParseException;
 
 public class DataAPI {
 
+
     private enum JsonObjectClassType {
         String, JSONObject, JSONArray
     }
+
+    private static String _OE_System;
+    private static String _Version;
+    private static String time;
+    private static String userId;
+    private static Session session;
 
     /* dataDictionary: keeps information about mappings $$_name[X]_$$ -> value */
     static HashMap<String, XID> dataDictionary;
     /* keyIndex: store information about the keys in the table: PK and UKs */
     static HashMap<String, TableKey> keyIndex;
-    private static String _OE_System;
-    private static String _Version;
-    private static Session session;
-    private static String time;
-    private static String userId;
+
+    private static Savepoint savepoint;
+    public static Savepoint setSavepoint(final String savePoint) {
+        DataAPI.session.doWork(new Work() {
+            @Override
+            public void execute(Connection connection) throws SQLException      {
+                System.out.println("==BefSave point==");
+                savepoint = connection.setSavepoint(savePoint);
+                System.out.println("==After Save point==");
+            }
+        });
+        return savepoint;
+    }
+
+    public static void rollbackSavepoint(final Savepoint savepoint) {
+        DataAPI.session.doWork(new Work() {
+            @Override
+            public void execute(Connection connection) throws SQLException     {
+                System.out.println("==Before rollback==");
+                connection.rollback(savepoint);
+                System.out.println("==After rollback==");
+            }
+        });
+    }
 
     /**
      * Pretty print HashMap with additional message
@@ -55,31 +89,44 @@ public class DataAPI {
     /**
      * Construct the sql query for each Query object received and run it against the database.
      *
-     * @param queries Query object which needs to be run.
+     * @param saveSetQueries Query object which needs to be run.
      */
-    private static void applyQueries(ArrayList<Query> queries) {
-        System.out.println("WTH "+ queries.size());
-        System.out.println("WTH "+ queries);
+    private static void applyQueries(ArrayList<ArrayList<Query>> saveSetQueries) {
+        System.out.println("WTH "+ saveSetQueries.size());
+        System.out.println("WTH "+ saveSetQueries);
 
-        try {
-            Iterator queryIterator = queries.iterator();
+        // for each saveset, start a new transaction:
+        int transactionNumber = 0;
+        for (ArrayList<Query> saveSetQuery : saveSetQueries) {
+            //////////////////START Of Transaction////////////////
+            try {
 
-            while (queryIterator.hasNext()) {
-                Query query = (Query) queryIterator.next();
+                savepoint = setSavepoint("savepoint_"+(transactionNumber++));
+                System.out.println("==SetSavepoint== " + savepoint.getSavepointName());
 
-                // DEBUG
-                System.out.println(query);
-                DataAPI.printMap("DataAPI.map: ", DataAPI.dataDictionary);
-                DataAPI.printKeyMap("KEY.map: ", DataAPI.keyIndex);
+                Iterator queryIterator = saveSetQuery.iterator();
 
-                // construct the SQL query based on the CRUD operation and the fields found in Query object
-                query.constructAndRunQuery(DataAPI.getSession());
+                while (queryIterator.hasNext()) {
+                    Query query = (Query) queryIterator.next();
 
-                // remove query from array
-                queryIterator.remove();
+                    // TODO DEBUG
+                    System.out.println(query);
+                    DataAPI.printMap("DataAPI.map: ", DataAPI.dataDictionary);
+                    DataAPI.printKeyMap("KEY.map: ", DataAPI.keyIndex);
+
+                    // construct the SQL query based on the CRUD operation and the fields found in Query object
+                    query.constructAndRunQuery(session);
+
+                    // remove query from array
+                    queryIterator.remove();
+                }
+            } catch(InvalidNumberOfRowsAffectedException | ValuesNotFoundException | EmptyKnownFieldsException e){
+                System.out.println("Exception occured rolling back to save point");
+                rollbackSavepoint(savepoint);
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            ////END Of Transaction////////////////
         }
     }
 
@@ -91,8 +138,8 @@ public class DataAPI {
      * @throws IOException file not found
      * @throws ParseException parser exception
      */
-    private static ArrayList<Query> parseJson(String jsonData) throws Exception {
-        ArrayList<Query> saveSets = new ArrayList<>();
+    private static ArrayList<ArrayList<Query>> parseJson(String jsonData) throws Exception {
+        ArrayList<ArrayList<Query>> saveSets = new ArrayList<>();
         JSONParser jsonParser = new JSONParser();
         JSONObject json = (JSONObject) jsonParser.parse(jsonData);
 
@@ -125,7 +172,7 @@ public class DataAPI {
                         parseXidMap((JSONArray) data);
                     } else if (key.contains("SaveSet")) {
                         System.out.println("parseSaveSet");
-                        saveSets.addAll(parseSaveSet((JSONArray) data));
+                        saveSets.add(new ArrayList<>(parseSaveSet((JSONArray) data)));
                     }
                     break;
                 default:
@@ -149,7 +196,7 @@ public class DataAPI {
             System.out.println("33: " + dataSet);
 
             // get keys for this table and set them in DataAPI.keyIndex
-            Query.setKeys(getSession(), dataSet);
+            Query.setKeys(DataAPI.session, dataSet);
 
             // get the row
             Object rowContent = command.get("$$_ROW_$$");
@@ -198,7 +245,7 @@ public class DataAPI {
                 }
             }
             // get keys for this table and set them in DataAPI.keyIndex
-            Query.setKeys(getSession(), dataSet);
+            Query.setKeys(DataAPI.session, dataSet);
 
             // save the info in a new XID object
             dataDictionary.put(XID, new XID(XID, dataSet, knownFields));
@@ -213,7 +260,7 @@ public class DataAPI {
      * @return a new Query object with parsed information
      */
     private static Query parseJsonQuery(JSONObject query, String dataSet) {
-        Query.crudOperation crudOperation = null;
+        Query.CrudOperation crudOperation = null;
         // unknownFields: {id -> XID}
         TreeMap<String, String> unknownFields = new TreeMap<>();
         // knownFields: {id -> String:value}
@@ -229,7 +276,7 @@ public class DataAPI {
         for (String key : (String []) query.keySet().stream().toArray(String[] ::new)) {
             switch (key) {
                 case "$$_CRUD_$$":
-                    crudOperation = Query.crudOperation.valueOf(query.get(key).toString());
+                    crudOperation = Query.CrudOperation.valueOf(query.get(key).toString());
                     System.out.println("crudOp: " + crudOperation);
                     break;
                 case "$$_QUERIES_$$":
@@ -297,22 +344,6 @@ public class DataAPI {
     }
 
     /**
-     * Get the current session if it is set. If not, create one.
-     * @return current session
-     * @throws Exception Cannot open a new session.
-     */
-    static Session getSession() throws Exception {
-        // if a session does not exists, open a new session
-        if (DataAPI.session == null) {
-            DataAPI.session = HibernateUtil.getSessionFactory().openSession();
-        }
-        if (DataAPI.session == null) {
-            throw new Exception("Could not open a new session!");
-        }
-        return DataAPI.session;
-    }
-
-    /**
      * Get the current time if it is set. If not, get the time in sql format using a select query.
      * If datetime cannot be retrieved, return default date:
      * @return current date time
@@ -322,11 +353,12 @@ public class DataAPI {
             return "1901-01-01 00:00:00";
         }
         if (DataAPI.time == null) {
-            DataAPI.time = Query.getTime(DataAPI.session);
-        }
-        if (DataAPI.time == null) {
-            System.err.println("Could not get the time from the current session. Setting default to 1901-01-01.");
-            DataAPI.time = "1901-01-01 00:00:00";
+            try {
+                DataAPI.time = Query.getTime(DataAPI.session);
+            } catch (InvalidSqlResponse invalidSqlResponse) {
+                invalidSqlResponse.printStackTrace();
+                DataAPI.time = "1901-01-01 00:00:00";
+            }
         }
         return DataAPI.time;
     }
@@ -349,13 +381,13 @@ public class DataAPI {
         return null;
     }
 
-    private static void init(String userId) throws Exception {
+    private static void init(String userId, Session session) throws Exception {
         dataDictionary = new HashMap<>();
         keyIndex = new HashMap<>();
         DataAPI.userId = userId;
+        DataAPI.session = session;
 
         // set session and time at the start of the execution
-        session = getSession();
         time = getTime();
     }
 
@@ -365,7 +397,7 @@ public class DataAPI {
      * @param jsonData String json to be parsed
      * @throws Exception Nothing to parse; Could not open a new session!; Could not get current date time!
      */
-    static String magic(String userId, String jsonData) throws Exception {
+    static String magic(String userId, String jsonData, Session session) throws Exception {
         // TODO: needs renaming
         // TODO: use "user_id" for insert/merge operations
         System.out.println("magic1");
@@ -375,7 +407,7 @@ public class DataAPI {
         try {
             /* basic initialization */
             System.out.println("basic init");
-            init(userId);
+            init(userId, session);
 
             System.out.println("applyQBefore");
             // parse and execute the sql queries from the json string
@@ -436,7 +468,7 @@ public class DataAPI {
             // save in a stack, the jsonObject of dataSets, created by recursively searching for foreign keys
             // starting from a given dataSet.
             Stack<JSONObject> saveSets = new Stack<>();
-            Query.getFKRelations(getSession(), dataSet, saveSets, new HashSet<String>());
+            Query.getFKRelations(DataAPI.session, dataSet, saveSets, new HashSet<String>());
 
             jsonFile.put("$$_XID_Map_$$", new JSONArray());
             // TODO: hardcoded value 1
@@ -455,39 +487,56 @@ public class DataAPI {
      */
     public static void main(String[] args) {
         try {
-            // create json template with all dependencies for a given dataSet
-            // String jsonFromTemplate = createTemplate("event_attachment_item");
+            /*// create json template with all dependencies for a given dataSet
+             String jsonFromTemplate = createTemplate("event_attachment_item");
             // apply the json on the database
-            // DataAPI.magic("1", jsonFromTemplate);
+             DataAPI.magic("1", jsonFromTemplate);*/
 
 
+            DataAPI.session =  HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
             String jsonData = DataAPI.getEventTemplate();
-            String modifiedJsonData = DataAPI.magic("1", jsonData);
+            String modifiedJsonData = DataAPI.magic("1", jsonData, session);
             System.out.println(jsonData);
             System.out.println(modifiedJsonData);
 
-//            AttachmentData attachmentData = getSession().get(AttachmentData.class, 16);
-//            DataAPI.linkAttachmentDataWithEvent(attachmentData, 3686613,  "OEModule\\OphGeneric\\models\\Attachment");
-//            DataAPI.createAndSetThumbnailsOnAttachmentData(attachmentData);
+           /* DataAPI.session =  HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            AttachmentData attachmentData = DataAPI.session.get(AttachmentData.class, 16);
+            DataAPI.linkAttachmentDataWithEvent(attachmentData, 4686438,
+                    "OEModule\\OphGeneric\\models\\Attachment", session);
+            */
 
-//            AttachmentDataThumbnailAdder.addThumbnails(attachmentData);
-//            daoManager.getAttachmentDataDao().save(attachmentData);
+            session.getTransaction().commit();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName) throws Exception {
-        int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(DataAPI.getSession(), eventId, elementTypeClassName);
-        if (eventAttachmentGroupID == -1) {
-            System.err.println("A new eventAttachmentGroup record could not be inserted.");
-            return;
-        }
+    public static void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName, Session session) {
+        DataAPI.session = session;
 
-        int eventAttachmentItemID = Query.insertAttachmentItem(DataAPI.getSession(), eventAttachmentGroupID, attachmentData.getId());
-        if (eventAttachmentItemID == -1) {
-            System.err.println("A new eventAttachmentItem record could not be inserted.");
-            return;
+        try {
+            savepoint = setSavepoint("savepoint");
+            System.out.println("==SetSavepoint== " + savepoint.getSavepointName());
+
+            int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(DataAPI.session, eventId, elementTypeClassName);
+            if (eventAttachmentGroupID == -1) {
+                System.err.println("A new eventAttachmentGroup record could not be inserted.");
+                return;
+            }
+
+            int eventAttachmentItemID = Query.insertAttachmentItem(DataAPI.session, eventAttachmentGroupID, attachmentData.getId());
+            if (eventAttachmentItemID == -1) {
+                System.err.println("A new eventAttachmentItem record could not be inserted.");
+                return;
+            }
+
+        } catch (InvalidNumberOfRowsAffectedException e) {
+            System.out.println("Exception occured rolling back to save point");
+            rollbackSavepoint(savepoint);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -114,13 +114,10 @@ public class RoutineScriptService {
             daoManager.getAttachmentDataDao().save(attachmentData);
     }
 
-    public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName){
-        try {
-            DataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName) {
+        DataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName, daoManager.getConnection());
     }
+
 
     //TODO REMOVE DATE OF BIRTH AND GENDER FROM THE QUERY
     public int getPatientId(int hospitalNumber, int dateOfBirth, String gender) {
@@ -129,10 +126,8 @@ public class RoutineScriptService {
 
     public String createEvent(String eventData) {
         //TODO for light intergration
-        // pass session as parameter + savepoint at begining of transaction; after each transaction, set a save point;
-        // one save point in each transaction
         try {
-            return DataAPI.magic("1", eventData);
+            return DataAPI.magic("1", eventData, daoManager.getConnection());
         } catch (Exception e) {
             e.printStackTrace();
             return "Exception: " + e.getStackTrace();

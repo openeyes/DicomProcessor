@@ -1,5 +1,9 @@
 package com.abehrdigital.dicomprocessor;
 
+import com.abehrdigital.dicomprocessor.exceptions.EmptyKnownFieldsException;
+import com.abehrdigital.dicomprocessor.exceptions.InvalidNumberOfRowsAffectedException;
+import com.abehrdigital.dicomprocessor.exceptions.InvalidSqlResponse;
+import com.abehrdigital.dicomprocessor.exceptions.ValuesNotFoundException;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
@@ -14,7 +18,7 @@ public class Query {
     private NativeQuery sqlQuery;
     private String dataSet;
     private String XID;
-    private crudOperation crudOperation;
+    private CrudOperation crudOperation;
     private TreeMap<String, String> unknownFields;
     private TreeMap<String, String> knownFields;
     private TreeMap<String, ForeignKey> foreignKeys;
@@ -24,12 +28,14 @@ public class Query {
     private ArrayList<String> customSqlQueries;
 
     private final static String COMA_SPACE = ", ";
+    private final static int ONE_ROW = 1;
+    private final static int NO_ROWS = 0;
 
-    enum crudOperation {
+    enum CrudOperation {
         CREATE, RETRIEVE, MERGE, DELETE
     }
 
-    Query(String dataSet, String XID, crudOperation crud, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields,
+    Query(String dataSet, String XID, CrudOperation crud, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields,
           TreeMap<String, ForeignKey> foreignKeys, ArrayList<ArrayList<String>> queriesParameters, ArrayList<String> customSqlQueries) {
         this.dataSet = dataSet;
         this.XID = XID;
@@ -51,20 +57,24 @@ public class Query {
     }
 
     // construct sql query
-    void constructAndRunQuery(Session session) {
+    void constructAndRunQuery(Session session) throws InvalidNumberOfRowsAffectedException, ValuesNotFoundException, EmptyKnownFieldsException {
         // before constructing the query, update the list of known fields
         updateKnownFieldsForeignKeys();
 
         // try running the custom queries, defined in the prototype for the current saveSet item
-        if (runCustomQueries(session)) {
-            System.out.println("+++++++++++++++++no need to go further");
-            // no need to go further
+        try {
+            runCustomQueries(session);
+            // all custom queries executed correctly => no need to go further
             return;
+        } catch (InvalidNumberOfRowsAffectedException | Exception e) {
+            // at least one query failed => proceed with the execution
+            System.out.println("at least one query failed => proceed with the execution");
         }
 
         switch (this.crudOperation) {
             case RETRIEVE:
-                runRetrieveStatement(session);
+                constructSelectQuery(session);
+                executeQuery(session, ONE_ROW);
                 break;
             case MERGE:
                 runMergeStatement(session);
@@ -74,36 +84,41 @@ public class Query {
         }
     }
 
-    private void runMergeStatement(Session session) {
+    private void runMergeStatement(Session session) throws ValuesNotFoundException, EmptyKnownFieldsException, InvalidNumberOfRowsAffectedException {
         int rowsAffected = 0;
 
         // pk is already in memory;
         // try to update fields
         if (isPrimaryKeyKnown()) {
             System.out.println("+++++++++++FOUND++++++++UPDATE++++++++");
-            // update succeeded; return
-            if (update(session)) {
+            try {
+                update(session);
+                // update succeeded; return
                 return;
+            } catch (InvalidNumberOfRowsAffectedException e) {
+                // at least one query failed => proceed with the execution
+                System.out.println("at least one query failed => proceed with the execution");
             }
         }
 
         // pk is not in memory;
         // construct retrieve operation (select)
-        this.crudOperation = crudOperation.RETRIEVE;
-        if (constructSelectQuery(session)) {
-            System.out.println("+++++++++++SELECT++++++++ ");
-            rowsAffected = executeQuery(session, null);
-        }
+        this.crudOperation = CrudOperation.RETRIEVE;
+        System.out.println("SS+1: creating select");
+        constructSelectQuery(session);
+        System.out.println("SS+2: done");
+        rowsAffected = executeQuery(session, NO_ROWS);
+        System.out.println("SS+6: creating select " + rowsAffected);
 
         // no records in the database: insert and save the newly introduced id into the dataDictionary
         if (rowsAffected == 0) {
             System.out.println("+++++++++++INSERT++++++++ ");
 
-            this.crudOperation = crudOperation.CREATE;
-            NativeQuery secondaryQueryInsert = constructInsertQuery(session);
+            this.crudOperation = CrudOperation.CREATE;
+            constructInsertQuery(session);
 
             // execute query and the secondary query
-            executeQuery(session, secondaryQueryInsert);
+            executeQuery(session, ONE_ROW);
 
             // records were in the database, but they are not in memory (dataDictionary)
         } else if (rowsAffected == 1) {
@@ -116,31 +131,16 @@ public class Query {
         }
     }
 
-    private void runRetrieveStatement(Session session) {
-        if (!constructSelectQuery(session)) {
-            // TODO: throw exception (return -1)
-            return;
-        }
-        // execute select query
-        // there is no secondary query to be executed after select
-        int rowsAffected = executeQuery(session, null);
-        if (rowsAffected != 1) {
-            // TODO throw exception("could not retrieve!!")
-            System.err.println("Could not retrieve for " + dataSet);
-            return;
-        }
-    }
-
     /**
      * Run custom queries defined in the prototype for the current saveSet
      * @param session current session
      * @return true if all queries finished successfully, false if one failed
      */
-    private boolean runCustomQueries(Session session) {
-        if (customSqlQueries != null && customSqlQueries.size() != 0) {
-            crudOperation crudSave = this.crudOperation;
-            this.crudOperation = crudOperation.RETRIEVE;
-            boolean success = true;
+    private void runCustomQueries(Session session) throws InvalidNumberOfRowsAffectedException, Exception {
+        if (customSqlQueries != null && !customSqlQueries.isEmpty()) {
+            CrudOperation crudSave = this.crudOperation;
+            this.crudOperation = CrudOperation.RETRIEVE;
+
             for (int cusomSqlQueryIndex = 0; cusomSqlQueryIndex < customSqlQueries.size(); cusomSqlQueryIndex++) {
                 HashMap<String, String> xidParameterList = new HashMap<>();
 
@@ -152,27 +152,21 @@ public class Query {
                                 queriesParameters.get(cusomSqlQueryIndex),
                                 xidParameterList));
                 for (Map.Entry<String, String> entryParameter : xidParameterList.entrySet()) {
-                    System.out.println("Replacing: " + entryParameter.getKey() + "  with " + entryParameter.getValue());
+                    System.out.println("Rep324lacing: **" + entryParameter.getKey() + "**  with " + entryParameter.getValue());
                     this.sqlQuery.setParameter(entryParameter.getKey(), entryParameter.getValue());
+                    System.out.println("AFTER");
                 }
                 System.out.println("trying to execute custom sql: " + this.sqlQuery);
 
                 // if one fails, stop running other custom sql queries
-                if (executeQuery(session, null) != 1) {
-                    System.out.println("failed to execute");
-                    success = false;
-                    break;
-                }
+                // exception will be thrown
+                executeQuery(session, ONE_ROW);
             }
             this.crudOperation = crudSave;
-
-            if (success) {
-                System.out.println("Success, no need to go further");
-                return true;
-            }
+            return;
         }
-        System.out.println("++Ret false");
-        return false;
+        System.out.println("++There are no custom queries");
+        throw new Exception("No queries to execute.");
     }
 
     /**
@@ -186,10 +180,13 @@ public class Query {
         System.out.println("SSS4: " + customSql);
         for (int indexParameters = 0; indexParameters < queryParameters.size(); indexParameters++) {
             String parameterXID = queryParameters.get(indexParameters);
+            System.out.println("SSS34: " + parameterXID);
             String[] parameterXidSplit = parameterXID.split("\\.");
 
             String parameterStrippedXID = parameterXidSplit[0] + "_$$";
             String parameterStrippedField = parameterXidSplit[1].substring(0,parameterXidSplit[1].length() - 3);
+            System.out.println("parameterStrippedXID: " + parameterStrippedXID);
+            System.out.println("parameterStrippedField: " + parameterStrippedField);
 
             customSql = customSql.replace(parameterXID, " :parameter_" + indexParameters);
             xidParameterList.put("parameter_" + indexParameters, DataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
@@ -198,17 +195,11 @@ public class Query {
         return customSql;
     }
 
-    public boolean update(Session session) {
-        if (!constructUpdateQuery(session)) {
-            return false;
-        }
-        // update requires inserting into the table, so set the CRUD operation to create
-        this.crudOperation = crudOperation.CREATE;
+    public void update(Session session) throws InvalidNumberOfRowsAffectedException {
+        constructUpdateQuery(session);
         // when the ID is not known -> do queryByExample to retrieve it
         // when the ID is known (present in the dataDictionary) -> update the rest of the columns
-        // there is no secondary query to be executed after update: all information already in dataDictionary
-        int rowsAffected = executeQuery(session, null);
-        return rowsAffected == 1;
+        executeQuery(session, ONE_ROW);
     }
 
     /**
@@ -300,16 +291,12 @@ public class Query {
      * @return query for selecting the id of the inserted row
      * @throws Exception Validation error
      */
-    private NativeQuery constructInsertQuery(Session session) {
+    private void constructInsertQuery(Session session) throws ValuesNotFoundException, EmptyKnownFieldsException {
         // if there are fields still unknown, return error
-        if (!validateFieldsForInsertStatement(DataAPI.dataDictionary)) {
-            return null;
-        }
+        validateFieldsForInsertStatement(DataAPI.dataDictionary);
 
-        if (knownFields.size() < 1) {
-            System.err.println("Nothing to insert.");
-            this.sqlQuery = null;
-            return null;
+        if (knownFields.isEmpty()) {
+            throw new EmptyKnownFieldsException("Nothing to insert.");
         }
 
         // all the unknown fields were found, append together all fields and values to form the insert query
@@ -336,9 +323,6 @@ public class Query {
 
         // add parameters from knownFields to the NativeQuery
         updateSqlQueryWithParameters();
-
-        // return query for getting the newly inserted ID
-        return session.createSQLQuery("SELECT LAST_INSERT_ID();");
     }
 
     /**
@@ -346,7 +330,7 @@ public class Query {
      * @return true if the query could be constructed; false otherwise
      * @throws Exception Invalid request: there must be at least a field unknown
      */
-    private boolean constructSelectQuery(Session session) {
+    private void constructSelectQuery(Session session) throws NullPointerException {
         if (unknownFields.keySet().size() < 1) {
             // TODO: there are no unkownFields: add all the knwonFields into DataAPI.dataDictionary
             /*
@@ -364,17 +348,14 @@ public class Query {
             },
              */
             System.out.println("+_+_+_+_+_++__++_+_+_+_+_+_+_+_");
-            return false;
+            return;
         }
 
         // SELECT	-> unknownFields
         String selectStatement = String.join(" , ", unknownFields.keySet().stream().toArray(String[]::new));
 
         // WHERE	-> this.knownFields
-        String[] conditions = getEquals(knownFields, " is ");
-        if (conditions == null) {
-            return false;
-        }
+        ArrayList<String> conditions = getEquals(knownFields, " is ");
         String condition = String.join(" AND ", conditions);
 
         // select the SQL query
@@ -382,33 +363,27 @@ public class Query {
 
         // add parameters from knownFields to the NativeQuery
         updateSqlQueryWithParameters();
-
-        return true;
     }
 
     /**
      * Construct the update SQL query to be executed
      * @return second query to be executed
      */
-    private boolean constructUpdateQuery(Session session) {
+    private void constructUpdateQuery(Session session) {
         XID xid = DataAPI.dataDictionary.get(XID);
         String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
-        String[] values = getEquals(knownFields, " = ");
-        if (values == null) {
-            return false;
-        }
+        ArrayList<String> values = getEquals(knownFields, " = ");
         String valuesConcatenated = String.join(" , ", values);
 
         // select the SQL query
-        this.sqlQuery = session.createSQLQuery(String.format("UPDATE %s SET %s WHERE :primaryKeyName = :primaryKeyValue",
-                this.dataSet, valuesConcatenated))
-        .setParameter("primaryKeyName", primaryKey)
+        this.sqlQuery = session.createSQLQuery(String.format("UPDATE %s SET %s WHERE %s = :primaryKeyValue",
+                this.dataSet, valuesConcatenated, primaryKey))
         .setParameter("primaryKeyValue", xid.knownFields.get(primaryKey));
+
+        System.out.println("PK: " + primaryKey + "     VAL: " + xid.knownFields.get(primaryKey));
 
         // add parameters from knownFields to the NativeQuery
         updateSqlQueryWithParameters();
-
-        return true;
     }
 
     /**
@@ -416,7 +391,8 @@ public class Query {
      */
     private void updateSqlQueryWithParameters() {
         for (Map.Entry<String, String> entryKnownField : knownFields.entrySet()) {
-            if (entryKnownField.getValue() != null) {
+            // if a value exists for the field and it's not the primary key
+            if (entryKnownField.getValue() != null && !entryKnownField.getKey().equals(DataAPI.keyIndex.get(dataSet).primaryKey)) {
                 System.out.println("Replacing: " + entryKnownField.getKey() + "  with " + entryKnownField.getValue());
                 this.sqlQuery.setParameter(entryKnownField.getKey(), entryKnownField.getValue());
             }
@@ -428,7 +404,7 @@ public class Query {
      * @param dataDictionarry hashmap to be validated
      * @return true if all unknownFields are found in the DataAPI.dataDictionary; false if one unknown field was not found
      */
-    private boolean validateFieldsForInsertStatement(HashMap<String, XID> dataDictionarry) {
+    private void validateFieldsForInsertStatement(HashMap<String, XID> dataDictionarry) throws ValuesNotFoundException {
         for (Map.Entry<String, String> entry : unknownFields.entrySet()) {
             String XID = entry.getValue();
             String id = entry.getKey();
@@ -439,12 +415,11 @@ public class Query {
                 // if the value is still unknown in the global map (still null)
                 if (dataDictionarry.containsKey(XID)) {
                     if (dataDictionarry.get(XID) == null || dataDictionarry.get(XID).knownFields.get(id) == null) {
-                        return false;
+                        throw new ValuesNotFoundException();
                     }
                 }
             }
         }
-        return true;
     }
 
     /**
@@ -454,21 +429,21 @@ public class Query {
      *
      * @return array of Objects (strings)
      */
-    private String[] getEquals(TreeMap<String, String> map, String nullDelimiter) {
-        String[] resultingConditions = new String[map.size()];
+    private ArrayList<String> getEquals(TreeMap<String, String> map, String nullDelimiter) throws NullPointerException {
+        ArrayList<String> resultingConditions = new ArrayList<>();
 
-        if (map.isEmpty()) {
-            return null;
-        }
-
-        int currentIndex = 0;
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            // if value is null, use "key is null" syntax
-            if (entry.getValue() == null) {
-                resultingConditions[currentIndex++] = entry.getKey() + nullDelimiter + entry.getValue();
-            } else {
-                // else, use "key = value"
-                resultingConditions[currentIndex++] = entry.getKey() + " = :" + entry.getKey();
+            // don't add the primary key
+            System.out.println("key: " + entry.getKey());
+            if (!entry.getKey().equals(DataAPI.keyIndex.get(dataSet).primaryKey)) {
+                System.out.println("\treplacing " + entry.getKey() + "    " + entry.getValue());
+                // if value is null, use "key is null" syntax
+                if (entry.getValue() == null) {
+                    resultingConditions.add(entry.getKey() + nullDelimiter + entry.getValue());
+                } else {
+                    // else, use "key = value"
+                    resultingConditions.add(entry.getKey() + " = :" + entry.getKey());
+                }
             }
         }
 
@@ -484,47 +459,24 @@ public class Query {
      *
      * @return array containing the columns returned by the sql query
      */
-    private int executeQuery(Session session, NativeQuery secondaryQueryInsert) {
-        if (this.sqlQuery == null)
-            return -1;
-
-        int rowsAffected = -1;
-
-        /* only if the crud is "create", execute the secondary query */
-        if (this.crudOperation == crudOperation.CREATE) {
-            session.beginTransaction();
-            rowsAffected = this.sqlQuery.executeUpdate();
-            session.getTransaction().commit();
-
-            if (secondaryQueryInsert != null) {
-                this.sqlQuery = secondaryQueryInsert;
-            } else {
-                return rowsAffected;
-            }
-        }
-
-        // get all the fields from the sql query
-        this.sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
-
-        // !! Returned fields can be Integers, so the value in the HashMap must be a parent of all types:
-        // Strings, Integer, etc. => Object must be used
-        List<HashMap<String, Object>> aliasToValueMapList = this.sqlQuery.list();
-
-        System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
-
+    private int executeQuery(Session session, int minRowsExpected) throws NullPointerException, InvalidNumberOfRowsAffectedException {
         TreeMap<String, String> knownFields = new TreeMap<>();
 
-        if (this.crudOperation == crudOperation.CREATE) {
-            String newlyInsertedId = aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString();
+        // TODO: NOT SURE MERGE IS NEEDED HERE
+        if (this.crudOperation == CrudOperation.CREATE || this.crudOperation == CrudOperation.MERGE) {
+            System.out.println("=1= Execute insert");
+            executeInsert(session, this.sqlQuery);
+        }
 
-            // the pk is not an auto-increment column -> the pk must have been specified by hand, so there is nothing to update
-            if (Integer.parseInt(newlyInsertedId) == 0) {
-                return -1;
-            }
-
+        if (this.crudOperation == CrudOperation.CREATE) {
+            int newlyInsertedId = getNewlyInsertedId(session);
             String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
-            knownFields.put(primaryKey, newlyInsertedId);
-        } else {
+
+            knownFields.put(primaryKey, String.valueOf(newlyInsertedId));
+        } else if (this.crudOperation == CrudOperation.RETRIEVE) {
+            // TODO: remove aliasToValueMapList
+            List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session, this.sqlQuery, minRowsExpected);
+
             // append to the known fields of the XID object all the rows returned by the SQL
             for (HashMap<String, Object> result : aliasToValueMapList) {
                 for (String key : result.keySet()) {
@@ -533,14 +485,9 @@ public class Query {
             }
         }
 
-        // return the number of rows returned by the sql query
-        if (rowsAffected == -1) {
-            rowsAffected = aliasToValueMapList.size();
-        }
-
-        // if unknownFields has no entries, it means there is no information required:
-        // ex: insert with a known id
-        if (unknownFields.size() > 0) {
+        // if unknownFields has no entries, it means there is no information required
+        if (!unknownFields.isEmpty()) {
+            System.out.println("SS+4: UPDATING");
             // get the XID corresponding to the PK
             String XID = unknownFields.get(DataAPI.keyIndex.get(dataSet).primaryKey);
 
@@ -558,8 +505,9 @@ public class Query {
                 DataAPI.dataDictionary.put(XID, new XID(XID, this.dataSet, knownFields));
             }
         }
+        System.out.println("SS+4: done updating " + knownFields.size());
 
-        return rowsAffected;
+        return knownFields.size();
     }
 
     /**
@@ -567,13 +515,15 @@ public class Query {
      *
      * @param session Sql session
      * @return string containing current system date time; if time could not be retrieved, return null
+     * @throws InvalidSqlResponse error when retrieving time from database
      */
-    static String getTime(Session session) {
+    static String getTime(Session session) throws InvalidSqlResponse {
         NativeQuery sqlQuery = session.createSQLQuery("SELECT NOW();");
         List<Object> requestRoutines = sqlQuery.getResultList();
 
-        if (requestRoutines.size() != 1)
-            return null;
+        if (requestRoutines.size() != 1) {
+            throw new InvalidSqlResponse("Could not get the time from the current session.");
+        }
 
         return requestRoutines.get(0).toString();
     }
@@ -601,7 +551,8 @@ public class Query {
         sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
         List<HashMap<String, String>> aliasToValueMapList = sqlQuery.list();
 
-        System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
+        // TODO: DEBUG
+        Query.prettyPrintQueryResultString(aliasToValueMapList);
 
         for (HashMap<String, String> row : aliasToValueMapList) {
             String constraintType = row.get("CONSTRAINT_TYPE");
@@ -686,18 +637,20 @@ public class Query {
         saveSets.push(saveSetItem);
     }
 
-    // TODO: throw error if there is no insert (size != 1)
-    private static int getNewlyInsertedId(Session session) {
+    private static int getNewlyInsertedId(Session session) throws InvalidNumberOfRowsAffectedException{
         List<HashMap<String, Object>> aliasToValueMapList = executeSelect(
                 session,
-                session.createSQLQuery("SELECT LAST_INSERT_ID();"));
-        if (aliasToValueMapList.size() == 1) {
-            return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
+                session.createSQLQuery("SELECT LAST_INSERT_ID();"),
+                ONE_ROW);
+
+        if (aliasToValueMapList.size() != 1) {
+            throw new InvalidNumberOfRowsAffectedException("SELECT LAST_INSERT_ID();");
         }
-        return -1;
+
+        return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
     }
 
-    public static int insertAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id) {
+    public static int insertAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id) throws InvalidNumberOfRowsAffectedException {
         executeInsert(
             session,
             session.createSQLQuery("INSERT INTO event_attachment_item (attachment_data_id, event_attachment_group_id," +
@@ -708,32 +661,43 @@ public class Query {
         return getNewlyInsertedId(session);
     }
 
-    private static List<HashMap<String, Object>> executeSelect(Session session, NativeQuery sqlQuery) {
+    private static List<HashMap<String, Object>> executeSelect(Session session, NativeQuery sqlQuery, int minRowsExpected) throws InvalidNumberOfRowsAffectedException {
+        // get all the fields from the sql query
         sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+
+        // Returned fields can be Integers, so the value in the HashMap must be a parent of all types:
+        // Strings, Integer, etc. => Object must be used
         List<HashMap<String, Object>> aliasToValueMapList = sqlQuery.list();
 
-        System.err.println("=====SQL response:=========" + aliasToValueMapList + "================");
+        // TODO: DEBUG
+        Query.prettyPrintQueryResultObject(aliasToValueMapList);
 
+        // throw an exception of the number of rows affected does not correspond to the one expected
+        if (aliasToValueMapList.size() < minRowsExpected || aliasToValueMapList.size() > 1) {
+            throw new InvalidNumberOfRowsAffectedException(aliasToValueMapList.size() +
+                    " rows returned! Expected no less than " + minRowsExpected + " rows and no more than one.");
+        }
         return aliasToValueMapList;
     }
 
-    private static int executeInsert(Session session, NativeQuery sqlQuery) {
-        session.beginTransaction();
-        int rowsAffected = sqlQuery.executeUpdate();
-        if (rowsAffected == 1) {
-            session.getTransaction().commit();
+    private static void executeInsert(Session session, NativeQuery sqlQuery) throws InvalidNumberOfRowsAffectedException {
+        int numberRowsAffected = sqlQuery.executeUpdate();
+        System.out.println("=2= " + numberRowsAffected);
+
+        if (numberRowsAffected != ONE_ROW) {
+            System.out.println("=3= error");
+            throw new InvalidNumberOfRowsAffectedException();
         }
 
-        return rowsAffected;
     }
 
-    static int insertIfNotExistsAttachmentGroup(Session session, int event_id, String elementTypeClassName){
+    static int insertIfNotExistsAttachmentGroup(Session session, int event_id, String elementTypeClassName) throws InvalidNumberOfRowsAffectedException {
 
         NativeQuery sqlQuery = session.createSQLQuery("SELECT id from element_type where class_name = :elementTypeClassName")
                 .setParameter("elementTypeClassName", elementTypeClassName);
 
         // get the id of the element_type of given class
-        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session, sqlQuery);
+        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session, sqlQuery, ONE_ROW);
         if (aliasToValueMapList.size() != 1) {
             System.err.println("Element_type could not be found!");
             return -1;
@@ -743,8 +707,9 @@ public class Query {
         aliasToValueMapList = executeSelect(
             session,
             session.createSQLQuery("SELECT id from event_attachment_group where event_id = :event_id and element_type_id = :elementTypeId")
-            .setParameter("event_id", event_id)
-            .setParameter("elementTypeId", elementTypeId));
+                .setParameter("event_id", event_id)
+                .setParameter("elementTypeId", elementTypeId),
+            NO_ROWS);
 
         if (aliasToValueMapList.size() == 1) {
             // exists; return the id
@@ -762,6 +727,16 @@ public class Query {
         return getNewlyInsertedId(session);
     }
 
+    public static void prettyPrintQueryResultObject(List<HashMap<String, Object>> aliasToValueMapList) {
+        System.err.println("========================SQL response:========================\n\t\t\t"
+                + aliasToValueMapList +
+                "\n==============================================================");
+    }
 
+    public static void prettyPrintQueryResultString(List<HashMap<String, String>> aliasToValueMapList) {
+        System.err.println("========================SQL response:========================\n"
+                + aliasToValueMapList +
+                "\n==============================================================");
+    }
 
 }

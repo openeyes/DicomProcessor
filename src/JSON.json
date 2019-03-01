@@ -1,187 +1,212 @@
 {
-	"_OE_System": "ABEHR Jason Local v3.0",
-	"_Version": "v0.1",
-	"$$_XID_Map_$$": [
-		{
-			"$$_XID_$$": "$$_patient[1]_$$",
-			"$$_DataSet_$$": "patient",
-			"id": "17891"
-		},
-		{
-			"$$_XID_$$": "$$_attachment_data[1]_$$",
-			"$$_DataSet_$$": "attachment_data",
-			"id": "2"
-		},
-		{
-			"$$_XID_$$": "$$_user[1]_$$",
-			"$$_DataSet_$$": "user",
-			"id": "1"
-		},
-		{
-			"$$_XID_$$": "$$_subspecialty[1]_$$",
-			"$$_DataSet_$$": "subspecialty",
-			"name": "General Ophthalmology"
-		},
-		{
-			"$$_XID_$$": "$$_service[1]_$$",
-			"$$_DataSet_$$": "service",
-			"name": "Eye Casualty Service"
-		}
-	],
-	"$$_SaveSet[1]_$$": [
-		{
-			"$$_DataSet_$$": "event_type",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "RETRIEVE",
-					"id": "$$_event_type[1]_$$",
-					"class_name": "OphGeneric"
-				}
-			]
-		},
-		{
-			"$$_DataSet_$$": "subspecialty",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "RETRIEVE",
-					"id": "$$_subspecialty[1]_$$"
-				}
-			]
-		},
-		{
-			"$$_DataSet_$$": "service",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "RETRIEVE",
-					"id": "$$_service[1]_$$"
-				}
-			]
-		},
-		{
-			"$$_DataSet_$$": "service_subspecialty_assignment",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "RETRIEVE",
-					"id": "$$_service_subspecialty_assignment[1]_$$",
-					"service_id": "$$_service[1].id_$$",
-					"subspecialty_id": "$$_subspecialty[1].id_$$"
-				}
-			]
-		},
-		{
-			"$$_DataSet_$$": "firm",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "RETRIEVE",
-					"id": "$$_firm[1]_$$",
-					"service_subspecialty_assignment_id": "$$_service_subspecialty_assignment[1].id_$$"
-				}
-			]
-		},
-		{
-			"$$_DataSet_$$": "episode",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "RETRIEVE",
-					"id": "$$_episode[1]_$$",
-					"patient_id": "$$_patient[1].id_$$",
-					"firm_id": "$$_firm[1].id_$$",
-					"$$_QUERIES_$$": [
-						{
-							"$$_PARAMETERS_$$": [
-								"$$_patient[1].id_$$"
-							],
-							"$$_SQL_$$": "(SELECT ep.id FROM openeyes.`episode` ep JOIN openeyes.`event` ev ON ev.`episode_id` = ep.`id`WHERE ep.`patient_id` = $$_patient[1].id_$$ ORDER BY ev.`event_date` DESC LIMIT 1) UNION ALL (SELECT ep.id FROM openeyes.`episode` ep WHERE ep.`patient_id` = $$_patient[1].id_$$ AND NOT EXISTS ( SELECT NULL FROM openeyes.`episode` ep2 JOIN openeyes.`event` ev2 ON ev2.`episode_id` = ep2.`id` WHERE ep2.`patient_id` = $$_patient[1].id_$$) ORDER BY ep.`created_date` DESC LIMIT 1);"
-						}
-					]
-				}
-			]
-		},
-		{
-			"$$_DataSet_$$": "event",
-			"$$_ROW_$$": {
-				"$$_CRUD_$$": "MERGE",
-				"id": "$$_event[1]_$$",
-				"episode_id": "$$_episode[1].id_$$",
-				"created_user_id": "$$_user[1].id_$$",
-				"event_type_id": "$$_event_type[1].id_$$",
-				"last_modified_user_id": "$$_user[1].id_$$",
-				"created_date": "$$_SysDateTime_$$",
-				"event_date": "$$_SysDateTime_$$",
-				"info": "Draft",
-				"deleted": "0",
-				"delete_reason": "null",
-				"delete_pending": "0",
-				"is_automated": "null",
-				"automated_source": "null",
-				"parent_id": "null",
-				"sub_type": "null",
-				"pas_visit_id": "null",
-				"firm_id": "$$_firm[1].id_$$"
-			}
-		},
-		{
-			"$$_DataSet_$$": "element_type",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "RETRIEVE",
-					"id": "$$_element_type[1]_$$",
-					"name": "Attachment"
-				}
-			]
-		},
-		{
-			"$$_DataSet_$$": "event_attachment_group",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "MERGE",
-					"id": "$$_event_attachment_group[1]_$$",
-					"event_id": "$$_event[1].id_$$",
-					"element_type_id": "$$_element_type[1].id_$$"
-				}
-			]
-		},
-		{
-			"$$_DataSet_$$": "event_attachment_item",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "MERGE",
-					"id": "$$_event_attachment_item[1]_$$",
-					"event_attachment_group_id": "$$_event_attachment_group[1].id_$$",
-					"attachment_data_id": "$$_attachment_data[1].id_$$",
-					"system_only_managed": "1"
-				}
-			]
-		},
-		{
-			"$$_DataSet_$$": "et_ophgeneric_attachment",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "MERGE",
-					"id": "$$_et_ophgeneric_attachment[1]_$$",
-					"event_id": "$$_event[1].id_$$"
-				}
-			]
-		},
-		{
-			"$$_DataSet_$$": "et_ophgeneric_comments",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "MERGE",
-					"id": "$$_et_ophgeneric_comments[1]_$$",
-					"event_id": "$$_event[1].id_$$"
-				}
-			]
-		},
-		{
-			"$$_DataSet_$$": "et_ophgeneric_medical_report",
-			"$$_ROW_$$": [
-				{
-					"$$_CRUD_$$": "MERGE",
-					"id": "$$_et_ophgeneric_medical_report[1]_$$",
-					"event_id": "$$_event[1].id_$$"
-				}
-			]
-		}
-	]
+  "_OE_System": "ABEHR Jason Local v3.0",
+  "_Version": "v0.1",
+  "$$_XID_Map_$$": [
+    {
+      "$$_XID_$$": "$$_patient[1]_$$",
+      "$$_DataSet_$$": "patient",
+      "id": "17891"
+    },
+    {
+      "$$_XID_$$": "$$_attachment_data[1]_$$",
+      "$$_DataSet_$$": "attachment_data",
+      "id": "2",
+      "request": 1
+    },
+    {
+      "$$_XID_$$": "$$_user[1]_$$",
+      "$$_DataSet_$$": "user",
+      "id": "1"
+    },
+    {
+      "$$_XID_$$": "$$_subspecialty[1]_$$",
+      "$$_DataSet_$$": "subspecialty",
+      "name": "General Ophthalmology"
+    },
+    {
+      "$$_XID_$$": "$$_service[1]_$$",
+      "$$_DataSet_$$": "service",
+      "name": "Eye Casualty Service"
+    }
+  ],
+  "$$_SaveSet[1]_$$": [
+    {
+      "$$_DataSet_$$": "event_type",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "RETRIEVE",
+          "id": "$$_event_type[1]_$$",
+          "class_name": "OphGeneric"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "subspecialty",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "RETRIEVE",
+          "id": "$$_subspecialty[1]_$$"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "service",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "RETRIEVE",
+          "id": "$$_service[1]_$$"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "service_subspecialty_assignment",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "RETRIEVE",
+          "id": "$$_service_subspecialty_assignment[1]_$$",
+          "service_id": "$$_service[1].id_$$",
+          "subspecialty_id": "$$_subspecialty[1].id_$$"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "firm",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "RETRIEVE",
+          "id": "$$_firm[1]_$$",
+          "service_subspecialty_assignment_id": "$$_service_subspecialty_assignment[1].id_$$"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "episode",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "RETRIEVE",
+          "id": "$$_episode[1]_$$",
+          "patient_id": "$$_patient[1].id_$$",
+          "firm_id": "$$_firm[1].id_$$",
+          "$$_QUERIES_$$": [
+            {
+              "$$_PARAMETERS_$$": [
+                "$$_patient[1].id_$$"
+              ],
+              "$$_SQL_$$": "(SELECT ep.id FROM openeyes.`episode` ep JOIN openeyes.`event` ev ON ev.`episode_id` = ep.`id`WHERE ep.`patient_id` = $$_patient[1].id_$$ ORDER BY ev.`event_date` DESC LIMIT 1) UNION ALL (SELECT ep.id FROM openeyes.`episode` ep WHERE ep.`patient_id` = $$_patient[1].id_$$ AND NOT EXISTS ( SELECT NULL FROM openeyes.`episode` ep2 JOIN openeyes.`event` ev2 ON ev2.`episode_id` = ep2.`id` WHERE ep2.`patient_id` = $$_patient[1].id_$$) ORDER BY ep.`created_date` DESC LIMIT 1);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "event",
+      "$$_ROW_$$": {
+        "$$_CRUD_$$": "MERGE",
+        "id": "$$_event[1]_$$",
+        "episode_id": "$$_episode[1].id_$$",
+        "created_user_id": "$$_user[1].id_$$",
+        "event_type_id": "$$_event_type[1].id_$$",
+        "last_modified_user_id": "$$_user[1].id_$$",
+        "created_date": "$$_SysDateTime_$$",
+        "event_date": "$$_SysDateTime_$$",
+        "info": "Draft",
+        "deleted": "0",
+        "delete_reason": "null",
+        "delete_pending": "0",
+        "is_automated": "null",
+        "automated_source": "null",
+        "parent_id": "null",
+        "sub_type": "null",
+        "pas_visit_id": "null",
+        "firm_id": "$$_firm[1].id_$$"
+      }
+    },
+    {
+      "$$_DataSet_$$": "element_type",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "RETRIEVE",
+          "id": "$$_element_type[1]_$$",
+          "class_name": "OEModule\\OphGeneric\\models\\Attachment"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "event_attachment_group",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "MERGE",
+          "id": "$$_event_attachment_group[1]_$$",
+          "event_id": "$$_event[1].id_$$",
+          "element_type_id": "$$_element_type[1].id_$$"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "event_attachment_item",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "MERGE",
+          "id": "$$_event_attachment_item[1]_$$",
+          "event_attachment_group_id": "$$_event_attachment_group[1].id_$$",
+          "attachment_data_id": "$$_attachment_data[1].id_$$",
+          "system_only_managed": "1"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "et_ophgeneric_attachment",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "MERGE",
+          "id": "$$_et_ophgeneric_attachment[1]_$$",
+          "event_id": "$$_event[1].id_$$"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "et_ophgeneric_comments",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "MERGE",
+          "id": "$$_et_ophgeneric_comments[1]_$$",
+          "event_id": "$$_event[1].id_$$"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "et_ophgeneric_medical_report",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "MERGE",
+          "id": "$$_et_ophgeneric_medical_report[1]_$$",
+          "manufacturer": "dicomHeaders['00080070']",
+          "manufacturer_model_name": "dicomHeaders['00081090']",
+          "modality": "dicomHeaders['00080060']",
+          "series_description": "dicomHeaders['0008103E']",
+          "laterality": "dicomHeaders['00200060']",
+          "image_laterality": "dicomHeaders['00200062']",
+          "study_description": "dicomHeaders['00081030']",
+          "study_description": "dicomHeaders['00420010']",
+          "study_description": "dicomHeaders['0008002A']",
+          "study_date": "dicomHeaders['00080020']",
+          "study_time": "dicomHeaders['00080030']",
+          "content_date": "dicomHeaders['00080023']",
+          "content_time": "dicomHeaders['00080033']",
+          "station_name": "dicomHeaders['00081010']",
+          "operators_name": "dicomHeaders['00081070']",
+          "software_version": "dicomHeaders['00181020']",
+          "study_instance_uid": "dicomHeaders['0020000D']",
+          "series_instance_uid": "dicomHeaders['0020000E']",
+          "study_id": "dicomHeaders['00200010']",
+          "series_number": "dicomHeaders['00200011']",
+          "instance_number": "dicomHeaders['00200013']",
+          "modifying_system": "dicomHeaders['04000563']",
+          "operator_identification_sequence": "dicomHeaders['00081072']",
+          "event_id": "$$_event[1].id_$$",
+          "last_request_id": "$$_attachment_data[1].request_id_$$"
+        }
+      ]
+    }
+  ]
 }
