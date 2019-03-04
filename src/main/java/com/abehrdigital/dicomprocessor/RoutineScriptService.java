@@ -68,7 +68,7 @@ public class RoutineScriptService {
     public void addRoutine(String routineName) throws HibernateException {
         RequestRoutine requestRoutine = daoManager.getRequestRoutineDao().findByRoutineNameAndRequestId(requestId, routineName);
         if (requestRoutine != null) {
-            daoManager.getRequestRoutineDao().resetRequestRoutine(requestRoutine);
+            daoManager.getRequestRoutineDao().resetAndSave(requestRoutine);
         } else {
             if (routineInLibraryExists(routineName)) {
                 requestRoutine = new RequestRoutine.Builder(
@@ -106,6 +106,14 @@ public class RoutineScriptService {
                     .blobData(pdfBlob).build();
             daoManager.getAttachmentDataDao().save(attachmentData);
         }
+    }
+
+    public void createAndSetThumbnailsOnAttachmentData(AttachmentData attachmentData){
+
+    }
+
+    public void linkAttachmentDataWithEvent(int attachmentId , int eventId , String elementTypeClassName){
+
     }
 
     //TODO REMOVE DATE OF BIRTH AND GENDER FROM THE QUERY

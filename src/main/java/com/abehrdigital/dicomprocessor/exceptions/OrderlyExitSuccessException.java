@@ -1,4 +1,4 @@
-package com.abehrdigital.dicomprocessor;
+package com.abehrdigital.dicomprocessor.exceptions;
 
 public class OrderlyExitSuccessException extends Exception {
 

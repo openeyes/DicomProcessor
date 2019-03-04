@@ -4,24 +4,30 @@ import com.abehrdigital.dicomprocessor.dao.ScriptEngineDaoManager;
 import com.abehrdigital.dicomprocessor.models.Request;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RequestRoutineExecution;
-import com.abehrdigital.dicomprocessor.utils.JavascriptRoutineMethodConverter;
+import com.abehrdigital.dicomprocessor.utils.RoutineScriptAccessor;
 import org.hibernate.LockMode;
+import java.io.IOException;
 
 public class RequestWorkerService {
     private ScriptEngineDaoManager daoManager;
     private int requestId;
     private String requestQueueName;
     private RoutineScriptService scriptService;
+    private RoutineScriptAccessor scriptAccessor;
 
-    public RequestWorkerService(ScriptEngineDaoManager daoManager, int requestId, String requestQueueName) {
+    public RequestWorkerService(ScriptEngineDaoManager daoManager,
+                                int requestId,
+                                String requestQueueName,
+                                RoutineScriptAccessor scriptAccessor) {
         this.daoManager = daoManager;
         this.requestId = requestId;
         this.requestQueueName = requestQueueName;
         this.scriptService = new RoutineScriptService(daoManager, requestId, requestQueueName);
+        this.scriptAccessor = scriptAccessor;
     }
 
-    public String getRoutineBody(String routineName) {
-        return daoManager.getRoutineLibraryDao().get(routineName).getRoutineBody();
+    public String getRoutineBody(String routineName) throws IOException {
+        return scriptAccessor.getRoutineScript(routineName);
     }
 
     public RoutineScriptService getScriptService() {
@@ -63,16 +69,5 @@ public class RequestWorkerService {
 
     public void shutDown() {
         daoManager.shutDown();
-    }
-
-    public String getRoutineBodyWithConvertedJavaMethods(String routineName, String prefix) {
-        String routineScript = getRoutineBody(routineName);
-        String convertedRoutineScript = null;
-        convertedRoutineScript = JavascriptRoutineMethodConverter.convertScriptJavaMethodsWithClassPrefix(
-                routineScript,
-                RoutineScriptService.class.getMethods(),
-                prefix
-        );
-        return convertedRoutineScript;
     }
 }

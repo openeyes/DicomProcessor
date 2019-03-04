@@ -1,0 +1,7 @@
+ var requestData = JSON.parse(getJson('request_data', null));
+     requestData.patientId = getPatientId(requestData.hosNum , requestData.dateOfBirth , requestData.gender);
+        putJson(
+        'request_data',
+        JSON.stringify(requestData),
+         'request_json' ,
+          null, 'json');

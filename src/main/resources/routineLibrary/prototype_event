@@ -1,0 +1,6 @@
+var eventTemplate = getEmptyEventTemplate();
+     putJson(
+      'event_data',
+     eventTemplate,
+     'event_data',
+     null, 'json');

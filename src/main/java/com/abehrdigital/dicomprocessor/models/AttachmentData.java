@@ -23,6 +23,12 @@ public class AttachmentData {
     private Integer requestId;
     @Column(name = "blob_data")
     private Blob blobData;
+    @Column(name = "thumbnail_small_blob" ,columnDefinition = "MEDIUMBLOB")
+    private Blob smallThumbnail;
+    @Column(name = "thumbnail_medium_blob" , columnDefinition = "MEDIUMBLOB")
+    private Blob mediumThumbnail;
+    @Column(name = "thumbnail_large_blob" , columnDefinition = "MEDIUMBLOB")
+    private Blob largeThumbnail;
     @Column(name = "json_data", columnDefinition = "LONGTEXT")
     private String jsonData;
     @Column(name = "attachment_type")
@@ -112,6 +118,10 @@ public class AttachmentData {
         return mimeType;
     }
 
+    public int getId() {
+        return id;
+    }
+
     public String getAttachmentMnemonic() {
         return attachmentMnemonic;
     }
@@ -124,8 +134,32 @@ public class AttachmentData {
         return blobData;
     }
 
-    public int getId() {
-        return id;
+    public Integer getRequestId() {
+        return requestId;
+    }
+
+    public Blob getSmallThumbnail() {
+        return smallThumbnail;
+    }
+
+    public Blob getMediumThumbnail() {
+        return mediumThumbnail;
+    }
+
+    public Blob getLargeThumbnail() {
+        return largeThumbnail;
+    }
+
+    public void setSmallThumbnail(Blob smallThumbnail) {
+        this.smallThumbnail = smallThumbnail;
+    }
+
+    public void setMediumThumbnail(Blob mediumThumbnail) {
+        this.mediumThumbnail = mediumThumbnail;
+    }
+
+    public void setLargeThumbnail(Blob largeThumbnail) {
+        this.largeThumbnail = largeThumbnail;
     }
 
     public void setBlobData(Blob value) {

@@ -1,0 +1,73 @@
+var requestData = JSON.parse(getJson('request_data', null));
+
+ var dicomParser = getDicom('request_blob', null);
+
+ var dicom = dicomParser.getStudy();
+
+ var dicomHeader = JSON.parse(dicom.getHeaderJsonString());
+
+requestData.manufacturer = dicomHeader['524400'];
+requestData.manufacturer_model_name = dicomHeader['528528'];
+requestData.modality = dicomHeader['524384'];
+requestData.series_description  = dicomHeader['528446'];
+requestData.laterality = dicomHeader['2097248'];
+requestData.image_laterality  = dicomHeader['2097250'];
+requestData.study_description   = dicomHeader['4325392'];
+requestData.document_title    = dicomHeader['528432'];
+requestData.software_version = dicomHeader['181020'];
+requestData.document_title = dicomHeader['4325392'];
+requestData.acquisition_date_time = dicomHeader['524330'];
+requestData.study_date = dicomHeader['524320'];
+requestData.study_time = dicomHeader['524336'];
+requestData.content_date = dicomHeader['524323'];
+requestData.content_time = dicomHeader['524339'];
+requestData.station_name = dicomHeader['00081010'];
+requestData.operators_name = dicomHeader['528400'];
+requestData.hosNum = dicomHeader['1048608'];
+requestData.name = dicomHeader['1048592'];
+requestData.gender = dicomHeader['1048640'];
+requestData.dateOfBirth = dicomHeader['1048624'];
+requestData.study_instance_uid = dicomHeader['2097165'];
+requestData.series_instance_uid = dicomHeader['2097166'];
+requestData.study_id = dicomHeader['2097168'];
+requestData.series_number = dicomHeader['2097169'];
+requestData.instance_number = dicomHeader['2097171'];
+requestData.modifying_system = dicomHeader['67110243'];
+requestData.operator_identification_sequence = dicomHeader['528498'];
+     putJson(
+             'dicom_header',
+             JSON.stringify(dicomHeader),
+             'dicom_header',
+             null,
+             'dicom');
+
+     var pdf = dicom.getPdfAsBlob();
+
+     putPdf('event_pdf',
+             pdf,
+             'event_pdf',
+             null,
+             'application/pdf');
+
+
+     putJson(
+             'request_data',
+             JSON.stringify(requestData),
+             'request_json',
+             null, 'json');
+     addRoutine('prototype_event');
+     addRoutine('PAS_API');
+
+     var biometry = JSON.parse(getJson('biometry_data', null));
+     biometry.studyId = dicomHeader['2097168'];
+     biometry.time = dicomHeader['524336'];
+     biometry.date = dicomHeader['4194884'];
+
+     putJson(
+             'biometry_data',
+             JSON.stringify(biometry),
+             'biometry_report',
+             null,
+             'dicom');
+
+     addRoutine('create_event');

@@ -6,6 +6,7 @@
 package com.abehrdigital.dicomprocessor;
 
 import com.abehrdigital.dicomprocessor.dao.RequestQueueDaoManager;
+import com.abehrdigital.dicomprocessor.exceptions.RequestQueueMissingException;
 import com.abehrdigital.dicomprocessor.models.RequestQueue;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.utils.DaoFactory;
@@ -39,7 +40,7 @@ public class RequestQueueExecutor implements RequestThreadListener {
         requestIdToThreadSyncMap = new HashMap<>();
     }
 
-    public void execute() {
+    public void execute() throws RequestQueueMissingException {
         try {
             requestQueueLocker.lockWithMaximumTryCount(LOCK_MAXIMUM_TRY_COUNT);
             List<RequestRoutine> requestRoutinesForExecution = daoManager
@@ -72,7 +73,9 @@ public class RequestQueueExecutor implements RequestThreadListener {
 
             currentRequestQueue = getUpToDateRequestQueue();
             sleepAfterRoutineLoop(requestRoutinesForExecution.size());
-        } catch (Exception exception) {
+        } catch (RequestQueueMissingException queueMissingException){
+            throw queueMissingException;
+        } catch(Exception exception) {
             daoManager.rollback();
             Logger.getLogger(RequestQueueExecutor.class.getName()).log(Level.SEVERE,
                     exception.toString() + " Executor exception");
