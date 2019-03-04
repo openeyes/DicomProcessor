@@ -124,6 +124,8 @@ public class Query {
         } else if (rowsAffected == 1) {
             System.out.println("+++++++++++UPDATE++++++++ ");
 
+            this.crudOperation = CrudOperation.MERGE;
+
             // try to update fields
             if (isPrimaryKeyKnown()) {
                 update(session);
@@ -233,6 +235,7 @@ public class Query {
 
             // replace "$$_SysDateTime_$$" with the time set at the start of the program execution
             if (xidUnknown.equals("$$_SysDateTime_$$")) {
+                System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" + unknownFieldId);
                 knownFields.put(unknownFieldId, DataAPI.getTime());
                 unknownFieldsIterator.remove();
                 continue;
@@ -465,7 +468,7 @@ public class Query {
         // TODO: NOT SURE MERGE IS NEEDED HERE
         if (this.crudOperation == CrudOperation.CREATE || this.crudOperation == CrudOperation.MERGE) {
             System.out.println("=1= Execute insert");
-            executeInsert(session, this.sqlQuery);
+            executeInsertUpdate(session, this.sqlQuery);
         }
 
         if (this.crudOperation == CrudOperation.CREATE) {
@@ -651,7 +654,7 @@ public class Query {
     }
 
     public static int insertAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id) throws InvalidNumberOfRowsAffectedException {
-        executeInsert(
+        executeInsertUpdate(
             session,
             session.createSQLQuery("INSERT INTO event_attachment_item (attachment_data_id, event_attachment_group_id," +
                 " system_only_managed) VALUES ( :attachment_data_id , :eventAttachmentGroupID, 1);")
@@ -662,6 +665,7 @@ public class Query {
     }
 
     private static List<HashMap<String, Object>> executeSelect(Session session, NativeQuery sqlQuery, int minRowsExpected) throws InvalidNumberOfRowsAffectedException {
+        System.err.println("=======SELECT======== ");
         // get all the fields from the sql query
         sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
 
@@ -680,7 +684,8 @@ public class Query {
         return aliasToValueMapList;
     }
 
-    private static void executeInsert(Session session, NativeQuery sqlQuery) throws InvalidNumberOfRowsAffectedException {
+    private static void executeInsertUpdate(Session session, NativeQuery sqlQuery) throws InvalidNumberOfRowsAffectedException {
+        System.err.println("=======INSERT======== ");
         int numberRowsAffected = sqlQuery.executeUpdate();
         System.out.println("=2= " + numberRowsAffected);
 
@@ -688,7 +693,6 @@ public class Query {
             System.out.println("=3= error");
             throw new InvalidNumberOfRowsAffectedException();
         }
-
     }
 
     static int insertIfNotExistsAttachmentGroup(Session session, int event_id, String elementTypeClassName) throws InvalidNumberOfRowsAffectedException {
@@ -717,7 +721,7 @@ public class Query {
         }
 
         // does not exist, insert
-        executeInsert(
+        executeInsertUpdate(
             session,
             session.createSQLQuery("INSERT INTO event_attachment_group (event_id, element_type_id) VALUES ( :event_id , :elementTypeId );")
             .setParameter("event_id", event_id)

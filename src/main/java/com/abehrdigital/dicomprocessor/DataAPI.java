@@ -110,7 +110,7 @@ public class DataAPI {
                     Query query = (Query) queryIterator.next();
 
                     // TODO DEBUG
-                    System.out.println(query);
+                    System.err.println(query);
                     DataAPI.printMap("DataAPI.map: ", DataAPI.dataDictionary);
                     DataAPI.printKeyMap("KEY.map: ", DataAPI.keyIndex);
 
@@ -398,18 +398,16 @@ public class DataAPI {
      * @throws Exception Nothing to parse; Could not open a new session!; Could not get current date time!
      */
     static String magic(String userId, String jsonData, Session session) throws Exception {
+        DataAPI.prettyPrint(250, "Magic starts here");
         // TODO: needs renaming
         // TODO: use "user_id" for insert/merge operations
-        System.out.println("magic1");
         if (jsonData.isEmpty()) {
             throw new Exception("Nothing to parse");
         }
         try {
             /* basic initialization */
-            System.out.println("basic init");
             init(userId, session);
 
-            System.out.println("applyQBefore");
             // parse and execute the sql queries from the json string
             applyQueries(parseJson(jsonData));
         } catch (Exception e) {
@@ -421,7 +419,10 @@ public class DataAPI {
         DataAPI.printKeyMap("Final", DataAPI.keyIndex);
 
         // construct the json
-        return getUpdatedJson();
+        String updatedJSON = getUpdatedJson();
+
+        DataAPI.prettyPrint(250, "Magic ends here");
+        return updatedJSON;
     }
 
     /**
@@ -538,5 +539,12 @@ public class DataAPI {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void prettyPrint(int length, String message) {
+        String delimiter = new String(new char[length]).replace('\0', '=') + "\n";
+        delimiter = delimiter + delimiter + delimiter;
+        message = new String(new char[length/10]).replace('\0', '\t') + message + "\n";
+        System.err.println(delimiter + message + delimiter);
     }
 }

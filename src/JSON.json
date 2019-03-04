@@ -122,39 +122,6 @@
       }
     },
     {
-      "$$_DataSet_$$": "element_type",
-      "$$_ROW_$$": [
-        {
-          "$$_CRUD_$$": "RETRIEVE",
-          "id": "$$_element_type[1]_$$",
-          "class_name": "OEModule\\OphGeneric\\models\\Attachment"
-        }
-      ]
-    },
-    {
-      "$$_DataSet_$$": "event_attachment_group",
-      "$$_ROW_$$": [
-        {
-          "$$_CRUD_$$": "MERGE",
-          "id": "$$_event_attachment_group[1]_$$",
-          "event_id": "$$_event[1].id_$$",
-          "element_type_id": "$$_element_type[1].id_$$"
-        }
-      ]
-    },
-    {
-      "$$_DataSet_$$": "event_attachment_item",
-      "$$_ROW_$$": [
-        {
-          "$$_CRUD_$$": "MERGE",
-          "id": "$$_event_attachment_item[1]_$$",
-          "event_attachment_group_id": "$$_event_attachment_group[1].id_$$",
-          "attachment_data_id": "$$_attachment_data[1].id_$$",
-          "system_only_managed": "1"
-        }
-      ]
-    },
-    {
       "$$_DataSet_$$": "et_ophgeneric_attachment",
       "$$_ROW_$$": [
         {
@@ -180,29 +147,29 @@
         {
           "$$_CRUD_$$": "MERGE",
           "id": "$$_et_ophgeneric_medical_report[1]_$$",
-          "manufacturer": "dicomHeaders['00080070']",
-          "manufacturer_model_name": "dicomHeaders['00081090']",
-          "modality": "dicomHeaders['00080060']",
-          "series_description": "dicomHeaders['0008103E']",
-          "laterality": "dicomHeaders['00200060']",
-          "image_laterality": "dicomHeaders['00200062']",
-          "study_description": "dicomHeaders['00081030']",
-          "study_description": "dicomHeaders['00420010']",
-          "study_description": "dicomHeaders['0008002A']",
-          "study_date": "dicomHeaders['00080020']",
-          "study_time": "dicomHeaders['00080030']",
-          "content_date": "dicomHeaders['00080023']",
-          "content_time": "dicomHeaders['00080033']",
-          "station_name": "dicomHeaders['00081010']",
-          "operators_name": "dicomHeaders['00081070']",
-          "software_version": "dicomHeaders['00181020']",
-          "study_instance_uid": "dicomHeaders['0020000D']",
-          "series_instance_uid": "dicomHeaders['0020000E']",
-          "study_id": "dicomHeaders['00200010']",
-          "series_number": "dicomHeaders['00200011']",
-          "instance_number": "dicomHeaders['00200013']",
-          "modifying_system": "dicomHeaders['04000563']",
-          "operator_identification_sequence": "dicomHeaders['00081072']",
+          "manufacturer": "null",
+          "manufacturer_model_name": "null",
+          "modality": "null",
+          "series_description": "null",
+          "laterality": "null",
+          "image_laterality": "null",
+          "study_description": "null",
+          "document_title": "null",
+          "acquisition_date_time": "null",
+          "study_date": "null",
+          "study_time": "null",
+          "content_date": "null",
+          "content_time": "null",
+          "station_name": "null",
+          "operators_name": "null",
+          "software_version": "null",
+          "study_instance_uid": "null",
+          "series_instance_uid": "null",
+          "study_id": "null",
+          "series_number": "null",
+          "instance_number": "null",
+          "modifying_system": "null",
+          "operator_identification_sequence": "null",
           "event_id": "$$_event[1].id_$$",
           "last_request_id": "$$_attachment_data[1].request_id_$$"
         }

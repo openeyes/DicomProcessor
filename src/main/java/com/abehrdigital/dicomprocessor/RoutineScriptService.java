@@ -110,8 +110,8 @@ public class RoutineScriptService {
     }
 
     public void createAndSetThumbnailsOnAttachmentData(AttachmentData attachmentData) throws Exception {
-            AttachmentDataThumbnailAdder.addThumbnails(attachmentData);
-            daoManager.getAttachmentDataDao().save(attachmentData);
+        AttachmentDataThumbnailAdder.addThumbnails(attachmentData);
+        daoManager.getAttachmentDataDao().save(attachmentData);
     }
 
     public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName) {
@@ -124,13 +124,8 @@ public class RoutineScriptService {
         return daoManager.getPatientDao().getIdByHospitalNumber(hospitalNumber, dateOfBirth, gender);
     }
 
-    public String createEvent(String eventData) {
+    public String createEvent(String eventData) throws Exception {
         //TODO for light intergration
-        try {
-            return DataAPI.magic("1", eventData, daoManager.getConnection());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Exception: " + e.getStackTrace();
-        }
+        return DataAPI.magic("1", eventData, daoManager.getConnection());
     }
 }
