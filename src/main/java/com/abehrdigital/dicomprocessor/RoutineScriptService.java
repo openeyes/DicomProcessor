@@ -43,6 +43,13 @@ public class RoutineScriptService {
                 .getByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite, requestId);
     }
 
+    public AttachmentData getAttachmentDataByAttachmentMnemonicAndRequestId(String attachmentMnemonic , int requestId)
+            throws HibernateException {
+        return daoManager
+                .getAttachmentDataDao()
+                .getByAttachmentMnemonicAndBodySite(attachmentMnemonic, null, requestId);
+    }
+
     public void putJson(
             String attachmentMnemonic,
             String json,
@@ -108,17 +115,22 @@ public class RoutineScriptService {
         }
     }
 
-    public void createAndSetThumbnailsOnAttachmentData(AttachmentData attachmentData){
+    public void createAndSetThumbnailsOnAttachmentData(AttachmentData attachmentData) {
 
     }
 
-    public void linkAttachmentDataWithEvent(int attachmentId , int eventId , String elementTypeClassName){
+    public void linkAttachmentDataWithEvent(int attachmentId, int eventId, String elementTypeClassName) {
 
     }
 
     //TODO REMOVE DATE OF BIRTH AND GENDER FROM THE QUERY
     public int getPatientId(int hospitalNumber, int dateOfBirth, String gender) {
-        return daoManager.getPatientDao().getIdByHospitalNumber(hospitalNumber, dateOfBirth, gender);
+        return daoManager.getPatientDao().getIdByHospitalNumberAndDobAndGender(hospitalNumber, dateOfBirth, gender);
+    }
+
+    public AttachmentData getEventDataByMedicalReportStudyInstanceUID(String attachmentMnemonic , int studyInstanceUID){
+        Integer requestId = daoManager.getGenericMedicalReport().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
+        return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic , requestId);
     }
 
     public void createEvent(String eventData) {

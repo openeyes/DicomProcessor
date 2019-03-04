@@ -1,4 +1,15 @@
+var requestData = JSON.parse(getJson('request_data', null));
+var previousEventData = null;
+     if(requestData.study_instance_uid != null ){
+        previousEventData = getEventDataByMedicalReportStudyInstanceUID("event_data" , requestData.study_instance_uid);
+     }
+
 var eventTemplate = getEmptyEventTemplate();
+
+    if(previousEventData != null){
+        eventTemplate.$$_XID_Map_$$ = previousEventData.$$_XID_MAP_$$;
+    }
+
      putJson(
       'event_data',
      eventTemplate,
