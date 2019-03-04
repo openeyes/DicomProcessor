@@ -1,10 +1,13 @@
 var requestData = JSON.parse(getJson('request_data', null));
 var previousEventData = null;
-     if(requestData.study_instance_uid != null ){
-        previousEventData = getEventDataByMedicalReportStudyInstanceUID("event_data" , requestData.study_instance_uid);
-     }
+ if(requestData.study_instance_uid != null ){
+    var attachmentData = getEventDataByMedicalReportStudyInstanceUID('event_data' , requestData.study_instance_uid);
+    if(attachmentData != null) {
+        previousEventData = JSON.parse(attachmentData.getJson1());
+    }
+ }
 
-var eventTemplate = '{' +
+var eventTemplate = JSON.parse('{' +
     '"_OE_System": "ABEHR Jason Local v3.0",' +
     '"_Version": "v0.1",' +
     '"$$_XID_Map_$$": ' +
@@ -28,14 +31,14 @@ var eventTemplate = '{' +
             '{ "$$_DataSet_$$": "et_ophgeneric_comments", "$$_ROW_$$": [ { "$$_CRUD_$$": "MERGE", "id": "$$_et_ophgeneric_comments[1]_$$", "event_id": "$$_event[1].id_$$" } ] }, ' +
             '{ "$$_DataSet_$$": "et_ophgeneric_medical_report", "$$_ROW_$$": [ { "$$_CRUD_$$": "MERGE", "id": "$$_et_ophgeneric_medical_report[1]_$$", "manufacturer": "null", "manufacturer_model_name": "null", "modality": "null", "series_description": "null", "laterality": "null", "image_laterality": "null", "study_description": "null", "document_title": "null", "acquisition_date_time": "null", "study_date": "null", "study_time": "null", "content_date": "null", "content_time": "null", "station_name": "null", "operators_name": "null", "software_version": "null", "study_instance_uid": "null", "series_instance_uid": "null", "study_id": "null", "series_number": "null", "instance_number": "null", "modifying_system": "null", "operator_identification_sequence": "null", "event_id": "$$_event[1].id_$$", "last_request_id": "$$_attachment_data[1].request_id_$$" } ] } ' +
         '] ' +
-    '}';
+    '}');
 
-    if(previousEventData != null){
-        eventTemplate.$$_XID_Map_$$ = previousEventData.$$_XID_MAP_$$;
+    if(previousEventData != null && previousEventData.$$_XID_Map_$$ != null){
+        eventTemplate.$$_XID_Map_$$ = previousEventData.$$_XID_Map_$$;
     }
 
      putJson(
       'event_data',
-     eventTemplate,
+     JSON.stringify(eventTemplate),
      'event_data',
      null, 'json');

@@ -126,7 +126,7 @@ public class AttachmentData {
         return attachmentMnemonic;
     }
 
-    public String getJson() {
+    public String getJson1() {
         return jsonData;
     }
 

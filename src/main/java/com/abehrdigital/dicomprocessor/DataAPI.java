@@ -7,10 +7,7 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.*;
 
-import com.abehrdigital.dicomprocessor.exceptions.EmptyKnownFieldsException;
-import com.abehrdigital.dicomprocessor.exceptions.InvalidNumberOfRowsAffectedException;
-import com.abehrdigital.dicomprocessor.exceptions.InvalidSqlResponse;
-import com.abehrdigital.dicomprocessor.exceptions.ValuesNotFoundException;
+import com.abehrdigital.dicomprocessor.exceptions.*;
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
 import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
 
@@ -91,7 +88,8 @@ public class DataAPI {
      *
      * @param saveSetQueries Query object which needs to be run.
      */
-    private static void applyQueries(ArrayList<ArrayList<Query>> saveSetQueries) {
+    private static void applyQueries(ArrayList<ArrayList<Query>> saveSetQueries) throws SQLException, ValuesNotFoundException,
+            EmptyKnownFieldsException, InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
         System.out.println("WTH "+ saveSetQueries.size());
         System.out.println("WTH "+ saveSetQueries);
 
@@ -120,11 +118,11 @@ public class DataAPI {
                     // remove query from array
                     queryIterator.remove();
                 }
-            } catch(InvalidNumberOfRowsAffectedException | ValuesNotFoundException | EmptyKnownFieldsException e){
+            } catch(InvalidNumberOfRowsAffectedException | ValuesNotFoundException | EmptyKnownFieldsException |
+                    SQLException | NoSearchedFieldsProvidedException exception){
                 System.out.println("Exception occured rolling back to save point");
                 rollbackSavepoint(savepoint);
-            } catch (SQLException e) {
-                e.printStackTrace();
+                throw exception;
             }
             ////END Of Transaction////////////////
         }
@@ -397,22 +395,20 @@ public class DataAPI {
      * @param jsonData String json to be parsed
      * @throws Exception Nothing to parse; Could not open a new session!; Could not get current date time!
      */
-    static String magic(String userId, String jsonData, Session session) throws Exception {
-        DataAPI.prettyPrint(250, "Magic starts here");
+    static String magic(String userId, String jsonData, Session session) throws Exception, EmptyKnownFieldsException,
+            ValuesNotFoundException, InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
+        DataAPI.printDebugBanner(250, "Magic starts here");
         // TODO: needs renaming
         // TODO: use "user_id" for insert/merge operations
         if (jsonData.isEmpty()) {
             throw new Exception("Nothing to parse");
         }
-        try {
-            /* basic initialization */
-            init(userId, session);
 
-            // parse and execute the sql queries from the json string
-            applyQueries(parseJson(jsonData));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        /* basic initialization */
+        init(userId, session);
+
+        // parse and execute the sql queries from the json string
+        applyQueries(parseJson(jsonData));
 
         // DEBUG
         DataAPI.printMap("Final", DataAPI.dataDictionary);
@@ -421,12 +417,12 @@ public class DataAPI {
         // construct the json
         String updatedJSON = getUpdatedJson();
 
-        DataAPI.prettyPrint(250, "Magic ends here");
+        DataAPI.printDebugBanner(250, "Magic ends here");
         return updatedJSON;
     }
 
     /**
-     * construct a new json with the updated ids found through running the first json
+     * construct a new json with the updated ids found through the first run over the json file
      *
      * @return String updated json
      */
@@ -461,87 +457,72 @@ public class DataAPI {
      * @return String json string containing a template of table dependencies
      */
     public static String createTemplate(String dataSet) {
-        try {
-            JSONObject jsonFile = new JSONObject();
-            jsonFile.put("_OE_System", "ABEHR Jason Local v3.0");
-            jsonFile.put("_Version", "v0.1");
+        JSONObject jsonFile = new JSONObject();
+        jsonFile.put("_OE_System", "ABEHR Jason Local v3.0");
+        jsonFile.put("_Version", "v0.1");
 
-            // save in a stack, the jsonObject of dataSets, created by recursively searching for foreign keys
-            // starting from a given dataSet.
-            Stack<JSONObject> saveSets = new Stack<>();
-            Query.getFKRelations(DataAPI.session, dataSet, saveSets, new HashSet<String>());
+        // save in a stack, the jsonObject of dataSets, created by recursively searching for foreign keys
+        // starting from a given dataSet.
+        Stack<JSONObject> saveSets = new Stack<>();
+        Query.getFKRelations(DataAPI.session, dataSet, saveSets, new HashSet<String>());
 
-            jsonFile.put("$$_XID_Map_$$", new JSONArray());
-            // TODO: hardcoded value 1
-            jsonFile.put("$$_SaveSet[1]_$$", saveSets);
+        jsonFile.put("$$_XID_Map_$$", new JSONArray());
 
-            return jsonFile.toJSONString();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
+        // TODO: hardcoded value [1]
+        jsonFile.put("$$_SaveSet[1]_$$", saveSets);
+
+        return jsonFile.toJSONString();
     }
 
     /**
      * Main function
      * @param args args
      */
-    public static void main(String[] args) {
-        try {
-            /*// create json template with all dependencies for a given dataSet
-             String jsonFromTemplate = createTemplate("event_attachment_item");
-            // apply the json on the database
-             DataAPI.magic("1", jsonFromTemplate);*/
+    public static void main(String[] args) throws EmptyKnownFieldsException, ValuesNotFoundException, Exception,
+            InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
+        /*// create json template with all dependencies for a given dataSet
+         String jsonFromTemplate = createTemplate("event_attachment_item");
+        // apply the json on the database
+         DataAPI.magic("1", jsonFromTemplate);*/
 
 
-            DataAPI.session =  HibernateUtil.getSessionFactory().openSession();
-            session.beginTransaction();
-            String jsonData = DataAPI.getEventTemplate();
-            String modifiedJsonData = DataAPI.magic("1", jsonData, session);
-            System.out.println(jsonData);
-            System.out.println(modifiedJsonData);
+        DataAPI.session =  HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        String jsonData = DataAPI.getEventTemplate();
+        String modifiedJsonData = DataAPI.magic("1", jsonData, session);
+        System.out.println(jsonData);
+        System.out.println(modifiedJsonData);
 
-           /* DataAPI.session =  HibernateUtil.getSessionFactory().openSession();
-            session.beginTransaction();
-            AttachmentData attachmentData = DataAPI.session.get(AttachmentData.class, 16);
-            DataAPI.linkAttachmentDataWithEvent(attachmentData, 4686438,
-                    "OEModule\\OphGeneric\\models\\Attachment", session);
-            */
+       /* DataAPI.session =  HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        AttachmentData attachmentData = DataAPI.session.get(AttachmentData.class, 16);
+        DataAPI.linkAttachmentDataWithEvent(attachmentData, 4686438,
+                "OEModule\\OphGeneric\\models\\Attachment", session);
+        */
 
-            session.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        session.getTransaction().commit();
     }
 
-    public static void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName, Session session) {
+    static void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId,
+                                            String elementTypeClassName, Session session) throws InvalidNumberOfRowsAffectedException {
         DataAPI.session = session;
 
         try {
+            // set a new savepoint before making any processing to the database
             savepoint = setSavepoint("savepoint");
-            System.out.println("==SetSavepoint== " + savepoint.getSavepointName());
 
+            // insert a new record for the event_attachment_group if there isn't already one in the table for the givven event_id
             int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(DataAPI.session, eventId, elementTypeClassName);
-            if (eventAttachmentGroupID == -1) {
-                System.err.println("A new eventAttachmentGroup record could not be inserted.");
-                return;
-            }
 
-            int eventAttachmentItemID = Query.insertAttachmentItem(DataAPI.session, eventAttachmentGroupID, attachmentData.getId());
-            if (eventAttachmentItemID == -1) {
-                System.err.println("A new eventAttachmentItem record could not be inserted.");
-                return;
-            }
-
-        } catch (InvalidNumberOfRowsAffectedException e) {
-            System.out.println("Exception occured rolling back to save point");
+            // insert a new record for the event_attachment_item table to link together the attachment_data with the attachment_group
+            Query.insertAttachmentItem(DataAPI.session, eventAttachmentGroupID, attachmentData.getId());
+        } catch (InvalidNumberOfRowsAffectedException exception) {
             rollbackSavepoint(savepoint);
-        } catch (SQLException e) {
-            e.printStackTrace();
+            throw exception;
         }
     }
 
-    public static void prettyPrint(int length, String message) {
+    private static void printDebugBanner(int length, String message) {
         String delimiter = new String(new char[length]).replace('\0', '=') + "\n";
         delimiter = delimiter + delimiter + delimiter;
         message = new String(new char[length/10]).replace('\0', '\t') + message + "\n";

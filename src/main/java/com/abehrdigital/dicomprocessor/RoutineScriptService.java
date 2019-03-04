@@ -1,12 +1,17 @@
 package com.abehrdigital.dicomprocessor;
 
 import com.abehrdigital.dicomprocessor.dao.ScriptEngineDaoManager;
+import com.abehrdigital.dicomprocessor.exceptions.EmptyKnownFieldsException;
+import com.abehrdigital.dicomprocessor.exceptions.InvalidNumberOfRowsAffectedException;
+import com.abehrdigital.dicomprocessor.exceptions.NoSearchedFieldsProvidedException;
+import com.abehrdigital.dicomprocessor.exceptions.ValuesNotFoundException;
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.utils.AttachmentDataThumbnailAdder;
 import org.hibernate.HibernateException;
 
 import java.sql.Blob;
+import java.sql.SQLException;
 
 public class RoutineScriptService {
     private ScriptEngineDaoManager daoManager;
@@ -22,8 +27,8 @@ public class RoutineScriptService {
     public String getJson(String attachmentMnemonic, String bodySite) throws HibernateException {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
 
-        if (attachmentData != null && attachmentData.getJson() != null) {
-            return attachmentData.getJson();
+        if (attachmentData != null && attachmentData.getJson1() != null) {
+            return attachmentData.getJson1();
         } else {
             return "{}";
         }
@@ -121,7 +126,8 @@ public class RoutineScriptService {
         daoManager.getAttachmentDataDao().save(attachmentData);
     }
 
-    public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName) {
+    public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName)
+            throws InvalidNumberOfRowsAffectedException {
         DataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName, daoManager.getConnection());
     }
 
@@ -132,11 +138,16 @@ public class RoutineScriptService {
     }
 
     public AttachmentData getEventDataByMedicalReportStudyInstanceUID(String attachmentMnemonic , int studyInstanceUID){
-        Integer requestId = daoManager.getGenericMedicalReport().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
-        return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic , requestId);
+        try {
+            Integer requestId = daoManager.getGenericMedicalReport().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
+            return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic, requestId);
+        } catch (Exception exception){
+            return null;
+        }
     }
 
-    public String createEvent(String eventData) throws Exception {
+    public String createEvent(String eventData) throws Exception, EmptyKnownFieldsException, ValuesNotFoundException,
+            InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
         //TODO for light intergration
         return DataAPI.magic("1", eventData, daoManager.getConnection());
     }

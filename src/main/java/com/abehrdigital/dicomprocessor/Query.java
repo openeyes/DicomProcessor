@@ -1,9 +1,6 @@
 package com.abehrdigital.dicomprocessor;
 
-import com.abehrdigital.dicomprocessor.exceptions.EmptyKnownFieldsException;
-import com.abehrdigital.dicomprocessor.exceptions.InvalidNumberOfRowsAffectedException;
-import com.abehrdigital.dicomprocessor.exceptions.InvalidSqlResponse;
-import com.abehrdigital.dicomprocessor.exceptions.ValuesNotFoundException;
+import com.abehrdigital.dicomprocessor.exceptions.*;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
@@ -57,7 +54,8 @@ public class Query {
     }
 
     // construct sql query
-    void constructAndRunQuery(Session session) throws InvalidNumberOfRowsAffectedException, ValuesNotFoundException, EmptyKnownFieldsException {
+    void constructAndRunQuery(Session session) throws InvalidNumberOfRowsAffectedException, ValuesNotFoundException,
+            EmptyKnownFieldsException, NoSearchedFieldsProvidedException {
         // before constructing the query, update the list of known fields
         updateKnownFieldsForeignKeys();
 
@@ -84,7 +82,8 @@ public class Query {
         }
     }
 
-    private void runMergeStatement(Session session) throws ValuesNotFoundException, EmptyKnownFieldsException, InvalidNumberOfRowsAffectedException {
+    private void runMergeStatement(Session session) throws ValuesNotFoundException, EmptyKnownFieldsException,
+            InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
         int rowsAffected = 0;
 
         // pk is already in memory;
@@ -333,25 +332,9 @@ public class Query {
      * @return true if the query could be constructed; false otherwise
      * @throws Exception Invalid request: there must be at least a field unknown
      */
-    private void constructSelectQuery(Session session) throws NullPointerException {
+    private void constructSelectQuery(Session session) throws NullPointerException, NoSearchedFieldsProvidedException {
         if (unknownFields.keySet().size() < 1) {
-            // TODO: there are no unkownFields: add all the knwonFields into DataAPI.dataDictionary
-            /*
-            {
-              "$$_DataSet_$$": "body_site_type",
-              "$$_ROW_$$": [
-                {
-                  "$$_CRUD_$$": "merge",
-                  "body_site_snomed_type": 12413,
-                  "title_short": "AB1",
-                  "title_full": "ABCDEFG",
-                  "title_abbreviated": "ABCD"
-                }
-              ]
-            },
-             */
-            System.out.println("+_+_+_+_+_++__++_+_+_+_+_+_+_+_");
-            return;
+            throw new NoSearchedFieldsProvidedException("There must be at least one unknown field to be retrieved.");
         }
 
         // SELECT	-> unknownFields
@@ -370,7 +353,6 @@ public class Query {
 
     /**
      * Construct the update SQL query to be executed
-     * @return second query to be executed
      */
     private void constructUpdateQuery(Session session) {
         XID xid = DataAPI.dataDictionary.get(XID);
@@ -405,7 +387,6 @@ public class Query {
     /**
      * Search if the unknown fields were assigned by a previous query
      * @param dataDictionarry hashmap to be validated
-     * @return true if all unknownFields are found in the DataAPI.dataDictionary; false if one unknown field was not found
      */
     private void validateFieldsForInsertStatement(HashMap<String, XID> dataDictionarry) throws ValuesNotFoundException {
         for (Map.Entry<String, String> entry : unknownFields.entrySet()) {
@@ -442,7 +423,7 @@ public class Query {
                 System.out.println("\treplacing " + entry.getKey() + "    " + entry.getValue());
                 // if value is null, use "key is null" syntax
                 if (entry.getValue() == null) {
-                    resultingConditions.add(entry.getKey() + nullDelimiter + entry.getValue());
+                    resultingConditions.add(entry.getKey() + nullDelimiter + "null");
                 } else {
                     // else, use "key = value"
                     resultingConditions.add(entry.getKey() + " = :" + entry.getKey());
@@ -468,7 +449,7 @@ public class Query {
         // TODO: NOT SURE MERGE IS NEEDED HERE
         if (this.crudOperation == CrudOperation.CREATE || this.crudOperation == CrudOperation.MERGE) {
             System.out.println("=1= Execute insert");
-            executeInsertUpdate(session, this.sqlQuery);
+            executeInsertUpdate(this.sqlQuery);
         }
 
         if (this.crudOperation == CrudOperation.CREATE) {
@@ -478,7 +459,7 @@ public class Query {
             knownFields.put(primaryKey, String.valueOf(newlyInsertedId));
         } else if (this.crudOperation == CrudOperation.RETRIEVE) {
             // TODO: remove aliasToValueMapList
-            List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session, this.sqlQuery, minRowsExpected);
+            List<HashMap<String, Object>> aliasToValueMapList = executeSelect(this.sqlQuery, minRowsExpected);
 
             // append to the known fields of the XID object all the rows returned by the SQL
             for (HashMap<String, Object> result : aliasToValueMapList) {
@@ -540,12 +521,15 @@ public class Query {
         // add an entry for the current dataSet in the keyIndex data structure
         DataAPI.keyIndex.put(dataSet, new TableKey());
 
-        String getKeysQuery = "SELECT innerTable.constraint_type AS 'CONSTRAINT_TYPE', keyCol.`COLUMN_NAME` AS 'COLUMN_NAME', `keyCol`.`REFERENCED_TABLE_NAME` AS 'REFERENCED_TABLE_NAME', innerTable.constraint_name AS 'CONSTRAINT_NAME' " +
-        "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
+        String getKeysQuery =
+            "SELECT innerTable.constraint_type AS 'CONSTRAINT_TYPE', keyCol.`COLUMN_NAME` AS 'COLUMN_NAME', " +
+                "`keyCol`.`REFERENCED_TABLE_NAME` AS 'REFERENCED_TABLE_NAME', innerTable.constraint_name AS 'CONSTRAINT_NAME' " +
+            "FROM (SELECT constr.constraint_type, constr.constraint_name, constr.table_name " +
                 "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS constr " +
                 "WHERE constr.table_name = :dataSet) innerTable " +
-        "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE keyCol ON keyCol.table_name=innerTable.table_name AND keyCol.`CONSTRAINT_NAME`=innerTable.`CONSTRAINT_NAME` " +
-        "ORDER BY constraint_type;";
+            "INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE keyCol ON keyCol.table_name=innerTable.table_name AND " +
+                "keyCol.`CONSTRAINT_NAME`=innerTable.`CONSTRAINT_NAME` " +
+            "ORDER BY constraint_type;";
 
         NativeQuery sqlQuery = session.createSQLQuery(getKeysQuery)
             .setParameter("dataSet", dataSet);
@@ -642,7 +626,6 @@ public class Query {
 
     private static int getNewlyInsertedId(Session session) throws InvalidNumberOfRowsAffectedException{
         List<HashMap<String, Object>> aliasToValueMapList = executeSelect(
-                session,
                 session.createSQLQuery("SELECT LAST_INSERT_ID();"),
                 ONE_ROW);
 
@@ -653,18 +636,17 @@ public class Query {
         return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
     }
 
-    public static int insertAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id) throws InvalidNumberOfRowsAffectedException {
+    static void insertAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id)
+            throws InvalidNumberOfRowsAffectedException {
         executeInsertUpdate(
-            session,
             session.createSQLQuery("INSERT INTO event_attachment_item (attachment_data_id, event_attachment_group_id," +
                 " system_only_managed) VALUES ( :attachment_data_id , :eventAttachmentGroupID, 1);")
                 .setParameter("attachment_data_id", attachment_data_id)
                 .setParameter("eventAttachmentGroupID", eventAttachmentGroupID));
-        // get the newly inserted ID
-        return getNewlyInsertedId(session);
     }
 
-    private static List<HashMap<String, Object>> executeSelect(Session session, NativeQuery sqlQuery, int minRowsExpected) throws InvalidNumberOfRowsAffectedException {
+    private static List<HashMap<String, Object>> executeSelect(NativeQuery sqlQuery, int minRowsExpected)
+            throws InvalidNumberOfRowsAffectedException {
         System.err.println("=======SELECT======== ");
         // get all the fields from the sql query
         sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
@@ -684,7 +666,7 @@ public class Query {
         return aliasToValueMapList;
     }
 
-    private static void executeInsertUpdate(Session session, NativeQuery sqlQuery) throws InvalidNumberOfRowsAffectedException {
+    private static void executeInsertUpdate(NativeQuery sqlQuery) throws InvalidNumberOfRowsAffectedException {
         System.err.println("=======INSERT======== ");
         int numberRowsAffected = sqlQuery.executeUpdate();
         System.out.println("=2= " + numberRowsAffected);
@@ -695,13 +677,13 @@ public class Query {
         }
     }
 
-    static int insertIfNotExistsAttachmentGroup(Session session, int event_id, String elementTypeClassName) throws InvalidNumberOfRowsAffectedException {
-
+    static int insertIfNotExistsAttachmentGroup(Session session, int event_id, String elementTypeClassName)
+            throws InvalidNumberOfRowsAffectedException {
         NativeQuery sqlQuery = session.createSQLQuery("SELECT id from element_type where class_name = :elementTypeClassName")
                 .setParameter("elementTypeClassName", elementTypeClassName);
 
         // get the id of the element_type of given class
-        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(session, sqlQuery, ONE_ROW);
+        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(sqlQuery, ONE_ROW);
         if (aliasToValueMapList.size() != 1) {
             System.err.println("Element_type could not be found!");
             return -1;
@@ -709,7 +691,6 @@ public class Query {
         int elementTypeId = Integer.parseInt(aliasToValueMapList.get(0).get("id").toString());
 
         aliasToValueMapList = executeSelect(
-            session,
             session.createSQLQuery("SELECT id from event_attachment_group where event_id = :event_id and element_type_id = :elementTypeId")
                 .setParameter("event_id", event_id)
                 .setParameter("elementTypeId", elementTypeId),
@@ -722,7 +703,6 @@ public class Query {
 
         // does not exist, insert
         executeInsertUpdate(
-            session,
             session.createSQLQuery("INSERT INTO event_attachment_group (event_id, element_type_id) VALUES ( :event_id , :elementTypeId );")
             .setParameter("event_id", event_id)
             .setParameter("elementTypeId", elementTypeId));
@@ -731,16 +711,15 @@ public class Query {
         return getNewlyInsertedId(session);
     }
 
-    public static void prettyPrintQueryResultObject(List<HashMap<String, Object>> aliasToValueMapList) {
+    private static void prettyPrintQueryResultObject(List<HashMap<String, Object>> aliasToValueMapList) {
         System.err.println("========================SQL response:========================\n\t\t\t"
                 + aliasToValueMapList +
                 "\n==============================================================");
     }
 
-    public static void prettyPrintQueryResultString(List<HashMap<String, String>> aliasToValueMapList) {
+    private static void prettyPrintQueryResultString(List<HashMap<String, String>> aliasToValueMapList) {
         System.err.println("========================SQL response:========================\n"
                 + aliasToValueMapList +
                 "\n==============================================================");
     }
-
 }
