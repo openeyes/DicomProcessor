@@ -129,8 +129,12 @@ public class RoutineScriptService {
     }
 
     public AttachmentData getEventDataByMedicalReportStudyInstanceUID(String attachmentMnemonic , int studyInstanceUID){
-        Integer requestId = daoManager.getGenericMedicalReport().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
-        return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic , requestId);
+        try {
+            Integer requestId = daoManager.getGenericMedicalReport().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
+            return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic, requestId);
+        } catch (Exception exception){
+            return null;
+        }
     }
 
     public void createEvent(String eventData) {
