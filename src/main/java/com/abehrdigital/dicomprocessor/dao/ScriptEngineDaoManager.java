@@ -7,6 +7,7 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     private RequestRoutineDao requestRoutineDao;
     private RequestDao requestDao;
     private PatientDao patientDao;
+    private GenericMedicalReportDao genericMedicalReportDao;
 
     public ScriptEngineDaoManager() {
     }
@@ -51,5 +52,12 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
             this.patientDao = new PatientDao(getConnection());
         }
         return this.patientDao;
+    }
+
+    public GenericMedicalReportDao getGenericMedicalReport(){
+        if(this.genericMedicalReportDao == null) {
+            this.genericMedicalReportDao = new GenericMedicalReportDao(getConnection());
+        }
+        return this.genericMedicalReportDao;
     }
 }
