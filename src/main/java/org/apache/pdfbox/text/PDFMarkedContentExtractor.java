@@ -122,7 +122,7 @@ public class PDFMarkedContentExtractor extends LegacyPDFStreamEngine
      * @param text The text to process.
      */
     @Override
-    protected void processTextPosition( TextPosition text )
+    protected TextPosition processTextPosition(TextPosition text )
     {
         boolean showCharacter = true;
         if( this.suppressDuplicateOverlappingText )
@@ -219,6 +219,7 @@ public class PDFMarkedContentExtractor extends LegacyPDFStreamEngine
                 this.currentMarkedContents.peek().addText(text);
             }
         }
+        return text;
     }
 
     public List<PDMarkedContent> getMarkedContents()

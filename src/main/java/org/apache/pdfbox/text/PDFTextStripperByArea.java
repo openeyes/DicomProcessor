@@ -58,7 +58,7 @@ public class PDFTextStripperByArea extends PDFTextStripper
     {
     }
 
-   /**
+    /**
      * Add a new region to group text by.
      *
      * @param regionName The name of the region.
@@ -80,7 +80,7 @@ public class PDFTextStripperByArea extends PDFTextStripper
         regions.remove(regionName);
         regionArea.remove(regionName);
     }
-    
+
     /**
      * Get the list of regions that have been setup.
      *
@@ -123,19 +123,19 @@ public class PDFTextStripperByArea extends PDFTextStripper
             regionCharacterList.put( regionName, regionCharactersByArticle );
             regionText.put( regionName, new StringWriter() );
         }
-        
+
         if( page.hasContents() )
         {
             processPage( page );
         }
     }
 
-    
+
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void processTextPosition( TextPosition text )
+    protected TextPosition processTextPosition(TextPosition text )
     {
         for (String region : regionArea.keySet())
         {
@@ -146,9 +146,10 @@ public class PDFTextStripperByArea extends PDFTextStripper
                 super.processTextPosition( text );
             }
         }
+        return text;
     }
 
-    
+
     /**
      * This will print the processed page text to the output stream.
      *
