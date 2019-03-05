@@ -5,6 +5,7 @@
  */
 package com.abehrdigital.dicomprocessor.utils;
 
+import com.abehrdigital.dicomprocessor.dao.EngineInitialisationDaoManager;
 import com.abehrdigital.dicomprocessor.dao.RequestQueueDaoManager;
 import com.abehrdigital.dicomprocessor.dao.ScriptEngineDaoManager;
 
@@ -18,5 +19,9 @@ public class DaoFactory {
 
     public static ScriptEngineDaoManager createScriptEngineDaoManager() {
         return new ScriptEngineDaoManager();
+    }
+
+    public static EngineInitialisationDaoManager createEngineInitialisationDaoManager(){
+        return new EngineInitialisationDaoManager();
     }
 }

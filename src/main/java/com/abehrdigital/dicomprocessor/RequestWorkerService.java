@@ -22,7 +22,7 @@ public class RequestWorkerService {
         this.daoManager = daoManager;
         this.requestId = requestId;
         this.requestQueueName = requestQueueName;
-        this.scriptService = new RoutineScriptService(daoManager, requestId, requestQueueName);
+        this.scriptService = new RoutineScriptService(daoManager, requestId, requestQueueName , scriptAccessor);
         this.scriptAccessor = scriptAccessor;
     }
 

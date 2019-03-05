@@ -35,6 +35,14 @@ var eventTemplate = JSON.parse('{' +
 
     if(previousEventData != null && previousEventData.$$_XID_Map_$$ != null){
         eventTemplate.$$_XID_Map_$$ = previousEventData.$$_XID_Map_$$;
+
+         eventData.$$_XID_Map_$$.forEach(function(data){
+                      if(data.$$_XID_$$ == '$$_attachment_data[1]_$$'){
+                       requestData.attachmentDataItemToDelete = data.id;
+                        }
+                      });
+
+          addRoutine('delink_attachment');
     }
 
      putJson(
@@ -42,3 +50,9 @@ var eventTemplate = JSON.parse('{' +
      JSON.stringify(eventTemplate),
      'event_data',
      null, 'json');
+
+     putJson(
+                  'request_data',
+                  JSON.stringify(requestData),
+                  'request_json',
+                  null, 'json');

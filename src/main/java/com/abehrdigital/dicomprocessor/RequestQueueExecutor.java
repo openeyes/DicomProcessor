@@ -32,12 +32,14 @@ public class RequestQueueExecutor implements RequestThreadListener {
     private int currentActiveThreads;
     private int currentRequestId;
     private final static int LOCK_MAXIMUM_TRY_COUNT = 20;
+    private RoutineLibrarySynchronizer routineLibrarySynchronizer;
 
-    public RequestQueueExecutor(String requestQueueName) {
+    public RequestQueueExecutor(String requestQueueName, RoutineLibrarySynchronizer routineLibrarySynchronizer) {
         this.requestQueueName = requestQueueName;
         daoManager = DaoFactory.createRequestQueueExecutorDaoManager();
         requestQueueLocker = new RequestQueueLocker(requestQueueName);
         requestIdToThreadSyncMap = new HashMap<>();
+        this.routineLibrarySynchronizer = routineLibrarySynchronizer;
     }
 
     public void execute() throws RequestQueueMissingException {
@@ -72,7 +74,12 @@ public class RequestQueueExecutor implements RequestThreadListener {
             }
 
             currentRequestQueue = getUpToDateRequestQueue();
-            sleepAfterRoutineLoop(requestRoutinesForExecution.size());
+            if (requestRoutinesForExecution.size() != 0) {
+                TimeUnit.MILLISECONDS.sleep(currentRequestQueue.getBusyYieldMs());
+            } else {
+                routineLibrarySynchronizer.sync();
+                TimeUnit.MILLISECONDS.sleep(currentRequestQueue.getIdleYieldMs());
+            }
         } catch (RequestQueueMissingException queueMissingException){
             throw queueMissingException;
         } catch(Exception exception) {
@@ -91,14 +98,6 @@ public class RequestQueueExecutor implements RequestThreadListener {
     private void setLastThreadSpawnDateAndRequestId() {
         currentRequestQueue.setLastThreadSpawnRequestId(currentRequestId);
         currentRequestQueue.setLastThreadSpawnDateToCurrentTimestamp();
-    }
-
-    private void sleepAfterRoutineLoop(int requestRoutineListSize) throws InterruptedException {
-        if (requestRoutineListSize != 0) {
-            TimeUnit.MILLISECONDS.sleep(currentRequestQueue.getBusyYieldMs());
-        } else {
-            TimeUnit.MILLISECONDS.sleep(currentRequestQueue.getIdleYieldMs());
-        }
     }
 
     private RequestQueue getUpToDateRequestQueueForUpdate() {

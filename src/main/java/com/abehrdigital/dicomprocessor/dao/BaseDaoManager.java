@@ -1,5 +1,6 @@
 package com.abehrdigital.dicomprocessor.dao;
 
+import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
 import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;

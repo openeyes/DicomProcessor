@@ -8,20 +8,31 @@ import com.abehrdigital.dicomprocessor.exceptions.ValuesNotFoundException;
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.utils.AttachmentDataThumbnailAdder;
+import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
+import com.abehrdigital.dicomprocessor.utils.RoutineScriptAccessor;
 import org.hibernate.HibernateException;
+import org.hibernate.ReplicationMode;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.Blob;
 import java.sql.SQLException;
 
 public class RoutineScriptService {
-    private ScriptEngineDaoManager daoManager;
+    private ScriptEngineDaoManager
+            daoManager;
     private int requestId;
     private String requestQueueName;
+    private RoutineScriptAccessor scriptAccessor;
 
-    public RoutineScriptService(ScriptEngineDaoManager daoManager, int requestId, String requestQueueName) {
+    public RoutineScriptService(ScriptEngineDaoManager daoManager,
+                                int requestId,
+                                String requestQueueName,
+                                RoutineScriptAccessor scriptAccessor) {
         this.daoManager = daoManager;
         this.requestId = requestId;
         this.requestQueueName = requestQueueName;
+        this.scriptAccessor = scriptAccessor;
     }
 
     public String getJson(String attachmentMnemonic, String bodySite) throws HibernateException {
@@ -49,7 +60,7 @@ public class RoutineScriptService {
                 .getByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite, requestId);
     }
 
-    public AttachmentData getAttachmentDataByAttachmentMnemonicAndRequestId(String attachmentMnemonic , int requestId)
+    public AttachmentData getAttachmentDataByAttachmentMnemonicAndRequestId(String attachmentMnemonic, int requestId)
             throws HibernateException {
         return daoManager
                 .getAttachmentDataDao()
@@ -78,7 +89,7 @@ public class RoutineScriptService {
         }
     }
 
-    public void addRoutine(String routineName) throws HibernateException {
+    public void addRoutine(String routineName) throws HibernateException, IOException {
         RequestRoutine requestRoutine = daoManager.getRequestRoutineDao().findByRoutineNameAndRequestId(requestId, routineName);
         if (requestRoutine != null) {
             daoManager.getRequestRoutineDao().resetAndSave(requestRoutine);
@@ -89,16 +100,33 @@ public class RoutineScriptService {
                         routineName,
                         requestQueueName)
                         .build();
-
                 daoManager.getRequestRoutineDao().saveWithNewExecutionSequence(requestRoutine);
             } else {
-                throw new HibernateException("Routine in the library doesn't exist");
+                createRoutineIfExistsInFileSystem(routineName);
             }
         }
     }
 
-    private boolean routineInLibraryExists(String routineName) throws HibernateException {
-        return (daoManager.getRoutineLibraryDao().get(routineName) != null);
+    private boolean routineInLibraryExists(String routineName) throws HibernateException, IOException {
+        RoutineLibrary routineLibrary = daoManager.getRoutineLibraryDao().get(routineName);
+        boolean routineExists = daoManager.getRoutineLibraryDao().get(routineName) != null;
+        if (!routineExists) {
+            createRoutineIfExistsInFileSystem(routineName);
+        }
+        return routineExists;
+    }
+
+    private synchronized void createRoutineIfExistsInFileSystem(String routineName) throws IOException {
+        RoutineLibrary routineLibrary = null;
+        if (scriptAccessor.routineExists(routineName)) {
+            routineLibrary = new RoutineLibrary(routineName,
+                    scriptAccessor.getRoutineScriptHashCode(routineName)
+            );
+            daoManager.getConnection().merge(routineLibrary);
+            daoManager.getRoutineLibraryDao().save(routineLibrary);
+        } else {
+            throw new FileNotFoundException("Request routine: " + routineName + " is missing");
+        }
     }
 
     public void putPdf(
@@ -137,13 +165,17 @@ public class RoutineScriptService {
         return daoManager.getPatientDao().getIdByHospitalNumber(hospitalNumber, dateOfBirth, gender);
     }
 
-    public AttachmentData getEventDataByMedicalReportStudyInstanceUID(String attachmentMnemonic , int studyInstanceUID){
+    public AttachmentData getEventDataByMedicalReportStudyInstanceUID(String attachmentMnemonic, int studyInstanceUID) {
         try {
-            Integer requestId = daoManager.getGenericMedicalReport().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
+            Integer requestId = daoManager.getGenericMedicalReportDao().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
             return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic, requestId);
-        } catch (Exception exception){
+        } catch (Exception exception) {
             return null;
         }
+    }
+
+    public void deleteEventAttachmentByAttachmentId(int attachmentId) {
+        daoManager.getEventAttachmentItemDao().deleteByAttachmentDataId(attachmentId);
     }
 
     public String createEvent(String eventData) throws Exception, EmptyKnownFieldsException, ValuesNotFoundException,
