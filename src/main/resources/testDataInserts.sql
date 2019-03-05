@@ -1,14 +1,4 @@
-INSERT INTO routine_library (routine_name)
-VALUES
-  (
-    "dicom_routine"
-  );
 
-INSERT INTO routine_library (routine_name)
-VALUES
-  (
-    "PAS_API"
-  );
 
 INSERT INTO routine_library (routine_name)
 VALUES
@@ -26,31 +16,6 @@ INSERT INTO routine_library (routine_name)
 VALUES
   (
     "link_attachment_with_event"
-  );
-
-INSERT INTO request_queue (
-  request_queue,
-  maximum_active_threads,
-  busy_yield_ms,
-  idle_yield_ms
-)
-VALUES
-  ("dicom_queue", 5, 1000, 1000);
-
-INSERT INTO request_type (
-  request_type,
-  title_full,
-  title_short,
-  default_routine_name,
-  default_request_queue
-)
-VALUES
-  (
-    "dicom_request",
-    "dicom request full",
-    "dicom request short",
-    "dicom_routine",
-    "dicom_queue"
   );
 
 INSERT INTO request (
@@ -245,33 +210,6 @@ VALUES
 INSERT INTO mime_type (mime_type)
 VALUES
   ("dicom");
-
-INSERT INTO mime_type (mime_type)
-VALUES
-  ("application/pdf");
-
-INSERT INTO attachment_type (
-  attachment_type,
-  title_full,
-  title_short,
-  title_abbreviated
-)
-VALUES
-  (
-    "dicom_header",
-    "hedar",
-    "heder",
-    "heda"
-  );
-
-INSERT INTO attachment_type (
-  attachment_type,
-  title_full,
-  title_short,
-  title_abbreviated
-)
-VALUES
-  ("dicom", "hedar", "heder", "heda");
 
 INSERT INTO attachment_data (
   request_id,

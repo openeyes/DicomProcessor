@@ -1,7 +1,7 @@
 var requestData = JSON.parse(getJson('request_data', null));
 var previousEventData = null;
  if(requestData.study_instance_uid != null ){
-    var attachmentData = getEventDataByMedicalReportStudyInstanceUID('event_data' , requestData.study_instance_uid);
+    var attachmentData = getEventDataByMedicalReportStudyInstanceUID('event_data' , requestData.study_instance_uid.toString());
     if(attachmentData != null) {
         previousEventData = JSON.parse(attachmentData.getJson1());
     }
@@ -36,7 +36,7 @@ var eventTemplate = JSON.parse('{' +
     if(previousEventData != null && previousEventData.$$_XID_Map_$$ != null){
         eventTemplate.$$_XID_Map_$$ = previousEventData.$$_XID_Map_$$;
 
-         eventData.$$_XID_Map_$$.forEach(function(data){
+         previousEventData.$$_XID_Map_$$.forEach(function(data){
                       if(data.$$_XID_$$ == '$$_attachment_data[1]_$$'){
                        requestData.attachmentDataItemToDelete = data.id;
                         }

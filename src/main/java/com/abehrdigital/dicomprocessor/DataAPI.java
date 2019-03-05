@@ -522,7 +522,7 @@ public class DataAPI {
         }
     }
 
-    private static void printDebugBanner(int length, String message) {
+    static void printDebugBanner(int length, String message) {
         String delimiter = new String(new char[length]).replace('\0', '=') + "\n";
         delimiter = delimiter + delimiter + delimiter;
         message = new String(new char[length/10]).replace('\0', '\t') + message + "\n";

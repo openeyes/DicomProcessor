@@ -12,8 +12,8 @@ public class EventAttachmentItemDao {
 
     public void deleteByAttachmentDataId(int attachmentDataId){
         NativeQuery query = session.createSQLQuery("" +
-                "DELETE FROM event_attachment_item eai" +
-                "WHERE eai.attachment_data_id = :attachment_data_id ")
+                "DELETE FROM event_attachment_item " +
+                "WHERE event_attachment_item.attachment_data_id = :attachment_data_id ")
                 .setParameter("attachment_data_id", attachmentDataId);
         query.executeUpdate();
     }

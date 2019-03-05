@@ -165,11 +165,11 @@ public class RoutineScriptService {
         return daoManager.getPatientDao().getIdByHospitalNumber(hospitalNumber, dateOfBirth, gender);
     }
 
-    public AttachmentData getEventDataByMedicalReportStudyInstanceUID(String attachmentMnemonic, int studyInstanceUID) {
-        try {
-            Integer requestId = daoManager.getGenericMedicalReportDao().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
+    public AttachmentData getEventDataByMedicalReportStudyInstanceUID(String attachmentMnemonic, String studyInstanceUID) {
+        Integer requestId = daoManager.getGenericMedicalReportDao().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
+        if (requestId != -1) {
             return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic, requestId);
-        } catch (Exception exception) {
+        } else {
             return null;
         }
     }
