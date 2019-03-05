@@ -43,4 +43,12 @@
                    }});
 
 
-      createEvent(JSON.stringify(eventData));
+
+    var updatedJson = createEvent(JSON.stringify(eventData));
+        putJson(
+              'event_data',
+             updatedJson ,
+             'event_data',
+             null, 'json');
+    addRoutine('link_attachment_with_event');
+

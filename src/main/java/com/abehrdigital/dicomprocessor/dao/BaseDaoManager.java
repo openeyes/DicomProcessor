@@ -1,5 +1,6 @@
 package com.abehrdigital.dicomprocessor.dao;
 
+import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
 import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -7,7 +8,7 @@ import org.hibernate.Transaction;
 public abstract class BaseDaoManager {
     private Session session;
 
-    protected Session getConnection() {
+    public Session getConnection() {
         if (this.session == null) {
             this.session = HibernateUtil.getSessionFactory().openSession();
         }
