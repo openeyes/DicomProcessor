@@ -8,6 +8,7 @@ import org.hibernate.transform.AliasToEntityMapResultTransformer;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import javax.xml.crypto.Data;
 import java.util.*;
 
 public class Query {
@@ -23,6 +24,7 @@ public class Query {
     // for custom sql to be run for this query
     private ArrayList<ArrayList<String>> queriesParameters;
     private ArrayList<String> customSqlQueries;
+    private DataAPI dataAPI;
 
     private final static String COMA_SPACE = ", ";
     private final static int ONE_ROW = 1;
@@ -33,7 +35,8 @@ public class Query {
     }
 
     Query(String dataSet, String XID, CrudOperation crud, TreeMap<String, String> knownFields, TreeMap<String, String> unknownFields,
-          TreeMap<String, ForeignKey> foreignKeys, ArrayList<ArrayList<String>> queriesParameters, ArrayList<String> customSqlQueries) {
+          TreeMap<String, ForeignKey> foreignKeys, ArrayList<ArrayList<String>> queriesParameters, ArrayList<String> customSqlQueries,
+          DataAPI dataAPI) {
         this.dataSet = dataSet;
         this.XID = XID;
         this.crudOperation = crud;
@@ -42,6 +45,7 @@ public class Query {
         this.foreignKeys = foreignKeys;
         this.queriesParameters = queriesParameters;
         this.customSqlQueries = customSqlQueries;
+        this.dataAPI = dataAPI;
     }
 
     @Override
@@ -190,7 +194,7 @@ public class Query {
             System.out.println("parameterStrippedField: " + parameterStrippedField);
 
             customSql = customSql.replace(parameterXID, " :parameter_" + indexParameters);
-            xidParameterList.put("parameter_" + indexParameters, DataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
+            xidParameterList.put("parameter_" + indexParameters, dataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
         }
         System.out.println("SSS1 " + customSql);
         return customSql;
@@ -208,8 +212,8 @@ public class Query {
      * @return true if the primary key is known, false otherwise
      */
     private boolean isPrimaryKeyKnown() {
-        String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
-        XID xid = DataAPI.dataDictionary.get(XID);
+        String primaryKey = dataAPI.keyIndex.get(dataSet).primaryKey;
+        XID xid = dataAPI.dataDictionary.get(XID);
         return xid != null && xid.knownFields != null && xid.knownFields.get(primaryKey) != null;
     }
 
@@ -218,9 +222,9 @@ public class Query {
      */
     private void updateKnownFields() {
         Iterator unknownFieldsIterator = unknownFields.entrySet().iterator();
-        String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
+        String primaryKey = dataAPI.keyIndex.get(dataSet).primaryKey;
 
-        /* search through all unknown fields and if the encoding "$$_..._$$" has a value in DataAPI.dataDictionary,
+        /* search through all unknown fields and if the encoding "$$_..._$$" has a value in dataAPI.dataDictionary,
          * add it to the known fields and remove it from the unknownFields
          */
         while (unknownFieldsIterator.hasNext()) {
@@ -235,15 +239,15 @@ public class Query {
             // replace "$$_SysDateTime_$$" with the time set at the start of the program execution
             if (xidUnknown.equals("$$_SysDateTime_$$")) {
                 System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" + unknownFieldId);
-                knownFields.put(unknownFieldId, DataAPI.getTime());
+                knownFields.put(unknownFieldId, dataAPI.getTime());
                 unknownFieldsIterator.remove();
                 continue;
             }
 
             // if the value of the XID was previously computed, remove it from the unknown fields
             // and move it to the known fields
-            if (DataAPI.dataDictionary.containsKey(xidUnknown)) {
-                XID xidObject = DataAPI.dataDictionary.get(xidUnknown);
+            if (dataAPI.dataDictionary.containsKey(xidUnknown)) {
+                XID xidObject = dataAPI.dataDictionary.get(xidUnknown);
 
                 if (xidObject != null && xidObject.knownFields != null && xidObject.knownFields.containsKey(unknownFieldId)) {
                     knownFields.put(unknownFieldId, xidObject.knownFields.get(unknownFieldId));
@@ -253,11 +257,11 @@ public class Query {
         }
 
 
-        if (DataAPI.dataDictionary.containsKey(this.XID) && DataAPI.dataDictionary.get(this.XID).knownFields != null) {
-            System.out.println("SSS: " + DataAPI.dataDictionary.get(this.XID));
-            System.out.println("SSS: " + DataAPI.dataDictionary.get(this.XID).knownFields);
-            System.out.println("SSS: " + DataAPI.dataDictionary.get(this.XID).knownFields.entrySet());
-            for (Map.Entry<String, String> knownFieldDataDictionary : DataAPI.dataDictionary.get(this.XID).knownFields.entrySet()) {
+        if (dataAPI.dataDictionary.containsKey(this.XID) && dataAPI.dataDictionary.get(this.XID).knownFields != null) {
+            System.out.println("SSS: " + dataAPI.dataDictionary.get(this.XID));
+            System.out.println("SSS: " + dataAPI.dataDictionary.get(this.XID).knownFields);
+            System.out.println("SSS: " + dataAPI.dataDictionary.get(this.XID).knownFields.entrySet());
+            for (Map.Entry<String, String> knownFieldDataDictionary : dataAPI.dataDictionary.get(this.XID).knownFields.entrySet()) {
                 this.knownFields.put(knownFieldDataDictionary.getKey(), knownFieldDataDictionary.getValue());
                 System.out.println("SS added" + knownFieldDataDictionary.getKey());
             }
@@ -270,13 +274,13 @@ public class Query {
     private void updateKnownFieldsForeignKeys() {
         updateKnownFields();
 
-        /* Add to the known fields the foreign keys with a value received previously and saved in DataAPI.dataDictionary */
+        /* Add to the known fields the foreign keys with a value received previously and saved in dataAPI.dataDictionary */
         for (Map.Entry<String, ForeignKey> foreignKeyEntry : foreignKeys.entrySet()) {
             String XIDForeignKey = foreignKeyEntry.getKey();
             ForeignKey foreignKey = foreignKeyEntry.getValue();
 
-            if (DataAPI.dataDictionary.containsKey(XIDForeignKey)) {
-                XID xidObject = DataAPI.dataDictionary.get(XIDForeignKey);
+            if (dataAPI.dataDictionary.containsKey(XIDForeignKey)) {
+                XID xidObject = dataAPI.dataDictionary.get(XIDForeignKey);
                 if (xidObject != null && xidObject.knownFields != null && xidObject.knownFields.containsKey(foreignKey.referencedColumn)) {
                     String previouslyFoundValue = xidObject.knownFields.get(foreignKey.referencedColumn);
                     // save the value of foreign key in known fields
@@ -295,7 +299,7 @@ public class Query {
      */
     private void constructInsertQuery(Session session) throws ValuesNotFoundException, EmptyKnownFieldsException {
         // if there are fields still unknown, return error
-        validateFieldsForInsertStatement(DataAPI.dataDictionary);
+        validateFieldsForInsertStatement(dataAPI.dataDictionary);
 
         if (knownFields.isEmpty()) {
             throw new EmptyKnownFieldsException("Nothing to insert.");
@@ -355,8 +359,8 @@ public class Query {
      * Construct the update SQL query to be executed
      */
     private void constructUpdateQuery(Session session) {
-        XID xid = DataAPI.dataDictionary.get(XID);
-        String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
+        XID xid = dataAPI.dataDictionary.get(XID);
+        String primaryKey = dataAPI.keyIndex.get(dataSet).primaryKey;
         ArrayList<String> values = getEquals(knownFields, " = ");
         String valuesConcatenated = String.join(" , ", values);
 
@@ -377,7 +381,7 @@ public class Query {
     private void updateSqlQueryWithParameters() {
         for (Map.Entry<String, String> entryKnownField : knownFields.entrySet()) {
             // if a value exists for the field and it's not the primary key
-            if (entryKnownField.getValue() != null && !entryKnownField.getKey().equals(DataAPI.keyIndex.get(dataSet).primaryKey)) {
+            if (entryKnownField.getValue() != null && !entryKnownField.getKey().equals(dataAPI.keyIndex.get(dataSet).primaryKey)) {
                 System.out.println("Replacing: " + entryKnownField.getKey() + "  with " + entryKnownField.getValue());
                 this.sqlQuery.setParameter(entryKnownField.getKey(), entryKnownField.getValue());
             }
@@ -394,7 +398,7 @@ public class Query {
             String id = entry.getKey();
 
             // skip the pk field (it cannot exist in the database)
-            String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
+            String primaryKey = dataAPI.keyIndex.get(dataSet).primaryKey;
             if (!id.equals(primaryKey)) {
                 // if the value is still unknown in the global map (still null)
                 if (dataDictionarry.containsKey(XID)) {
@@ -419,7 +423,7 @@ public class Query {
         for (Map.Entry<String, String> entry : map.entrySet()) {
             // don't add the primary key
             System.out.println("key: " + entry.getKey());
-            if (!entry.getKey().equals(DataAPI.keyIndex.get(dataSet).primaryKey)) {
+            if (!entry.getKey().equals(dataAPI.keyIndex.get(dataSet).primaryKey)) {
                 System.out.println("\treplacing " + entry.getKey() + "    " + entry.getValue());
                 // if value is null, use "key is null" syntax
                 if (entry.getValue() == null) {
@@ -454,7 +458,7 @@ public class Query {
 
         if (this.crudOperation == CrudOperation.CREATE) {
             int newlyInsertedId = getNewlyInsertedId(session);
-            String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
+            String primaryKey = dataAPI.keyIndex.get(dataSet).primaryKey;
 
             knownFields.put(primaryKey, String.valueOf(newlyInsertedId));
         } else if (this.crudOperation == CrudOperation.RETRIEVE) {
@@ -473,20 +477,20 @@ public class Query {
         if (!unknownFields.isEmpty()) {
             System.out.println("SS+4: UPDATING");
             // get the XID corresponding to the PK
-            String XID = unknownFields.get(DataAPI.keyIndex.get(dataSet).primaryKey);
+            String XID = unknownFields.get(dataAPI.keyIndex.get(dataSet).primaryKey);
 
             // if the XID is already in the MAP,
             // update known fields in the map with ones returned as a result of running the current sql query
-            if (DataAPI.dataDictionary.containsKey(XID) && DataAPI.dataDictionary.get(XID) != null) {
+            if (dataAPI.dataDictionary.containsKey(XID) && dataAPI.dataDictionary.get(XID) != null) {
                 // knownFields is null; init treeMap
-                if (DataAPI.dataDictionary.get(XID).knownFields == null) {
-                    DataAPI.dataDictionary.get(XID).knownFields = new TreeMap<>();
+                if (dataAPI.dataDictionary.get(XID).knownFields == null) {
+                    dataAPI.dataDictionary.get(XID).knownFields = new TreeMap<>();
                 }
                 // put new fields in dataDictionary
-                DataAPI.dataDictionary.get(XID).knownFields.putAll(knownFields);
+                dataAPI.dataDictionary.get(XID).knownFields.putAll(knownFields);
             } else {
                 // XID is not present in the map; create and insert a new instance of XID object into the map
-                DataAPI.dataDictionary.put(XID, new XID(XID, this.dataSet, knownFields));
+                dataAPI.dataDictionary.put(XID, new XID(XID, this.dataSet, knownFields));
             }
         }
         System.out.println("SS+4: done updating " + knownFields.size());
@@ -512,14 +516,14 @@ public class Query {
         return requestRoutines.get(0).toString();
     }
 
-    static void setKeys(Session session, String dataSet) {
+    static void setKeys(Session session, String dataSet, DataAPI dataAPI) {
         // keys from dataSet were already added, nothing to do
-        if (DataAPI.keyIndex.containsKey(dataSet)) {
+        if (dataAPI.keyIndex.containsKey(dataSet)) {
             return;
         }
 
         // add an entry for the current dataSet in the keyIndex data structure
-        DataAPI.keyIndex.put(dataSet, new TableKey());
+        dataAPI.keyIndex.put(dataSet, new TableKey());
 
         String getKeysQuery =
             "SELECT innerTable.constraint_type AS 'CONSTRAINT_TYPE', keyCol.`COLUMN_NAME` AS 'COLUMN_NAME', " +
@@ -545,13 +549,13 @@ public class Query {
             String constraintType = row.get("CONSTRAINT_TYPE");
             switch (constraintType) {
                 case "PRIMARY KEY":
-                    DataAPI.keyIndex.put(dataSet, new TableKey(row.get("COLUMN_NAME")));
+                    dataAPI.keyIndex.put(dataSet, new TableKey(row.get("COLUMN_NAME")));
                     break;
                 case "UNIQUE":
-                    HashMap<String, ArrayList<String>> uniqueKeys = DataAPI.keyIndex.get(dataSet).uniqueKeys;
+                    HashMap<String, ArrayList<String>> uniqueKeys = dataAPI.keyIndex.get(dataSet).uniqueKeys;
                     if (uniqueKeys == null) {
-                        DataAPI.keyIndex.get(dataSet).uniqueKeys = new HashMap<>();
-                        uniqueKeys = DataAPI.keyIndex.get(dataSet).uniqueKeys;
+                        dataAPI.keyIndex.get(dataSet).uniqueKeys = new HashMap<>();
+                        uniqueKeys = dataAPI.keyIndex.get(dataSet).uniqueKeys;
                     }
 
                     ArrayList<String> columnNames = uniqueKeys.get(row.get("CONSTRAINT_NAME"));

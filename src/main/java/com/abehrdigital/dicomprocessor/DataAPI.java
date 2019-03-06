@@ -20,25 +20,28 @@ import org.json.simple.parser.ParseException;
 
 public class DataAPI {
 
+    public DataAPI(Session session) {
+        this.session = session;
+    }
 
     private enum JsonObjectClassType {
         String, JSONObject, JSONArray
     }
 
-    private static String _OE_System;
-    private static String _Version;
-    private static String time;
-    private static String userId;
-    private static Session session;
+    private String _OE_System;
+    private String _Version;
+    private String time;
+    private String userId;
+    private Session session;
 
     /* dataDictionary: keeps information about mappings $$_name[X]_$$ -> value */
-    static HashMap<String, XID> dataDictionary;
+    HashMap<String, XID> dataDictionary;
     /* keyIndex: store information about the keys in the table: PK and UKs */
-    static HashMap<String, TableKey> keyIndex;
+    HashMap<String, TableKey> keyIndex;
 
-    private static Savepoint savepoint;
-    public static Savepoint setSavepoint(final String savePoint) {
-        DataAPI.session.doWork(new Work() {
+    private Savepoint savepoint;
+    public Savepoint setSavepoint(final String savePoint) {
+        this.session.doWork(new Work() {
             @Override
             public void execute(Connection connection) throws SQLException      {
                 System.out.println("==BefSave point==");
@@ -49,8 +52,8 @@ public class DataAPI {
         return savepoint;
     }
 
-    public static void rollbackSavepoint(final Savepoint savepoint) {
-        DataAPI.session.doWork(new Work() {
+    public void rollbackSavepoint(final Savepoint savepoint) {
+        this.session.doWork(new Work() {
             @Override
             public void execute(Connection connection) throws SQLException     {
                 System.out.println("==Before rollback==");
@@ -88,7 +91,7 @@ public class DataAPI {
      *
      * @param saveSetQueries Query object which needs to be run.
      */
-    private static void applyQueries(ArrayList<ArrayList<Query>> saveSetQueries) throws SQLException, ValuesNotFoundException,
+    private void applyQueries(ArrayList<ArrayList<Query>> saveSetQueries) throws SQLException, ValuesNotFoundException,
             EmptyKnownFieldsException, InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
         System.out.println("WTH "+ saveSetQueries.size());
         System.out.println("WTH "+ saveSetQueries);
@@ -109,8 +112,8 @@ public class DataAPI {
 
                     // TODO DEBUG
                     System.err.println(query);
-                    DataAPI.printMap("DataAPI.map: ", DataAPI.dataDictionary);
-                    DataAPI.printKeyMap("KEY.map: ", DataAPI.keyIndex);
+                    DataAPI.printMap("DataAPI.map: ", this.dataDictionary);
+                    DataAPI.printKeyMap("KEY.map: ", this.keyIndex);
 
                     // construct the SQL query based on the CRUD operation and the fields found in Query object
                     query.constructAndRunQuery(session);
@@ -136,7 +139,7 @@ public class DataAPI {
      * @throws IOException file not found
      * @throws ParseException parser exception
      */
-    private static ArrayList<ArrayList<Query>> parseJson(String jsonData) throws Exception {
+    private ArrayList<ArrayList<Query>> parseJson(String jsonData) throws Exception {
         ArrayList<ArrayList<Query>> saveSets = new ArrayList<>();
         JSONParser jsonParser = new JSONParser();
         JSONObject json = (JSONObject) jsonParser.parse(jsonData);
@@ -155,10 +158,10 @@ public class DataAPI {
                 case String:
                     switch (key) {
                     case "_OE_System":
-                        DataAPI._OE_System = data.toString();
+                        this._OE_System = data.toString();
                         break;
                     case "_Version":
-                        DataAPI._Version = data.toString();
+                        this._Version = data.toString();
                         break;
                     default:
                         break;
@@ -185,7 +188,7 @@ public class DataAPI {
      * @param saveSets array of JSON objects
      * @return list of Query objects containing parsed information
      */
-    private static ArrayList<Query> parseSaveSet(JSONArray saveSets) throws Exception {
+    private ArrayList<Query> parseSaveSet(JSONArray saveSets) throws Exception {
         ArrayList<Query> saveSet = new ArrayList<>();
         // get the list of commands
         for (Object saveSetObject : saveSets) {
@@ -194,7 +197,7 @@ public class DataAPI {
             System.out.println("33: " + dataSet);
 
             // get keys for this table and set them in DataAPI.keyIndex
-            Query.setKeys(DataAPI.session, dataSet);
+            Query.setKeys(this.session, dataSet, this);
 
             // get the row
             Object rowContent = command.get("$$_ROW_$$");
@@ -220,7 +223,7 @@ public class DataAPI {
      *
      * @param XidMapJSON array of JSON objects to be parsed
      */
-    private static void parseXidMap(JSONArray XidMapJSON) throws Exception {
+    private void parseXidMap(JSONArray XidMapJSON) throws Exception {
         // create a map of XID string pointing to a XID object: eg. "$$_event_type[1]_$$" => XID Object
         for (Object xidDataObject : XidMapJSON) {
             JSONObject xidData = (JSONObject) xidDataObject;
@@ -242,8 +245,8 @@ public class DataAPI {
                         break;
                 }
             }
-            // get keys for this table and set them in DataAPI.keyIndex
-            Query.setKeys(DataAPI.session, dataSet);
+            // get keys for this table and set them in this.keyIndex
+            Query.setKeys(this.session, dataSet, this);
 
             // save the info in a new XID object
             dataDictionary.put(XID, new XID(XID, dataSet, knownFields));
@@ -257,7 +260,7 @@ public class DataAPI {
      * @param dataSet table name
      * @return a new Query object with parsed information
      */
-    private static Query parseJsonQuery(JSONObject query, String dataSet) {
+    private Query parseJsonQuery(JSONObject query, String dataSet) {
         Query.CrudOperation crudOperation = null;
         // unknownFields: {id -> XID}
         TreeMap<String, String> unknownFields = new TreeMap<>();
@@ -311,7 +314,7 @@ public class DataAPI {
                             foreignKeys.put(referencedXID, new ForeignKey(referencedColumn, referencingColumn));
                         } else {
                             // save the XID encoding for the primary key field:
-                            String primaryKey = DataAPI.keyIndex.get(dataSet).primaryKey;
+                            String primaryKey = this.keyIndex.get(dataSet).primaryKey;
                             if (key.equals(primaryKey)) {
                                 XID = value;
                             }
@@ -338,7 +341,7 @@ public class DataAPI {
         }
 
         // create and return new Query object with the information parsed
-        return new Query(dataSet, XID, crudOperation, knownFields, unknownFields, foreignKeys, queriesParameters, customSqlQueries);
+        return new Query(dataSet, XID, crudOperation, knownFields, unknownFields, foreignKeys, queriesParameters, customSqlQueries, this);
     }
 
     /**
@@ -346,26 +349,26 @@ public class DataAPI {
      * If datetime cannot be retrieved, return default date:
      * @return current date time
      */
-    static String getTime() {
-        if (DataAPI.session == null) {
+    String getTime() {
+        if (this.session == null) {
             return "1901-01-01 00:00:00";
         }
-        if (DataAPI.time == null) {
+        if (this.time == null) {
             try {
-                DataAPI.time = Query.getTime(DataAPI.session);
+                this.time = Query.getTime(this.session);
             } catch (InvalidSqlResponse invalidSqlResponse) {
                 invalidSqlResponse.printStackTrace();
-                DataAPI.time = "1901-01-01 00:00:00";
+                this.time = "1901-01-01 00:00:00";
             }
         }
-        return DataAPI.time;
+        return this.time;
     }
 
     /**
      * Read contents of a JSON file and return the resulting String
      * @return String json file
      */
-    static String getEventTemplate() {
+    String getEventTemplate() {
         try {
             JSONParser parser = new JSONParser();
 
@@ -379,11 +382,11 @@ public class DataAPI {
         return null;
     }
 
-    private static void init(String userId, Session session) throws Exception {
+    private void init(String userId, Session session) throws Exception {
         dataDictionary = new HashMap<>();
         keyIndex = new HashMap<>();
-        DataAPI.userId = userId;
-        DataAPI.session = session;
+        this.userId = userId;
+        this.session = session;
 
         // set session and time at the start of the execution
         time = getTime();
@@ -395,7 +398,7 @@ public class DataAPI {
      * @param jsonData String json to be parsed
      * @throws Exception Nothing to parse; Could not open a new session!; Could not get current date time!
      */
-    static String magic(String userId, String jsonData, Session session) throws Exception, EmptyKnownFieldsException,
+    String magic(String userId, String jsonData, Session session) throws Exception, EmptyKnownFieldsException,
             ValuesNotFoundException, InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
         DataAPI.printDebugBanner(250, "Magic starts here");
         // TODO: needs renaming
@@ -411,8 +414,8 @@ public class DataAPI {
         applyQueries(parseJson(jsonData));
 
         // DEBUG
-        DataAPI.printMap("Final", DataAPI.dataDictionary);
-        DataAPI.printKeyMap("Final", DataAPI.keyIndex);
+        DataAPI.printMap("Final", this.dataDictionary);
+        DataAPI.printKeyMap("Final", this.keyIndex);
 
         // construct the json
         String updatedJSON = getUpdatedJson();
@@ -426,7 +429,7 @@ public class DataAPI {
      *
      * @return String updated json
      */
-    static String getUpdatedJson() {
+    String getUpdatedJson() {
         JSONArray xidMap = new JSONArray();
         for (Map.Entry<String, XID> entryDataDictionary : dataDictionary.entrySet()) {
             String mappingName = entryDataDictionary.getKey();
@@ -456,7 +459,7 @@ public class DataAPI {
      * @param dataSet the table name desired
      * @return String json string containing a template of table dependencies
      */
-    public static String createTemplate(String dataSet) {
+    public String createTemplate(String dataSet) {
         JSONObject jsonFile = new JSONObject();
         jsonFile.put("_OE_System", "ABEHR Jason Local v3.0");
         jsonFile.put("_Version", "v0.1");
@@ -464,7 +467,7 @@ public class DataAPI {
         // save in a stack, the jsonObject of dataSets, created by recursively searching for foreign keys
         // starting from a given dataSet.
         Stack<JSONObject> saveSets = new Stack<>();
-        Query.getFKRelations(DataAPI.session, dataSet, saveSets, new HashSet<String>());
+        Query.getFKRelations(this.session, dataSet, saveSets, new HashSet<String>());
 
         jsonFile.put("$$_XID_Map_$$", new JSONArray());
 
@@ -486,10 +489,10 @@ public class DataAPI {
          DataAPI.magic("1", jsonFromTemplate);*/
 
 
-        DataAPI.session =  HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        String jsonData = DataAPI.getEventTemplate();
-        String modifiedJsonData = DataAPI.magic("1", jsonData, session);
+        DataAPI dataAPI = new DataAPI(HibernateUtil.getSessionFactory().openSession());
+        dataAPI.session.beginTransaction();
+        String jsonData = dataAPI.getEventTemplate();
+        String modifiedJsonData = dataAPI.magic("1", jsonData, dataAPI.session);
         System.out.println(jsonData);
         System.out.println(modifiedJsonData);
 
@@ -500,22 +503,20 @@ public class DataAPI {
                 "OEModule\\OphGeneric\\models\\Attachment", session);
         */
 
-        session.getTransaction().commit();
+        dataAPI.session.getTransaction().commit();
     }
 
-    static void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId,
-                                            String elementTypeClassName, Session session) throws InvalidNumberOfRowsAffectedException {
-        DataAPI.session = session;
-
+    void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId,
+                                     String elementTypeClassName) throws InvalidNumberOfRowsAffectedException {
         try {
             // set a new savepoint before making any processing to the database
             savepoint = setSavepoint("savepoint");
 
             // insert a new record for the event_attachment_group if there isn't already one in the table for the givven event_id
-            int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(DataAPI.session, eventId, elementTypeClassName);
+            int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(this.session, eventId, elementTypeClassName);
 
             // insert a new record for the event_attachment_item table to link together the attachment_data with the attachment_group
-            Query.insertAttachmentItem(DataAPI.session, eventAttachmentGroupID, attachmentData.getId());
+            Query.insertAttachmentItem(this.session, eventAttachmentGroupID, attachmentData.getId());
         } catch (InvalidNumberOfRowsAffectedException exception) {
             rollbackSavepoint(savepoint);
             throw exception;
@@ -527,5 +528,8 @@ public class DataAPI {
         delimiter = delimiter + delimiter + delimiter;
         message = new String(new char[length/10]).replace('\0', '\t') + message + "\n";
         System.err.println(delimiter + message + delimiter);
+
+//        Logger.getLogger(RequestWorker.class.getName()).log(Level.SEVERE,
+//                "REQUEST WORKER EXCEPTION WHEN EVALUATING JAVASCRIPT ->  " + getStackTraceAsString(exception));
     }
 }

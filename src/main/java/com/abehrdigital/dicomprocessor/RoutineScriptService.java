@@ -156,7 +156,8 @@ public class RoutineScriptService {
 
     public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName)
             throws InvalidNumberOfRowsAffectedException {
-        DataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName, daoManager.getConnection());
+        DataAPI dataAPI = new DataAPI(daoManager.getConnection());
+        dataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName);
     }
 
 
@@ -181,6 +182,7 @@ public class RoutineScriptService {
     public String createEvent(String eventData) throws Exception, EmptyKnownFieldsException, ValuesNotFoundException,
             InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
         //TODO for light intergration
-        return DataAPI.magic("1", eventData, daoManager.getConnection());
+        DataAPI dataAPI = new DataAPI(daoManager.getConnection());
+        return dataAPI.magic("1", eventData, daoManager.getConnection());
     }
 }
