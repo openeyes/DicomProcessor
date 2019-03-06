@@ -800,7 +800,7 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
      * @param text The text to process.
      */
     @Override
-    protected void processTextPosition(TextPosition text)
+    protected TextPosition processTextPosition(TextPosition text)
     {
         boolean showCharacter = true;
         if (suppressDuplicateOverlappingText)
@@ -956,6 +956,7 @@ public class PDFTextStripper extends LegacyPDFStreamEngine
                 }
             }
         }
+        return text;
     }
 
     /**

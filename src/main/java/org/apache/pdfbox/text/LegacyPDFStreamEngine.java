@@ -143,8 +143,8 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
      * This method was originally written by Ben Litchfield for PDFStreamEngine.
      */
     @Override
-    protected void showGlyph(Matrix textRenderingMatrix, PDFont font, int code, String unicode,
-                             Vector displacement) throws IOException
+    protected TextPosition showGlyph(Matrix textRenderingMatrix, PDFont font, int code, String unicode,
+                                     Vector displacement) throws IOException
     {
         //
         // legacy calculations which were previously in PDFStreamEngine
@@ -300,7 +300,7 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
             {
                 // Acrobat doesn't seem to coerce composite font's character codes, instead it
                 // skips them. See the "allah2.pdf" TestTextStripper file.
-                return;
+                return null;
             }
         }
 
@@ -317,7 +317,7 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
             nextY -= pageSize.getLowerLeftY();
         }
 
-        processTextPosition(new TextPosition(pageRotation, pageSize.getWidth(),
+        return processTextPosition(new TextPosition(pageRotation, pageSize.getWidth(),
                 pageSize.getHeight(), translatedTextRenderingMatrix, nextX, nextY,
                 Math.abs(dyDisplay), dxDisplay,
                 Math.abs(spaceWidthDisplay), unicode, new int[] { code } , font, fontSize,
@@ -330,8 +330,9 @@ class LegacyPDFStreamEngine extends PDFStreamEngine
      *
      * @param text The text to be processed.
      */
-    protected void processTextPosition(TextPosition text)
+    protected TextPosition processTextPosition(TextPosition text)
     {
         // subclasses can override to provide specific functionality
+        return text;
     }
 }

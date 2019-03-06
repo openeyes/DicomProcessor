@@ -22,6 +22,7 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
+import org.apache.pdfbox.text.TextPosition;
 
 import java.io.IOException;
 
@@ -32,6 +33,8 @@ import java.io.IOException;
  */
 public class ShowText extends OperatorProcessor
 {
+    private List<TextPosition> textPositions;
+
     @Override
     public void process(Operator operator, List<COSBase> arguments) throws IOException
     {
@@ -52,12 +55,16 @@ public class ShowText extends OperatorProcessor
             return;
         }
         COSString string = (COSString) base;
-        context.showTextString(string.getBytes());
+        textPositions = context.showTextString(string.getBytes());
     }
 
     @Override
     public String getName()
     {
         return "Tj";
+    }
+
+    public List<TextPosition> getTextPositions() {
+        return textPositions;
     }
 }
