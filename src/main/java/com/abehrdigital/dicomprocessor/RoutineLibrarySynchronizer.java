@@ -39,8 +39,9 @@ public class RoutineLibrarySynchronizer {
     }
 
     private void createAndSaveNewRoutineLibrary(String fileName) throws IOException {
-        RoutineLibrary routineLibrary = new RoutineLibrary(fileName,
-                scriptAccessor.getRoutineScriptHashCode(fileName)
+        String trimmedFileName = fileName.trim();
+        RoutineLibrary routineLibrary = new RoutineLibrary(trimmedFileName,
+                scriptAccessor.getRoutineScriptHashCode(trimmedFileName)
         );
         daoManager.transactionStart();
         daoManager.getRoutineLibraryDao().save(routineLibrary);

@@ -10,17 +10,17 @@ package com.abehrdigital.dicomprocessor.dao;
  */
 public class RequestQueueDaoManager extends BaseDaoManager {
 
-    private RequestQueueDao queueDao;
+    private RequestQueueDao requestQueueDao;
     private RequestRoutineDao requestRoutineDao;
 
     public RequestQueueDaoManager() {
     }
 
     public RequestQueueDao getRequestQueueDao() {
-        if (this.queueDao == null) {
-            this.queueDao = new RequestQueueDao(getConnection());
+        if (this.requestQueueDao == null) {
+            this.requestQueueDao = new RequestQueueDao(getConnection());
         }
-        return this.queueDao;
+        return this.requestQueueDao;
     }
 
     public RequestRoutineDao getRequestRoutineDao() {
@@ -28,5 +28,12 @@ public class RequestQueueDaoManager extends BaseDaoManager {
             this.requestRoutineDao = new RequestRoutineDao(getConnection());
         }
         return this.requestRoutineDao;
+    }
+
+    @Override
+    public void shutDown() {
+        requestRoutineDao = null;
+        requestQueueDao = null;
+        super.shutDown();
     }
 }

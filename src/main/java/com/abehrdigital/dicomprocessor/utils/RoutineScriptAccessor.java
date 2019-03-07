@@ -13,16 +13,18 @@ public class RoutineScriptAccessor {
     }
 
     public boolean routineExists(String routineName) {
-        File routineBody = new File(ROUTINE_LIBRARY_LOCATION + routineName);
+        String trimmedRoutineName = routineName.trim();
+        File routineBody = new File(ROUTINE_LIBRARY_LOCATION + trimmedRoutineName);
         return routineBody.exists();
     }
 
     public String getRoutineScript(String routineName) throws IOException {
+        String trimmedRoutineName = routineName.trim();
         String routineScript;
         if (routineExists(routineName)) {
-            routineScript = new String(Files.readAllBytes(Paths.get(ROUTINE_LIBRARY_LOCATION + routineName)));
+            routineScript = new String(Files.readAllBytes(Paths.get(ROUTINE_LIBRARY_LOCATION + trimmedRoutineName)));
         } else {
-            throw new FileNotFoundException("Routine name : " + routineName + " doesn't exist");
+            throw new FileNotFoundException("Routine name : " + trimmedRoutineName + " doesn't exist");
         }
         return routineScript;
     }

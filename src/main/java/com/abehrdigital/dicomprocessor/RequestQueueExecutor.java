@@ -128,14 +128,14 @@ public class RequestQueueExecutor implements RequestThreadListener {
             currentActiveThreads = requestIdToThreadSyncMap.size();
         }
 
-        setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
-        daoManager.transactionStart();
-        daoManager.getRequestQueueDao().update(currentRequestQueue);
-        daoManager.commit();
+            currentRequestQueue = getUpToDateRequestQueueForUpdate();
+            setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
+            daoManager.transactionStart();
+            daoManager.getRequestQueueDao().update(currentRequestQueue);
+            daoManager.commit();
     }
 
     private void setActiveThreadAndExecutionCounts(int successfulRoutineCount, int failedRoutineCount) {
-        currentRequestQueue = getUpToDateRequestQueueForUpdate();
         currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
         currentRequestQueue.incrementSuccessCount(successfulRoutineCount);
         currentRequestQueue.incrementFailCount(failedRoutineCount);

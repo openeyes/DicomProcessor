@@ -1,4 +1,4 @@
-var requestData = JSON.parse(getJson('request_data', null));
+var requestData = JSON.parse(getJson('REQUEST_DATA', null));
 var previousEventData = null;
  if(requestData.study_instance_uid != null ){
     var attachmentData = getEventDataByMedicalReportStudyInstanceUID('event_data' , requestData.study_instance_uid.toString());
@@ -48,11 +48,11 @@ var eventTemplate = JSON.parse('{' +
      putJson(
       'event_data',
      JSON.stringify(eventTemplate),
-     'event_data',
-     null, 'json');
+     'NONE',
+     null, 'application/json');
 
      putJson(
                   'request_data',
                   JSON.stringify(requestData),
-                  'request_json',
-                  null, 'json');
+                  'NONE',
+                  null, 'application/json');

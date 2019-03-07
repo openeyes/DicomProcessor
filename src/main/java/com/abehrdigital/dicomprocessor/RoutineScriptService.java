@@ -11,12 +11,10 @@ import com.abehrdigital.dicomprocessor.utils.AttachmentDataThumbnailAdder;
 import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
 import com.abehrdigital.dicomprocessor.utils.RoutineScriptAccessor;
 import org.hibernate.HibernateException;
-import org.hibernate.ReplicationMode;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Blob;
-import java.sql.SQLException;
 
 public class RoutineScriptService {
     private ScriptEngineDaoManager

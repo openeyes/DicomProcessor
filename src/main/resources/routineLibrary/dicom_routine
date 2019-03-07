@@ -1,13 +1,17 @@
-var requestData = JSON.parse(getJson('request_data', null));
+var requestData = JSON.parse(getJson('REQUEST_DATA', null));
 
- var dicomParser = getDicom('request_blob', null);
+ var dicomParser = getDicom('REQUEST_BLOB', null);
 
  var dicom = dicomParser.getStudy();
 
  var dicomHeader = JSON.parse(dicom.getHeaderJsonString());
 
-requestData.manufacturer = dicomHeader['524400'];
-requestData.manufacturer_model_name = dicomHeader['528528'];
+if(dicomHeader['524400'] != null) {
+requestData.manufacturer = dicomHeader['524400'].trim();
+   }
+if(dicomHeader['528528'] != null) {
+requestData.manufacturer_model_name = dicomHeader['528528'].trim();
+   }
 requestData.modality = dicomHeader['524384'];
 requestData.series_description  = dicomHeader['528446'];
 requestData.laterality = dicomHeader['2097248'];
@@ -34,40 +38,43 @@ requestData.series_number = dicomHeader['2097169'];
 requestData.instance_number = dicomHeader['2097171'];
 requestData.modifying_system = dicomHeader['67110243'];
 requestData.operator_identification_sequence = dicomHeader['528498'];
+
+var laterality = requestData.laterality;
+var bodySiteSnomed = null;
+
+if(laterality == 'L'){
+    bodySiteSnomed = 8966001;
+} else if (laterality == 'R') {
+    bodySiteSnomed = 18944008;
+} else if (laterality == 'B'){
+    bodySiteSnomed = 40638003;
+}
      putJson(
-             'dicom_header',
+             'DICOM_HEADER',
              JSON.stringify(dicomHeader),
-             'dicom_header',
+             'NONE',
              null,
-             'dicom');
+             'application/json');
 
      var pdf = dicom.getPdfAsBlob();
 
      putPdf('event_pdf',
              pdf,
-             'event_pdf',
-             null,
+             'NONE',
+             bodySiteSnomed,
              'application/pdf');
 
 
      putJson(
-             'request_data',
+             'REQUEST_DATA',
              JSON.stringify(requestData),
-             'request_json',
-             null, 'json');
+             'NONE',
+             null, 'application/json');
+
+             var manufacturer_model_name=requestData.manufacturer_model_name.replace(/ /g,"_");
+             var manufacturer = requestData.manufacturer.replace(/ /g,"_");
+             addRoutine(manufacturer_model_name + "_" + manufacturer);
      addRoutine('prototype_event');
      addRoutine('PAS_API');
-
-     var biometry = JSON.parse(getJson('biometry_data', null));
-     biometry.studyId = dicomHeader['2097168'];
-     biometry.time = dicomHeader['524336'];
-     biometry.date = dicomHeader['4194884'];
-
-     putJson(
-             'biometry_data',
-             JSON.stringify(biometry),
-             'biometry_report',
-             null,
-             'dicom');
 
      addRoutine('create_event');
