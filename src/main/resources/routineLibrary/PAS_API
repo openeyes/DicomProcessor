@@ -1,4 +1,4 @@
- var requestData = JSON.parse(getJson('REQUEST_DATA', null));
+ var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null));
      requestData.patientId = getPatientId(requestData.hosNum , requestData.dateOfBirth , requestData.gender);
         putJson(
         'REQUEST_DATA',

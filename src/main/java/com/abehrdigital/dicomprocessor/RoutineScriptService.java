@@ -33,11 +33,11 @@ public class RoutineScriptService {
         this.scriptAccessor = scriptAccessor;
     }
 
-    public String getJson(String attachmentMnemonic, String bodySite) throws HibernateException {
+    public String getJsonIfNullReturnEmptyJson(String attachmentMnemonic, String bodySite) throws HibernateException {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
 
-        if (attachmentData != null && attachmentData.getJson1() != null) {
-            return attachmentData.getJson1();
+        if (attachmentData != null && attachmentData.getJson() != null) {
+            return attachmentData.getJson();
         } else {
             return "{}";
         }

@@ -1,9 +1,9 @@
-var requestData = JSON.parse(getJson('REQUEST_DATA', null));
+var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null));
 var previousEventData = null;
  if(requestData.study_instance_uid != null ){
     var attachmentData = getEventDataByMedicalReportStudyInstanceUID('event_data' , requestData.study_instance_uid.toString());
     if(attachmentData != null) {
-        previousEventData = JSON.parse(attachmentData.getJson1());
+        previousEventData = JSON.parse(attachmentData.getJson());
     }
  }
 
