@@ -102,7 +102,6 @@ public class RequestQueueExecutor implements RequestThreadListener {
 
     private RequestQueue getUpToDateRequestQueueForUpdate() {
         daoManager.transactionStart();
-        daoManager.clearSession();
         return daoManager.getRequestQueueDao().getWithLock(requestQueueName, LockMode.UPGRADE_NOWAIT);
     }
 
@@ -130,7 +129,6 @@ public class RequestQueueExecutor implements RequestThreadListener {
 
             currentRequestQueue = getUpToDateRequestQueueForUpdate();
             setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
-            daoManager.transactionStart();
             daoManager.getRequestQueueDao().update(currentRequestQueue);
             daoManager.commit();
     }
