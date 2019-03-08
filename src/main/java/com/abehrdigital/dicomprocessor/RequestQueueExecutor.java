@@ -10,6 +10,7 @@ import com.abehrdigital.dicomprocessor.exceptions.RequestQueueMissingException;
 import com.abehrdigital.dicomprocessor.models.RequestQueue;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.utils.DaoFactory;
+import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 
 import java.util.HashMap;
@@ -87,17 +88,19 @@ public class RequestQueueExecutor implements RequestThreadListener {
     }
 
     private synchronized void saveWithLock(boolean dequeue , int successfulRoutineCount, int failedRoutineCount) {
-        currentRequestQueue = getUpToDateRequestQueueForUpdate();
-        setLastThreadSpawnDateAndRequestId();
-        if(dequeue){
+        try {
             currentRequestQueue = getUpToDateRequestQueueForUpdate();
-            setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
-        } else {
-            setLastThreadSpawnDateAndRequestId();
-            currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
+            if (dequeue) {
+                setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
+            } else {
+                setLastThreadSpawnDateAndRequestId();
+                currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
+            }
+            daoManager.getRequestQueueDao().update(currentRequestQueue);
+            daoManager.commit();
+        } catch (Exception exception){
+            daoManager.rollback();
         }
-        daoManager.getRequestQueueDao().update(currentRequestQueue);
-        daoManager.commit();
     }
 
     private RequestQueue getUpToDateRequestQueue() {
