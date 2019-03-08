@@ -55,7 +55,7 @@ public abstract class BaseDaoManager {
     }
 
     public void shutDown() {
-        if(getConnection().isOpen()) {
+        if(session != null && session.isConnected()) {
             getConnection().disconnect();
         }
     }
