@@ -716,14 +716,14 @@ public class Query {
     }
 
     private static void prettyPrintQueryResultObject(List<HashMap<String, Object>> aliasToValueMapList) {
-        System.err.println("========================SQL response:========================\n\t\t\t"
-                + aliasToValueMapList +
-                "\n==============================================================");
+//        System.err.println("========================SQL response:========================\n\t\t\t"
+//                + aliasToValueMapList +
+//                "\n==============================================================");
     }
 
     private static void prettyPrintQueryResultString(List<HashMap<String, String>> aliasToValueMapList) {
-        System.err.println("========================SQL response:========================\n"
-                + aliasToValueMapList +
-                "\n==============================================================");
+//        System.err.println("========================SQL response:========================\n"
+//                + aliasToValueMapList +
+//                "\n==============================================================");
     }
 }
