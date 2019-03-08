@@ -28,50 +28,48 @@ public class DicomEngine {
      */
     //TODO SHUT DOWN AFER MINUTES SHOULD COME THROUGH ARGS
     public static void main(String[] args) {
-        DirectoryFileNamesReader fileNamesReader = new DirectoryFileNamesReader();
-        fileNamesReader.read("src/main/resources/routineLibrary");
-//        buildSessionFactory();
-//        long shutdownMsClock = System.currentTimeMillis() + 60 * 1000 * SHUTDOWN_AFTER_MINUTES;
-//        long synchronizeRoutineLibraryDelay = 60 * 1000 * SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES;
-//        RoutineLibrarySynchronizer routineLibrarySynchronizer = new RoutineLibrarySynchronizer(
-//                new RoutineScriptAccessor(),
-//                new DirectoryFileNamesReader(),
-//                DaoFactory.createEngineInitialisationDaoManager(),
-//                synchronizeRoutineLibraryDelay
-//                );
-//
-//        try {
-//            routineLibrarySynchronizer.sync();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        RequestQueueExecutor requestQueueExecutor = new RequestQueueExecutor(testRequestQueue ,routineLibrarySynchronizer);
-//
-//
-//        // Stability recovery loop
-//        while (System.currentTimeMillis() < shutdownMsClock) {
-//            try {
-//                // Main request handler iterator
-//                while (System.currentTimeMillis() < shutdownMsClock) {
-//                    requestQueueExecutor.execute();
-//                }
-//                throw new OrderlyExitSuccessException("Engine run was successful");
-//            } catch (RequestQueueMissingException queueMissingException) {
-//                Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-//                        StackTraceUtil.getStackTraceAsString(queueMissingException));
-//                break;
-//            } catch (OrderlyExitSuccessException successException) {
-//                Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-//                        successException.toString());
-//            } catch (Exception exception) {
-//                requestQueueExecutor.shutDown();
-//                System.out.println(exception.getClass());
-//                Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-//                        StackTraceUtil.getStackTraceAsString(exception));
-//            }
-//        }
-//        requestQueueExecutor.shutDown();
+        buildSessionFactory();
+        long shutdownMsClock = System.currentTimeMillis() + 60 * 1000 * SHUTDOWN_AFTER_MINUTES;
+        long synchronizeRoutineLibraryDelay = 60 * 1000 * SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES;
+        RoutineLibrarySynchronizer routineLibrarySynchronizer = new RoutineLibrarySynchronizer(
+                new RoutineScriptAccessor(),
+                new DirectoryFileNamesReader(),
+                DaoFactory.createEngineInitialisationDaoManager(),
+                synchronizeRoutineLibraryDelay
+                );
+
+        try {
+            routineLibrarySynchronizer.sync();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        RequestQueueExecutor requestQueueExecutor = new RequestQueueExecutor(testRequestQueue ,routineLibrarySynchronizer);
+
+
+        // Stability recovery loop
+        while (System.currentTimeMillis() < shutdownMsClock) {
+            try {
+                // Main request handler iterator
+                while (System.currentTimeMillis() < shutdownMsClock) {
+                    requestQueueExecutor.execute();
+                }
+                throw new OrderlyExitSuccessException("Engine run was successful");
+            } catch (RequestQueueMissingException queueMissingException) {
+                Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
+                        StackTraceUtil.getStackTraceAsString(queueMissingException));
+                break;
+            } catch (OrderlyExitSuccessException successException) {
+                Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
+                        successException.toString());
+            } catch (Exception exception) {
+                requestQueueExecutor.shutDown();
+                System.out.println(exception.getClass());
+                Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
+                        StackTraceUtil.getStackTraceAsString(exception));
+            }
+        }
+        requestQueueExecutor.shutDown();
     }
 
     private static void buildSessionFactory() {
