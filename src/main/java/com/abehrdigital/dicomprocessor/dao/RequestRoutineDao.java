@@ -57,7 +57,7 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<RequestRoutine> getRoutinesForQueueProcessing(String requestQueue) {
+    public synchronized List<RequestRoutine> getRoutinesForQueueProcessing(String requestQueue) {
         NativeQuery query = session.getNamedNativeQuery("routinesWithRequestQueueRestrictionForProcessing");
         query.addEntity("rr", RequestRoutine.class);
         query.setParameter("request_queue", requestQueue);
@@ -65,9 +65,9 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
         query.setParameter("retry_status", Status.RETRY.toString());
         query.setParameter("complete_status", Status.COMPLETE.toString());
         query.setParameter("void_status", Status.VOID.toString());
-        if(query == null){
-            System.err.println("QUERY YRA NULL !!!!! getRoutinesForQueueProcessing " + requestQueue);
-        }
+
+
+
         return query.getResultList();
     }
 
