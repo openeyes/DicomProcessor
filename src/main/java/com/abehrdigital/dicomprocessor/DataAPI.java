@@ -33,6 +33,7 @@ public class DataAPI {
     private String time;
     private String userId;
     private Session session;
+    private HashMap<String, JSONArray> originalSaveSets;
 
     /* dataDictionary: keeps information about mappings $$_name[X]_$$ -> value */
     HashMap<String, XID> dataDictionary;
@@ -93,8 +94,8 @@ public class DataAPI {
      */
     private void applyQueries(ArrayList<ArrayList<Query>> saveSetQueries) throws SQLException, ValuesNotFoundException,
             EmptyKnownFieldsException, InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
-        //System.out.println("WTH "+ saveSetQueries.size());
-        //System.out.println("WTH "+ saveSetQueries);
+        // System.out.println("number of queries: "+ saveSetQueries.size());
+        // System.out.println("queries: "+ saveSetQueries);
 
         // for each saveset, start a new transaction:
         int transactionNumber = 0;
@@ -173,6 +174,7 @@ public class DataAPI {
                         parseXidMap((JSONArray) data);
                     } else if (key.contains("SaveSet")) {
                         //System.out.println("parseSaveSet");
+                        this.originalSaveSets.put("$$_SaveSet[" + (this.originalSaveSets.size()+1) + "]_$$", (JSONArray) data);
                         saveSets.add(new ArrayList<>(parseSaveSet((JSONArray) data)));
                     }
                     break;
@@ -387,6 +389,7 @@ public class DataAPI {
         keyIndex = new HashMap<>();
         this.userId = userId;
         this.session = session;
+        this.originalSaveSets = new HashMap<>();
 
         // set session and time at the start of the execution
         time = getTime();
@@ -446,7 +449,9 @@ public class DataAPI {
         JSONObject updatedJson = new JSONObject();
         updatedJson.put("_OE_System", "ABEHR Jason Local v3.0");
         updatedJson.put("_Version", "v0.1");
-        updatedJson.put("$$_SaveSet[1]_$$", new JSONArray());
+        for (Map.Entry<String, JSONArray> entry : this.originalSaveSets.entrySet()) {
+            updatedJson.put(entry.getKey(), entry.getValue());
+        }
         updatedJson.put("$$_XID_Map_$$", xidMap);
 
         return updatedJson.toJSONString();
