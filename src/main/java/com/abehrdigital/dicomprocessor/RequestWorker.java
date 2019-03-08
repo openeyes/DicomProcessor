@@ -76,7 +76,7 @@ public class RequestWorker implements Runnable {
                     service.getScriptService()
             );
             routineForProcessing.setHashCode(scriptExecutor.getScriptHashCode());
-           // logMessage += scriptExecutor.execute();
+            logMessage += scriptExecutor.execute();
             routineForProcessing.updateFieldsByStatus(Status.COMPLETE);
             service.updateRequestRoutine(routineForProcessing);
             //Request table lock released when transaction is committed
