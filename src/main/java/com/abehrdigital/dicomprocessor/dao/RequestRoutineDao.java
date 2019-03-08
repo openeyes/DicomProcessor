@@ -66,9 +66,8 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
         query.setParameter("complete_status", Status.COMPLETE.toString());
         query.setParameter("void_status", Status.VOID.toString());
 
-
-
-        return query.getResultList();
+        List<RequestRoutine> requestRoutines = query.getResultList();
+        return requestRoutines;
     }
 
     public RequestRoutine getRequestRoutineWithRequestIdForProcessing(int requestId, String requestQueue) {
