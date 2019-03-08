@@ -527,7 +527,7 @@ public class DataAPI {
         String delimiter = new String(new char[length]).replace('\0', '=') + "\n";
         delimiter = delimiter + delimiter + delimiter;
         message = new String(new char[length/10]).replace('\0', '\t') + message + "\n";
-        System.err.println(delimiter + message + delimiter);
+//        System.err.println(delimiter + message + delimiter);
 
 //        Logger.getLogger(RequestWorker.class.getName()).log(Level.SEVERE,
 //                "REQUEST WORKER EXCEPTION WHEN EVALUATING JAVASCRIPT ->  " + getStackTraceAsString(exception));
