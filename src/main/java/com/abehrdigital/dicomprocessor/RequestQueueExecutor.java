@@ -65,11 +65,7 @@ public class RequestQueueExecutor implements RequestThreadListener {
 
                 if (!requestIsInActiveThreadMap) {
                     saveAndStartRequestWorker(createRequestWorkerWithCurrentRequestId());
-                    currentRequestQueue = getUpToDateRequestQueueForUpdate();
-                    setLastThreadSpawnDateAndRequestId();
-                    currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
-                    daoManager.getRequestQueueDao().update(currentRequestQueue);
-                    daoManager.commit();
+                    saveWithLock(false , 0 , 0);
                 }
             }
 
@@ -88,6 +84,22 @@ public class RequestQueueExecutor implements RequestThreadListener {
                     exception.toString() + " Executor exception");
             exception.printStackTrace();
         }
+    }
+
+    private synchronized void saveWithLock(boolean dequeue , int successfulRoutineCount, int failedRoutineCount) {
+        currentRequestQueue = getUpToDateRequestQueueForUpdate();
+        setLastThreadSpawnDateAndRequestId();
+        if(dequeue){
+            currentRequestQueue = getUpToDateRequestQueueForUpdate();
+            setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
+            daoManager.getRequestQueueDao().update(currentRequestQueue);
+            daoManager.commit();
+        } else {
+            setLastThreadSpawnDateAndRequestId();
+            currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
+        }
+        daoManager.getRequestQueueDao().update(currentRequestQueue);
+        daoManager.commit();
     }
 
     private RequestQueue getUpToDateRequestQueue() {
@@ -127,10 +139,7 @@ public class RequestQueueExecutor implements RequestThreadListener {
             currentActiveThreads = requestIdToThreadSyncMap.size();
         }
 
-            currentRequestQueue = getUpToDateRequestQueueForUpdate();
-            setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
-            daoManager.getRequestQueueDao().update(currentRequestQueue);
-            daoManager.commit();
+        saveWithLock(true , successfulRoutineCount , failedRoutineCount);
     }
 
     private void setActiveThreadAndExecutionCounts(int successfulRoutineCount, int failedRoutineCount) {

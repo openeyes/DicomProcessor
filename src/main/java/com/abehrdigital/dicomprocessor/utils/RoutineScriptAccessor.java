@@ -14,7 +14,7 @@ public class RoutineScriptAccessor {
 
     public boolean routineExists(String routineName) {
         String trimmedRoutineName = routineName.trim();
-        File routineBody = new File(ROUTINE_LIBRARY_LOCATION + trimmedRoutineName);
+        File routineBody = new File(ROUTINE_LIBRARY_LOCATION+"/" + trimmedRoutineName);
         return routineBody.exists();
     }
 
@@ -22,7 +22,7 @@ public class RoutineScriptAccessor {
         String trimmedRoutineName = routineName.trim();
         String routineScript;
         if (routineExists(routineName)) {
-            routineScript = new String(Files.readAllBytes(Paths.get(ROUTINE_LIBRARY_LOCATION + trimmedRoutineName)));
+            routineScript = new String(Files.readAllBytes(Paths.get(ROUTINE_LIBRARY_LOCATION + "/" + trimmedRoutineName)));
         } else {
             throw new FileNotFoundException("Routine name : " + trimmedRoutineName + " doesn't exist");
         }
