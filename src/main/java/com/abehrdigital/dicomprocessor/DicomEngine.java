@@ -63,7 +63,7 @@ public class DicomEngine {
                 Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
                         successException.toString());
             } catch (Exception exception) {
-                requestQueueExecutor.shutDown();
+                //requestQueueExecutor.shutDown();
                 System.out.println(exception.getClass());
                 Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
                         StackTraceUtil.getStackTraceAsString(exception));
