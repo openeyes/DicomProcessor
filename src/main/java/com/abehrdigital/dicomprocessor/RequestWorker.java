@@ -50,8 +50,8 @@ public class RequestWorker implements Runnable {
                 RequestRoutine routineForProcessing = service.getNextRoutineToProcess();
                 if (routineForProcessing != null) {
                     resetRoutineVariables();
-                   // String engineLogMessage = executeRequestRoutine(routineForProcessing);
-                    evaluateRoutineScriptExecution("", routineForProcessing);
+                    String engineLogMessage = executeRequestRoutine(routineForProcessing);
+                    evaluateRoutineScriptExecution(engineLogMessage, routineForProcessing);
                 } else {
                     break;
                 }
@@ -76,7 +76,7 @@ public class RequestWorker implements Runnable {
                     service.getScriptService()
             );
             routineForProcessing.setHashCode(scriptExecutor.getScriptHashCode());
-            logMessage += scriptExecutor.execute();
+           // logMessage += scriptExecutor.execute();
             routineForProcessing.updateFieldsByStatus(Status.COMPLETE);
             service.updateRequestRoutine(routineForProcessing);
             //Request table lock released when transaction is committed
