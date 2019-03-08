@@ -14,7 +14,10 @@ public class EventAttachmentItemDao {
         NativeQuery query = session.createSQLQuery("" +
                 "DELETE FROM event_attachment_item " +
                 "WHERE attachment_data_id = :attachment_data_id AND " +
-                "id NOT IN (SELECT eai.id FROM (SELECT * FROM event_attachment_item) AS eai WHERE eai.attachment_data_id = :attachment_data_id ORDER BY eai.id DESC LIMIT 1) ")
+                "id != ( SELECT * FROM ( " +
+                "SELECT MAX(id) FROM event_attachment_item " +
+                        " WHERE attachment_data_id = :attachment_data_id" +
+                        " ) AS eai ) ")
                 .setParameter("attachment_data_id", attachmentDataId);
 
         query.executeUpdate();

@@ -1,10 +1,11 @@
 var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null));
-
+//do in java
  var dicomParser = getDicom('REQUEST_BLOB', null);
 
  var dicom = dicomParser.getStudy();
 
  var dicomHeader = JSON.parse(dicom.getHeaderJsonString());
+ //
 
 if(dicomHeader['524400'] != null) {
 requestData.manufacturer = dicomHeader['524400'].trim();
@@ -14,7 +15,9 @@ requestData.manufacturer_model_name = dicomHeader['528528'].trim();
    }
 requestData.modality = dicomHeader['524384'];
 requestData.series_description  = dicomHeader['528446'];
-requestData.laterality = dicomHeader['2097248'];
+if(dicomHeader['2097248'] != null){
+requestData.laterality = dicomHeader['2097248'].trim();
+}
 requestData.image_laterality  = dicomHeader['2097250'];
 requestData.study_description   = dicomHeader['4325392'];
 requestData.document_title    = dicomHeader['528432'];
@@ -39,7 +42,7 @@ requestData.instance_number = dicomHeader['2097171'];
 requestData.modifying_system = dicomHeader['67110243'];
 requestData.operator_identification_sequence = dicomHeader['528498'];
 
-var laterality = requestData.laterality;
+var laterality = requestData.laterality
 var bodySiteSnomed = null;
 
 if(laterality == 'L'){
@@ -49,6 +52,8 @@ if(laterality == 'L'){
 } else if (laterality == 'B'){
     bodySiteSnomed = 40638003;
 }
+
+requestData.bodySiteSnomed = bodySiteSnomed;
      putJson(
              'DICOM_HEADER',
              JSON.stringify(dicomHeader),
