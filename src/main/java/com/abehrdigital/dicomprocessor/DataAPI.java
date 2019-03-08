@@ -111,7 +111,7 @@ public class DataAPI {
                     Query query = (Query) queryIterator.next();
 
                     // TODO DEBUG
-                    System.err.println(query);
+                    //System.err.println(query);
                     DataAPI.printMap("DataAPI.map: ", this.dataDictionary);
                     DataAPI.printKeyMap("KEY.map: ", this.keyIndex);
 

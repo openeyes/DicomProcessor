@@ -27,12 +27,10 @@ public class DicomParser {
         try {
             run();
         } catch (Exception e) {
-            System.out.println(e);
         }
     }
 
     private void init() throws IOException, SQLException {
-        System.out.println(dicomBlob);
         dicomInputStream = new DicomInputStream(dicomBlob.getBinaryStream());
         attributes = dicomInputStream.readDataset(-1, -1);
     }
