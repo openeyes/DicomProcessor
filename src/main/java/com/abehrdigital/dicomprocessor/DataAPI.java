@@ -122,7 +122,7 @@ public class DataAPI {
                     queryIterator.remove();
                 }
             } catch(InvalidNumberOfRowsAffectedException | ValuesNotFoundException | EmptyKnownFieldsException |
-                    SQLException | NoSearchedFieldsProvidedException exception){
+                    NoSearchedFieldsProvidedException exception){
                 //System.out.println("Exception occured rolling back to save point");
                 rollbackSavepoint(savepoint);
                 throw exception;
