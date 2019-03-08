@@ -10,6 +10,7 @@ import com.abehrdigital.dicomprocessor.exceptions.RequestQueueMissingException;
 import com.abehrdigital.dicomprocessor.models.RequestQueue;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.utils.DaoFactory;
+import com.abehrdigital.dicomprocessor.utils.StackTraceUtil;
 import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 
@@ -27,7 +28,7 @@ public class RequestQueueExecutor implements RequestThreadListener {
 
     private String requestQueueName;
     private RequestQueueLocker requestQueueLocker;
-    private RequestQueueDaoManager daoManager;
+    private final RequestQueueDaoManager daoManager;
     private final Map<Integer, Runnable> requestIdToThreadSyncMap;
     private RequestQueue currentRequestQueue;
     private int currentActiveThreads;
@@ -46,12 +47,17 @@ public class RequestQueueExecutor implements RequestThreadListener {
     public void execute() throws RequestQueueMissingException {
         try {
             requestQueueLocker.lockWithMaximumTryCount(LOCK_MAXIMUM_TRY_COUNT);
-            List<RequestRoutine> requestRoutinesForExecution = daoManager
-                    .getRequestRoutineDao()
-                    .getRoutinesForQueueProcessing(requestQueueName);
+            List<RequestRoutine> requestRoutinesForExecution;
+            synchronized (daoManager) {
+                requestRoutinesForExecution = daoManager
+                        .getRequestRoutineDao()
+                        .getRoutinesForQueueProcessing(requestQueueName);
+            }
 
             for (RequestRoutine routineForExecution : requestRoutinesForExecution) {
-                currentRequestQueue = getUpToDateRequestQueue();
+                synchronized (daoManager) {
+                    currentRequestQueue = getUpToDateRequestQueue();
+                }
                 currentRequestId = routineForExecution.getRequestId();
                 boolean requestIsInActiveThreadMap;
 
@@ -89,16 +95,19 @@ public class RequestQueueExecutor implements RequestThreadListener {
 
     private synchronized void saveWithLock(boolean dequeue , int successfulRoutineCount, int failedRoutineCount) {
         try {
-            currentRequestQueue = getUpToDateRequestQueueForUpdate();
-            if (dequeue) {
-                setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
-            } else {
-                setLastThreadSpawnDateAndRequestId();
-                currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
+            synchronized (daoManager) {
+                currentRequestQueue = getUpToDateRequestQueueForUpdate();
+                if (dequeue) {
+                    setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
+                } else {
+                    setLastThreadSpawnDateAndRequestId();
+                    currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
+                }
+                daoManager.getRequestQueueDao().update(currentRequestQueue);
+                daoManager.commit();
             }
-            daoManager.getRequestQueueDao().update(currentRequestQueue);
-            daoManager.commit();
         } catch (Exception exception){
+            System.err.println(StackTraceUtil.getStackTraceAsString(exception));
             daoManager.rollback();
         }
     }
