@@ -92,8 +92,6 @@ public class RequestQueueExecutor implements RequestThreadListener {
         if(dequeue){
             currentRequestQueue = getUpToDateRequestQueueForUpdate();
             setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
-            daoManager.getRequestQueueDao().update(currentRequestQueue);
-            daoManager.commit();
         } else {
             setLastThreadSpawnDateAndRequestId();
             currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
