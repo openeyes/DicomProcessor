@@ -70,7 +70,7 @@ public class Query {
             return;
         } catch (InvalidNumberOfRowsAffectedException | Exception e) {
             // at least one query failed => proceed with the execution
-            System.out.println("at least one query failed => proceed with the execution");
+            //System.out.println("at least one query failed => proceed with the execution");
         }
 
         switch (this.crudOperation) {
@@ -93,29 +93,29 @@ public class Query {
         // pk is already in memory;
         // try to update fields
         if (isPrimaryKeyKnown()) {
-            System.out.println("+++++++++++FOUND++++++++UPDATE++++++++");
+            //System.out.println("+++++++++++FOUND++++++++UPDATE++++++++");
             try {
                 update(session);
                 // update succeeded; return
                 return;
             } catch (InvalidNumberOfRowsAffectedException e) {
                 // at least one query failed => proceed with the execution
-                System.out.println("at least one query failed => proceed with the execution");
+                //System.out.println("at least one query failed => proceed with the execution");
             }
         }
 
         // pk is not in memory;
         // construct retrieve operation (select)
         this.crudOperation = CrudOperation.RETRIEVE;
-        System.out.println("SS+1: creating select");
+        //System.out.println("SS+1: creating select");
         constructSelectQuery(session);
-        System.out.println("SS+2: done");
+        //System.out.println("SS+2: done");
         rowsAffected = executeQuery(session, NO_ROWS);
-        System.out.println("SS+6: creating select " + rowsAffected);
+        //System.out.println("SS+6: creating select " + rowsAffected);
 
         // no records in the database: insert and save the newly introduced id into the dataDictionary
         if (rowsAffected == 0) {
-            System.out.println("+++++++++++INSERT++++++++ ");
+            //System.out.println("+++++++++++INSERT++++++++ ");
 
             this.crudOperation = CrudOperation.CREATE;
             constructInsertQuery(session);
@@ -125,7 +125,7 @@ public class Query {
 
             // records were in the database, but they are not in memory (dataDictionary)
         } else if (rowsAffected == 1) {
-            System.out.println("+++++++++++UPDATE++++++++ ");
+            //System.out.println("+++++++++++UPDATE++++++++ ");
 
             this.crudOperation = CrudOperation.MERGE;
 
@@ -157,11 +157,11 @@ public class Query {
                                 queriesParameters.get(cusomSqlQueryIndex),
                                 xidParameterList));
                 for (Map.Entry<String, String> entryParameter : xidParameterList.entrySet()) {
-                    System.out.println("Rep324lacing: **" + entryParameter.getKey() + "**  with " + entryParameter.getValue());
+                    //System.out.println("Rep324lacing: **" + entryParameter.getKey() + "**  with " + entryParameter.getValue());
                     this.sqlQuery.setParameter(entryParameter.getKey(), entryParameter.getValue());
-                    System.out.println("AFTER");
+                    //System.out.println("AFTER");
                 }
-                System.out.println("trying to execute custom sql: " + this.sqlQuery);
+                //System.out.println("trying to execute custom sql: " + this.sqlQuery);
 
                 // if one fails, stop running other custom sql queries
                 // exception will be thrown
@@ -170,7 +170,7 @@ public class Query {
             this.crudOperation = crudSave;
             return;
         }
-        System.out.println("++There are no custom queries");
+        //System.out.println("++There are no custom queries");
         throw new Exception("No queries to execute.");
     }
 
@@ -182,21 +182,21 @@ public class Query {
      * @return String updated custom sql query
      */
     private String resolveCustomQueryParameters(String customSql, ArrayList<String> queryParameters, HashMap<String, String> xidParameterList) {
-        System.out.println("SSS4: " + customSql);
+        //System.out.println("SSS4: " + customSql);
         for (int indexParameters = 0; indexParameters < queryParameters.size(); indexParameters++) {
             String parameterXID = queryParameters.get(indexParameters);
-            System.out.println("SSS34: " + parameterXID);
+            //System.out.println("SSS34: " + parameterXID);
             String[] parameterXidSplit = parameterXID.split("\\.");
 
             String parameterStrippedXID = parameterXidSplit[0] + "_$$";
             String parameterStrippedField = parameterXidSplit[1].substring(0,parameterXidSplit[1].length() - 3);
-            System.out.println("parameterStrippedXID: " + parameterStrippedXID);
-            System.out.println("parameterStrippedField: " + parameterStrippedField);
+            //System.out.println("parameterStrippedXID: " + parameterStrippedXID);
+            //System.out.println("parameterStrippedField: " + parameterStrippedField);
 
             customSql = customSql.replace(parameterXID, " :parameter_" + indexParameters);
             xidParameterList.put("parameter_" + indexParameters, dataAPI.dataDictionary.get(parameterStrippedXID).knownFields.get(parameterStrippedField));
         }
-        System.out.println("SSS1 " + customSql);
+        //System.out.println("SSS1 " + customSql);
         return customSql;
     }
 
@@ -238,7 +238,7 @@ public class Query {
 
             // replace "$$_SysDateTime_$$" with the time set at the start of the program execution
             if (xidUnknown.equals("$$_SysDateTime_$$")) {
-                System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" + unknownFieldId);
+                //System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" + unknownFieldId);
                 knownFields.put(unknownFieldId, dataAPI.getTime());
                 unknownFieldsIterator.remove();
                 continue;
@@ -258,12 +258,12 @@ public class Query {
 
 
         if (dataAPI.dataDictionary.containsKey(this.XID) && dataAPI.dataDictionary.get(this.XID).knownFields != null) {
-            System.out.println("SSS: " + dataAPI.dataDictionary.get(this.XID));
-            System.out.println("SSS: " + dataAPI.dataDictionary.get(this.XID).knownFields);
-            System.out.println("SSS: " + dataAPI.dataDictionary.get(this.XID).knownFields.entrySet());
+            //System.out.println("SSS: " + dataAPI.dataDictionary.get(this.XID));
+            //System.out.println("SSS: " + dataAPI.dataDictionary.get(this.XID).knownFields);
+            //System.out.println("SSS: " + dataAPI.dataDictionary.get(this.XID).knownFields.entrySet());
             for (Map.Entry<String, String> knownFieldDataDictionary : dataAPI.dataDictionary.get(this.XID).knownFields.entrySet()) {
                 this.knownFields.put(knownFieldDataDictionary.getKey(), knownFieldDataDictionary.getValue());
-                System.out.println("SS added" + knownFieldDataDictionary.getKey());
+                //System.out.println("SS added" + knownFieldDataDictionary.getKey());
             }
         }
     }
@@ -369,7 +369,7 @@ public class Query {
                 this.dataSet, valuesConcatenated, primaryKey))
         .setParameter("primaryKeyValue", xid.knownFields.get(primaryKey));
 
-        System.out.println("PK: " + primaryKey + "     VAL: " + xid.knownFields.get(primaryKey));
+        //System.out.println("PK: " + primaryKey + "     VAL: " + xid.knownFields.get(primaryKey));
 
         // add parameters from knownFields to the NativeQuery
         updateSqlQueryWithParameters();
@@ -382,7 +382,7 @@ public class Query {
         for (Map.Entry<String, String> entryKnownField : knownFields.entrySet()) {
             // if a value exists for the field and it's not the primary key
             if (entryKnownField.getValue() != null && !entryKnownField.getKey().equals(dataAPI.keyIndex.get(dataSet).primaryKey)) {
-                System.out.println("Replacing: " + entryKnownField.getKey() + "  with " + entryKnownField.getValue());
+                //System.out.println("Replacing: " + entryKnownField.getKey() + "  with " + entryKnownField.getValue());
                 this.sqlQuery.setParameter(entryKnownField.getKey(), entryKnownField.getValue());
             }
         }
@@ -422,9 +422,9 @@ public class Query {
 
         for (Map.Entry<String, String> entry : map.entrySet()) {
             // don't add the primary key
-            System.out.println("key: " + entry.getKey());
+            //System.out.println("key: " + entry.getKey());
             if (!entry.getKey().equals(dataAPI.keyIndex.get(dataSet).primaryKey)) {
-                System.out.println("\treplacing " + entry.getKey() + "    " + entry.getValue());
+                //System.out.println("\treplacing " + entry.getKey() + "    " + entry.getValue());
                 // if value is null, use "key is null" syntax
                 if (entry.getValue() == null) {
                     resultingConditions.add(entry.getKey() + nullDelimiter + "null");
@@ -452,7 +452,7 @@ public class Query {
 
         // TODO: NOT SURE MERGE IS NEEDED HERE
         if (this.crudOperation == CrudOperation.CREATE || this.crudOperation == CrudOperation.MERGE) {
-            System.out.println("=1= Execute insert");
+            //System.out.println("=1= Execute insert");
             executeInsertUpdate(this.sqlQuery);
         }
 
@@ -475,7 +475,7 @@ public class Query {
 
         // if unknownFields has no entries, it means there is no information required
         if (!unknownFields.isEmpty()) {
-            System.out.println("SS+4: UPDATING");
+            //System.out.println("SS+4: UPDATING");
             // get the XID corresponding to the PK
             String XID = unknownFields.get(dataAPI.keyIndex.get(dataSet).primaryKey);
 
@@ -493,7 +493,7 @@ public class Query {
                 dataAPI.dataDictionary.put(XID, new XID(XID, this.dataSet, knownFields));
             }
         }
-        System.out.println("SS+4: done updating " + knownFields.size());
+        //System.out.println("SS+4: done updating " + knownFields.size());
 
         return knownFields.size();
     }
@@ -673,10 +673,10 @@ public class Query {
     private static void executeInsertUpdate(NativeQuery sqlQuery) throws InvalidNumberOfRowsAffectedException {
         System.err.println("=======INSERT======== ");
         int numberRowsAffected = sqlQuery.executeUpdate();
-        System.out.println("=2= " + numberRowsAffected);
+        //System.out.println("=2= " + numberRowsAffected);
 
         if (numberRowsAffected != ONE_ROW) {
-            System.out.println("=3= error");
+            //System.out.println("=3= error");
             throw new InvalidNumberOfRowsAffectedException();
         }
     }

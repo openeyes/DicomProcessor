@@ -44,9 +44,9 @@ public class DataAPI {
         this.session.doWork(new Work() {
             @Override
             public void execute(Connection connection) throws SQLException      {
-                System.out.println("==BefSave point==");
+                //System.out.println("==BefSave point==");
                 savepoint = connection.setSavepoint(savePoint);
-                System.out.println("==After Save point==");
+                //System.out.println("==After Save point==");
             }
         });
         return savepoint;
@@ -56,9 +56,9 @@ public class DataAPI {
         this.session.doWork(new Work() {
             @Override
             public void execute(Connection connection) throws SQLException     {
-                System.out.println("==Before rollback==");
+                //System.out.println("==Before rollback==");
                 connection.rollback(savepoint);
-                System.out.println("==After rollback==");
+                //System.out.println("==After rollback==");
             }
         });
     }
@@ -69,21 +69,21 @@ public class DataAPI {
      * @param dataDictionary HashMap to be printed
      */
     static void printMap(String message, HashMap<String, XID> dataDictionary) {
-        System.out.println("============");
-        System.out.println(message);
+        //System.out.println("============");
+        //System.out.println(message);
         for (Map.Entry<String, XID> entry : dataDictionary.entrySet()) {
-            System.out.println(entry.getKey() + "  =>  " + entry.getValue());
+            //System.out.println(entry.getKey() + "  =>  " + entry.getValue());
         }
-        System.out.println("============");
+        //System.out.println("============");
     }
 
     static void printKeyMap(String message, HashMap<String, TableKey> dataDictionary) {
-        System.out.println("============");
-        System.out.println(message);
+        //System.out.println("============");
+        //System.out.println(message);
         for (Map.Entry<String, TableKey> entry : dataDictionary.entrySet()) {
-            System.out.println(entry.getKey() + "  =>  " + entry.getValue());
+            //System.out.println(entry.getKey() + "  =>  " + entry.getValue());
         }
-        System.out.println("============");
+        //System.out.println("============");
     }
 
     /**
@@ -93,8 +93,8 @@ public class DataAPI {
      */
     private void applyQueries(ArrayList<ArrayList<Query>> saveSetQueries) throws SQLException, ValuesNotFoundException,
             EmptyKnownFieldsException, InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
-        System.out.println("WTH "+ saveSetQueries.size());
-        System.out.println("WTH "+ saveSetQueries);
+        //System.out.println("WTH "+ saveSetQueries.size());
+        //System.out.println("WTH "+ saveSetQueries);
 
         // for each saveset, start a new transaction:
         int transactionNumber = 0;
@@ -103,7 +103,7 @@ public class DataAPI {
             try {
 
                 savepoint = setSavepoint("savepoint_"+(transactionNumber++));
-                System.out.println("==SetSavepoint== " + savepoint.getSavepointName());
+                //System.out.println("==SetSavepoint== " + savepoint.getSavepointName());
 
                 Iterator queryIterator = saveSetQuery.iterator();
 
@@ -123,7 +123,7 @@ public class DataAPI {
                 }
             } catch(InvalidNumberOfRowsAffectedException | ValuesNotFoundException | EmptyKnownFieldsException |
                     SQLException | NoSearchedFieldsProvidedException exception){
-                System.out.println("Exception occured rolling back to save point");
+                //System.out.println("Exception occured rolling back to save point");
                 rollbackSavepoint(savepoint);
                 throw exception;
             }
@@ -145,15 +145,15 @@ public class DataAPI {
         JSONObject json = (JSONObject) jsonParser.parse(jsonData);
 
 
-        System.out.println("==1: ");
-        System.out.println("==1: "+(String []) json.keySet().stream().toArray(String[] ::new));
-        System.out.println("==1: "+((String []) json.keySet().stream().toArray(String[] ::new)).length);
+        //System.out.println("==1: ");
+        //System.out.println("==1: "+(String []) json.keySet().stream().toArray(String[] ::new));
+        //System.out.println("==1: "+((String []) json.keySet().stream().toArray(String[] ::new)).length);
         for (String key : (String []) json.keySet().stream().toArray(String[] ::new)) {
             Object data = json.get(key);
 
             // depending on the current object class, parse the data
             JsonObjectClassType jsonClass = JsonObjectClassType.valueOf(data.getClass().getSimpleName());
-            System.out.println("==2: "+jsonClass + "     " + key);
+            //System.out.println("==2: "+jsonClass + "     " + key);
             switch (jsonClass) {
                 case String:
                     switch (key) {
@@ -169,10 +169,10 @@ public class DataAPI {
                     break;
                 case JSONArray:
                     if (key.contains("XID_Map")) {
-                        System.out.println("parseMap");
+                        //System.out.println("parseMap");
                         parseXidMap((JSONArray) data);
                     } else if (key.contains("SaveSet")) {
-                        System.out.println("parseSaveSet");
+                        //System.out.println("parseSaveSet");
                         saveSets.add(new ArrayList<>(parseSaveSet((JSONArray) data)));
                     }
                     break;
@@ -194,7 +194,7 @@ public class DataAPI {
         for (Object saveSetObject : saveSets) {
             JSONObject command = (JSONObject) saveSetObject;
             String dataSet = (String) command.get("$$_DataSet_$$");
-            System.out.println("33: " + dataSet);
+            //System.out.println("33: " + dataSet);
 
             // get keys for this table and set them in DataAPI.keyIndex
             Query.setKeys(this.session, dataSet, this);
@@ -278,7 +278,7 @@ public class DataAPI {
             switch (key) {
                 case "$$_CRUD_$$":
                     crudOperation = Query.CrudOperation.valueOf(query.get(key).toString());
-                    System.out.println("crudOp: " + crudOperation);
+                    //System.out.println("crudOp: " + crudOperation);
                     break;
                 case "$$_QUERIES_$$":
                     JSONArray customQueries = (JSONArray) query.get(key);
@@ -493,8 +493,8 @@ public class DataAPI {
         dataAPI.session.beginTransaction();
         String jsonData = dataAPI.getEventTemplate();
         String modifiedJsonData = dataAPI.magic("1", jsonData, dataAPI.session);
-        System.out.println(jsonData);
-        System.out.println(modifiedJsonData);
+        //System.out.println(jsonData);
+        //System.out.println(modifiedJsonData);
 
        /* DataAPI.session =  HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
