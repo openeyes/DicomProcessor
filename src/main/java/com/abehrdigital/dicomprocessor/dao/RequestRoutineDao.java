@@ -59,15 +59,16 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
     @SuppressWarnings("unchecked")
     public synchronized List<RequestRoutine> getRoutinesForQueueProcessing(String requestQueue) {
         NativeQuery query = session.getNamedNativeQuery("routinesWithRequestQueueRestrictionForProcessing");
-        query.addEntity("rr", RequestRoutine.class);
-        query.setParameter("request_queue", requestQueue);
-        query.setParameter("new_status", Status.NEW.toString());
-        query.setParameter("retry_status", Status.RETRY.toString());
-        query.setParameter("complete_status", Status.COMPLETE.toString());
-        query.setParameter("void_status", Status.VOID.toString());
+        synchronized (query) {
+            query.addEntity("rr", RequestRoutine.class);
+            query.setParameter("request_queue", requestQueue);
+            query.setParameter("new_status", Status.NEW.toString());
+            query.setParameter("retry_status", Status.RETRY.toString());
+            query.setParameter("complete_status", Status.COMPLETE.toString());
+            query.setParameter("void_status", Status.VOID.toString());
 
-        List<RequestRoutine> requestRoutines = query.getResultList();
-        return requestRoutines;
+            return query.getResultList();
+        }
     }
 
     public RequestRoutine getRequestRoutineWithRequestIdForProcessing(int requestId, String requestQueue) {
