@@ -55,7 +55,9 @@ public abstract class BaseDaoManager {
     }
 
     public void shutDown() {
-        getConnection().disconnect();
+        if(getConnection().isOpen()) {
+            getConnection().disconnect();
+        }
     }
 
     public void refresh(Object object) {
