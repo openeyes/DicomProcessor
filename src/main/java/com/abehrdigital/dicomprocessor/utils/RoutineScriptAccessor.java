@@ -7,7 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class RoutineScriptAccessor {
-    public final String ROUTINE_LIBRARY_LOCATION = "/src/main/resources/routineLibrary/";
+    public final String ROUTINE_LIBRARY_LOCATION = "src/main/resources/routineLibrary/";
 
     public RoutineScriptAccessor() {
     }
