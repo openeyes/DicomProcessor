@@ -15,6 +15,7 @@ public class DirectoryFileNamesReader {
 
         for (File file : listOfFiles) {
             if (file.isFile()) {
+                System.out.println(file.getName());
                 filenames.add(file.getName());
             }
         }
