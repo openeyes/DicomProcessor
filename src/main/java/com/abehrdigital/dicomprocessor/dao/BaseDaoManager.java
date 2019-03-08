@@ -69,8 +69,9 @@ public abstract class BaseDaoManager {
     }
 
     public void rollback() {
-        if (getConnection().getTransaction() != null) {
-            getConnection().getTransaction().rollback();
+        Transaction transaction = getConnection().getTransaction();
+        if (transaction != null && transaction.isActive()) {
+            transaction.rollback();
         }
     }
 
