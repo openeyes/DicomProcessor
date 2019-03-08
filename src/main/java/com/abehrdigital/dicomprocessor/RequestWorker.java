@@ -50,8 +50,8 @@ public class RequestWorker implements Runnable {
                 RequestRoutine routineForProcessing = service.getNextRoutineToProcess();
                 if (routineForProcessing != null) {
                     resetRoutineVariables();
-                    String engineLogMessage = executeRequestRoutine(routineForProcessing);
-                    evaluateRoutineScriptExecution(engineLogMessage, routineForProcessing);
+                   // String engineLogMessage = executeRequestRoutine(routineForProcessing);
+                    evaluateRoutineScriptExecution("", routineForProcessing);
                 } else {
                     break;
                 }
