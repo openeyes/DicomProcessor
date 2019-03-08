@@ -29,7 +29,7 @@ public class DicomEngine {
     //TODO SHUT DOWN AFER MINUTES SHOULD COME THROUGH ARGS
     public static void main(String[] args) {
         DirectoryFileNamesReader fileNamesReader = new DirectoryFileNamesReader();
-        fileNamesReader.read("src/main/resources/");
+        fileNamesReader.read("src/main/resources/routineLibrary");
 //        buildSessionFactory();
 //        long shutdownMsClock = System.currentTimeMillis() + 60 * 1000 * SHUTDOWN_AFTER_MINUTES;
 //        long synchronizeRoutineLibraryDelay = 60 * 1000 * SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES;
