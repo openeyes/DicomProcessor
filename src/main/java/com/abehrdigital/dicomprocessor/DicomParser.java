@@ -19,14 +19,15 @@ public class DicomParser {
     private Attributes attributes;
     private int pdfTagNumber;
 
-    public DicomParser(Blob dicomBlob) {
+    public DicomParser(Blob dicomBlob) throws Exception {
         this.dicomBlob = dicomBlob;
         //this.file = dicomFile;
         this.study = new Study(); //TODO: consider injecting this dependency
         this.pdfTagNumber = 4325393; // TODO: change so that this is not hardcoded
         try {
             run();
-        } catch (Exception e) {
+        } catch (Exception exception) {
+            throw new Exception("Failed to parse dicomBlob " , exception);
         }
     }
 
