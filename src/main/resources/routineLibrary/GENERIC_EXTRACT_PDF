@@ -1,0 +1,24 @@
+ var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null));
+
+ var dicomParser = getDicomParser('REQUEST_BLOB', null).getStudy();
+ var dicomHeader = JSON.parse(dicomParser.getHeaderJsonString());
+
+
+    //Lookup Laterality
+    if(requestData.laterality == 'L' || requestData.image_laterality  == 'L'){
+        requestData.bodySiteSnomed = 8966001;
+    } else if (requestData.laterality == 'R' || requestData.image_laterality  == 'R') {
+        requestData.bodySiteSnomed = 18944008;
+    } else if (requestData.laterality == 'B' || requestData.image_laterality  == 'B'){
+        requestData.bodySiteSnomed = 40638003;
+    } else {
+        new Error('Unknown laterality has been found : LATERALITY: ' + requestData.laterality + " IMAGE_LATERALITY: " + requestData.image_laterality);
+    }
+    //Get PDF from Dicom and Save
+     var pdf = dicomParser.getPdfAsBlob();
+
+     putBlob('event_pdf',
+             pdf,
+             'NONE',
+             requestData.bodySiteSnomed ,
+             'application/pdf');
