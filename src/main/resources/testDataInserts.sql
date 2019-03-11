@@ -90,7 +90,7 @@ VALUES
     2,
     "dicom_queue",
     "NEW",
-    "dicom_routine",
+    "DICOM_SEED",
     10
   );
 
@@ -106,7 +106,7 @@ VALUES
     1,
     "dicom_queue",
     "NEW",
-    "dicom_routine",
+    "DICOM_SEED",
     10
   );
 
@@ -122,7 +122,7 @@ VALUES
     3,
     "dicom_queue",
     "NEW",
-    "dicom_routine",
+    "DICOM_SEED",
     10
   );
 
@@ -138,7 +138,7 @@ VALUES
     4,
     "dicom_queue",
     "NEW",
-    "dicom_routine",
+    "DICOM_SEED",
     10
   );
 
@@ -154,7 +154,7 @@ VALUES
     5,
     "dicom_queue",
     "NEW",
-    "dicom_routine",
+    "DICOM_SEED",
     10
   );
 
