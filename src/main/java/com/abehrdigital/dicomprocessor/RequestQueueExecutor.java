@@ -75,8 +75,10 @@ public class RequestQueueExecutor implements RequestThreadListener {
                     saveWithLock(false , 0 , 0);
                 }
             }
+            synchronized (daoManager) {
+                currentRequestQueue = getUpToDateRequestQueue();
+            }
 
-            currentRequestQueue = getUpToDateRequestQueue();
             if (requestRoutinesForExecution.size() != 0) {
                 TimeUnit.MILLISECONDS.sleep(currentRequestQueue.getBusyYieldMs());
             } else {
@@ -94,8 +96,8 @@ public class RequestQueueExecutor implements RequestThreadListener {
     }
 
     private synchronized void saveWithLock(boolean dequeue , int successfulRoutineCount, int failedRoutineCount) {
-        try {
-            synchronized (daoManager) {
+        synchronized (daoManager) {
+            try {
                 currentRequestQueue = getUpToDateRequestQueueForUpdate();
                 if (dequeue) {
                     setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
@@ -105,10 +107,11 @@ public class RequestQueueExecutor implements RequestThreadListener {
                 }
                 daoManager.getRequestQueueDao().update(currentRequestQueue);
                 daoManager.commit();
+
+            } catch (Exception exception) {
+                System.err.println(StackTraceUtil.getStackTraceAsString(exception));
+                daoManager.rollback();
             }
-        } catch (Exception exception){
-            System.err.println(StackTraceUtil.getStackTraceAsString(exception));
-            daoManager.rollback();
         }
     }
 
