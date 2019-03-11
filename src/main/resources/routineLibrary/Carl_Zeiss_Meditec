@@ -1,4 +1,2 @@
-addRoutine('GENERIC_EXTRACT_PDF');
-addRoutine('GENERIC_EVENT_MEDICAL_REPORT_AUGMENT');
-addRoutine('GENERIC_PAS_API');
-addRoutine('create_event');
+var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null));
+addRoutine('Carl_Zeiss_Meditec_' + requestData.modality);

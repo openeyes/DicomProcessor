@@ -5,7 +5,7 @@ var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null))
 //Extract Dicom Header Values
 requestData.manufacturer = ("" +dicomHeader['524400']).trim();
 requestData.manufacturer_model_name = ("" +dicomHeader['528528']).trim();
-requestData.modality = dicomHeader['524384'];
+requestData.modality = ("" + dicomHeader['524384']).trim();
 requestData.series_description  = dicomHeader['528446'];
 requestData.laterality = ("" + dicomHeader['2097248']).trim();
 requestData.image_laterality  = dicomHeader['2097250'];
