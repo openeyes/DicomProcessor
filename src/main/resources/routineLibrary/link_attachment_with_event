@@ -9,7 +9,7 @@ eventData.$$_XID_Map_$$.forEach(function(data){
         eventID = data.id;
    }
 });
-var attachmentId = attachmentPdf.getId();'
+var attachmentId = attachmentPdf.getId();
 if(requestData.attachmentDataItemToDelete == attachmentId){
     requestData.attachmentDataItemToDelete = null;
 }
