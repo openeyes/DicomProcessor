@@ -7,8 +7,8 @@ import com.abehrdigital.dicomprocessor.exceptions.NoSearchedFieldsProvidedExcept
 import com.abehrdigital.dicomprocessor.exceptions.ValuesNotFoundException;
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
-import com.abehrdigital.dicomprocessor.utils.AttachmentDataThumbnailAdder;
 import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
+import com.abehrdigital.dicomprocessor.utils.AttachmentDataThumbnailAdder;
 import com.abehrdigital.dicomprocessor.utils.RoutineScriptAccessor;
 import org.hibernate.HibernateException;
 
@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.sql.Blob;
 
 public class RoutineScriptService {
+    private static final String EMPTY_JSON_STRING = "{}";
     private ScriptEngineDaoManager
             daoManager;
     private int requestId;
@@ -33,26 +34,28 @@ public class RoutineScriptService {
         this.scriptAccessor = scriptAccessor;
     }
 
-    public String getJsonIfNullReturnEmptyJson(String attachmentMnemonic, String bodySite) throws HibernateException {
+    public String getJsonIfNullReturnEmptyJson(String attachmentMnemonic, String bodySite) throws Exception {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
 
         if (attachmentData != null && attachmentData.getJson() != null) {
             return attachmentData.getJson();
         } else {
-            return "{}";
+            return EMPTY_JSON_STRING;
         }
     }
 
-    public Blob getBlob(String attachmentMnemonic, String bodySite) throws HibernateException {
-        return getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite).getBlobData();
-    }
+    public DicomParser getDicomParser(String attachmentMnemonic, String bodySite) throws Exception {
+        AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
+        if (attachmentData == null) {
+            throw new Exception("Attachment data was not found with : Attachment Mnemonic = " + attachmentMnemonic +
+                    " body site: " + bodySite + " for Request : " + requestId);
+        }
 
-    public DicomParser getDicom(String attachmentMnemonic, String bodySite) throws HibernateException {
-        return new DicomParser(getBlob(attachmentMnemonic, bodySite));
+        return new DicomParser(attachmentData.getBlobData());
     }
 
     public AttachmentData getAttachmentDataByAttachmentMnemonicAndBodySite(String attachmentMnemonic, String bodySite)
-            throws HibernateException {
+            throws Exception {
         return daoManager
                 .getAttachmentDataDao()
                 .getByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite, requestId);
@@ -70,7 +73,7 @@ public class RoutineScriptService {
             String json,
             String attachmentType,
             String bodySite,
-            String mimeType) {
+            String mimeType) throws Exception {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
 
         if (attachmentData != null) {
@@ -115,7 +118,7 @@ public class RoutineScriptService {
     }
 
     private synchronized void createRoutineIfExistsInFileSystem(String routineName) throws IOException {
-        RoutineLibrary routineLibrary = null;
+        RoutineLibrary routineLibrary;
         if (scriptAccessor.routineExists(routineName)) {
             routineLibrary = new RoutineLibrary(routineName,
                     scriptAccessor.getRoutineScriptHashCode(routineName)
@@ -127,13 +130,13 @@ public class RoutineScriptService {
         }
     }
 
-    public void putPdf(
+    public void putBlob(
             String attachmentMnemonic,
             Blob pdfBlob,
             String attachmentType,
             String bodySite,
             String mimeType
-    ) throws HibernateException {
+    ) throws Exception {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
         if (attachmentData != null) {
             attachmentData.setBlobData(pdfBlob);
