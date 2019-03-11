@@ -90,7 +90,7 @@ public class RoutineScriptService {
         }
     }
 
-    public void addRoutine(String routineName) throws HibernateException, IOException {
+    public void addRoutine(String routineName) throws Exception {
         RequestRoutine requestRoutine = daoManager.getRequestRoutineDao().findByRoutineNameAndRequestId(requestId, routineName);
         if (requestRoutine != null) {
             daoManager.getRequestRoutineDao().resetAndSave(requestRoutine);
@@ -103,31 +103,14 @@ public class RoutineScriptService {
                         .build();
                 daoManager.getRequestRoutineDao().saveWithNewExecutionSequence(requestRoutine);
             } else {
-                createRoutineIfExistsInFileSystem(routineName);
+                throw new Exception("Routine name: " + routineName +" doesn't exist in routine_library");
             }
         }
     }
 
     private boolean routineInLibraryExists(String routineName) throws HibernateException, IOException {
         RoutineLibrary routineLibrary = daoManager.getRoutineLibraryDao().get(routineName);
-        boolean routineExists = daoManager.getRoutineLibraryDao().get(routineName) != null;
-        if (!routineExists) {
-            createRoutineIfExistsInFileSystem(routineName);
-        }
-        return routineExists;
-    }
-
-    private synchronized void createRoutineIfExistsInFileSystem(String routineName) throws IOException {
-        RoutineLibrary routineLibrary;
-        if (scriptAccessor.routineExists(routineName)) {
-            routineLibrary = new RoutineLibrary(routineName,
-                    scriptAccessor.getRoutineScriptHashCode(routineName)
-            );
-            daoManager.getConnection().merge(routineLibrary);
-            daoManager.getRoutineLibraryDao().save(routineLibrary);
-        } else {
-            throw new FileNotFoundException("Request routine: " + routineName + " is missing");
-        }
+        return daoManager.getRoutineLibraryDao().get(routineName) != null;
     }
 
     public void putBlob(
@@ -161,10 +144,15 @@ public class RoutineScriptService {
         dataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName);
     }
 
-
-    //TODO REMOVE DATE OF BIRTH AND GENDER FROM THE QUERY
-    public int getPatientId(int hospitalNumber, int dateOfBirth, String gender) {
-        return daoManager.getPatientDao().getIdByHospitalNumber(hospitalNumber, dateOfBirth, gender);
+    public int getPatientId(int hospitalNumber, int dateOfBirth, String gender) throws Exception {
+        int patientId;
+        try{
+            patientId =  daoManager.getPatientDao().getIdByHospitalNumber(hospitalNumber, dateOfBirth, gender);
+        } catch (Exception exception) {
+            throw new Exception("Patient was not found with Hospital number: " + hospitalNumber + " DateOfBirth " +
+                    dateOfBirth + " Gender: " + gender, exception);
+        }
+        return patientId;
     }
 
     public AttachmentData getEventDataByMedicalReportStudyInstanceUID(String attachmentMnemonic, String studyInstanceUID) {
