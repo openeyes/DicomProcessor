@@ -22,3 +22,10 @@
              'NONE',
              requestData.bodySiteSnomed ,
              'application/pdf');
+
+      putJson(
+               'REQUEST_DATA',
+                JSON.stringify(requestData),
+                'NONE',
+                null,
+                'application/json');
