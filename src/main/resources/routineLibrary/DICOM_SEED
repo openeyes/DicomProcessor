@@ -31,7 +31,7 @@ requestData.series_number = dicomHeader['2097169'];
 requestData.instance_number = dicomHeader['2097171'];
 requestData.modifying_system = dicomHeader['67110243'];
 requestData.operator_identification_sequence = dicomHeader['528498'];
-
+requestData.sop_instance_uid = dicomHeader['524312'];
 
      putJson(
              'DICOM_HEADER',

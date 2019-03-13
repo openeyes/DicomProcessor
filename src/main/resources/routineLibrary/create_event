@@ -39,6 +39,7 @@
                    medicalReportRow.instance_number = requestData.instance_number;
                    medicalReportRow.modifying_system = requestData.modifying_system;
                    medicalReportRow.operator_identification_sequence = requestData.operator_identification_sequence;
+                   medicalReportRow.sop_instance_uid = requestData.sop_instance_uid;
                    }});
 
     var updatedJson = createEvent(JSON.stringify(eventData));
