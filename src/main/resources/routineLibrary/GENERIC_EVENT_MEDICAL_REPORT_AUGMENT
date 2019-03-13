@@ -31,20 +31,30 @@ var eventTemplate = JSON.parse('{' +
 //Check if the unique identifier is there and if there is check if there was an event already with that id
 // If there is set that event data instead of the template and find the attachment data id to delete from the previous
 // event
+var previousEventId = -1;
+var attachmentDataItemToDelete;
 if(requestData.study_instance_uid != null ){
     var attachmentData = getEventDataByMedicalReportStudyInstanceUID('event_data' , requestData.study_instance_uid.toString());
     if(attachmentData != null) {
         previousEventData = JSON.parse(attachmentData.getJson());
         if(previousEventData != null) {
-            eventTemplate = previousEventData;
             previousEventData.$$_XID_Map_$$.forEach(function(data) {
+                if(data.$$_XID_$$ == '$$_event[1]_$$'){
+                    previousEventId = data.id;
+                }
                 if(data.$$_XID_$$ == '$$_attachment_data[1]_$$') {
-                    requestData.attachmentDataItemToDelete = data.id;
+                   attachmentDataItemToDelete = data.id;
                 }
             });
-            addRoutine('delink_attachment');
         }
     }
+}
+if(previousEventId != -1){
+if(!eventIsDeleted(previousEventId)){
+eventTemplate = previousEventData
+requestData.attachmentDataItemToDelete = attachmentDataItemToDelete;
+addRoutine('delink_attachment');
+}
 }
 
 

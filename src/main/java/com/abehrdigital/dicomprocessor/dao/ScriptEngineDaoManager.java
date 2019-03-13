@@ -9,6 +9,7 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     private PatientDao patientDao;
     private GenericMedicalReportDao genericMedicalReportDao;
     private EventAttachmentItemDao eventAttachmentItemDao;
+    private EventDao eventDao;
 
     public ScriptEngineDaoManager() {
     }
@@ -65,8 +66,14 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     public EventAttachmentItemDao getEventAttachmentItemDao(){
         if(this.eventAttachmentItemDao == null) {
             this.eventAttachmentItemDao = new EventAttachmentItemDao(getConnection());
-        }
+    }
         return this.eventAttachmentItemDao;
     }
 
+    public EventDao getEventDao() {
+        if(this.eventDao == null) {
+            this.eventDao = new EventDao(getConnection());
+        }
+        return this.eventDao;
+    }
 }

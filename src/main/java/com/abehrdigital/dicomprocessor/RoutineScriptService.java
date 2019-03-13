@@ -174,4 +174,8 @@ public class RoutineScriptService {
         DataAPI dataAPI = new DataAPI(daoManager.getConnection());
         return dataAPI.magic("1", eventData, daoManager.getConnection());
     }
+
+    public boolean eventIsDeleted(int eventId){
+        return daoManager.getEventDao().getNotDeleted(eventId).isEmpty();
+    }
 }
