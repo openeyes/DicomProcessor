@@ -39,9 +39,8 @@ public class Study {
         return new SerialBlob(pdfAsBytes);
     }
 
-    public void setPdfFields(byte[] pdfAsBytes, PDDocument pdfDoc) {
+    public void setPdfFields(byte[] pdfAsBytes) {
         this.pdfAsBytes = pdfAsBytes;
-        this.pdfDoc = pdfDoc;
     }
 
     //Simple elements includes non-pdf and non-sequence elements only

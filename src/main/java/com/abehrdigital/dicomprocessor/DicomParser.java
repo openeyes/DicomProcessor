@@ -58,7 +58,7 @@ public class DicomParser {
         init();
         // Put set study pdf member variables:
         byte[] pdfBytes = attributes.getBytes(pdfTagNumber);
-        study.setPdfFields(pdfBytes, PDFUtils.extractPdfFromBytes(pdfBytes));
+        study.setPdfFields(pdfBytes);
         study.setSimpleDicomElements(simpleElements());
     }
 
