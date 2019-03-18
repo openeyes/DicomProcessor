@@ -651,7 +651,6 @@ public class Query {
 
     private static List<HashMap<String, Object>> executeSelect(NativeQuery sqlQuery, int minRowsExpected)
             throws InvalidNumberOfRowsAffectedException {
-        System.err.println("=======SELECT======== ");
         // get all the fields from the sql query
         sqlQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
 
@@ -671,7 +670,6 @@ public class Query {
     }
 
     private static void executeInsertUpdate(NativeQuery sqlQuery) throws InvalidNumberOfRowsAffectedException {
-        System.err.println("=======INSERT======== ");
         int numberRowsAffected = sqlQuery.executeUpdate();
         //System.out.println("=2= " + numberRowsAffected);
 

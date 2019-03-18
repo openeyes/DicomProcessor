@@ -22,14 +22,16 @@ public class RequestWorker implements Runnable {
     private int failedRoutineCount;
     private String logMessage;
 
-    public RequestWorker(int requestId, String requestQueueName, RequestThreadListener threadListener) {
+    public RequestWorker(int requestId, String requestQueueName,
+                         RequestThreadListener threadListener,
+                         RoutineScriptAccessor routineScriptAccessor) {
         this.requestId = requestId;
         this.threadListener = threadListener;
         service = new RequestWorkerService(
                 DaoFactory.createScriptEngineDaoManager(),
                 requestId,
                 requestQueueName,
-                new RoutineScriptAccessor()
+                routineScriptAccessor
         );
         successfulRoutineCount = 0;
         failedRoutineCount = 0;

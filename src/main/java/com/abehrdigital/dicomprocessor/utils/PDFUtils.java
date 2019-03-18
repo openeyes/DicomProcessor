@@ -12,7 +12,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 
 public class PDFUtils {
-    public static PDDocument extractPdfFromBytes(byte[] binaryPDF) { //TODO: Check if PDDocument.load() solves this instead
+    public static PDDocument extractPdfFromBytes(byte[] binaryPDF) throws IOException { //TODO: Check if PDDocument.load() solves this instead
         PDFParser pdfParser = null;
         PDDocument pdDocument = null;
 
@@ -23,7 +23,8 @@ public class PDFUtils {
             pdfParser.parse();
             pdDocument = pdfParser.getPDDocument();
         } catch (IOException ex) {
-            System.out.println("Exception to be handled later"); //TODO: need some added exception handling
+            throw ex;
+        } finally {
         }
         return pdDocument;
     }
