@@ -13,6 +13,20 @@ Run command in root of the project
 mvn package
 ```
 
+## Database configuration
+This is either done from docker secrets or enviroment variables
+
+List of needed parameters:
+```
+DATABASE_HOST
+```
+```
+DATABASE_PORT
+```
+```
+DATABASE_NAME
+```
+
 ## Execution
 
 Required options
