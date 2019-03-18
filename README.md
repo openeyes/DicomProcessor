@@ -16,6 +16,8 @@ mvn package
 ## Database configuration
 This is either done from docker secrets or enviroment variables
 
+Docker secrets are being read from run/secrets/
+
 List of needed parameters:
 ```
 DATABASE_HOST
