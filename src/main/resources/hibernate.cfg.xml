@@ -10,28 +10,27 @@
 <hibernate-configuration>
     <session-factory>
         <!-- Database connection settings -->
-        <property name="hibernate.connection.provider_class">com.zaxxer.hikari.hibernate.HikariConnectionProvider
+        <property name="hibernate.connection.provider_class">org.hibernate.hikaricp.internal.HikariCPConnectionProvider
         </property>
         <property name="hibernate.hikari.connectionTimeout">20000</property>
         <property name="hibernate.hikari.minimumIdle">10</property>
-        <property name="hibernate.hikari.maximumPoolSize">10</property>
+        <property name="hibernate.hikari.maximumPoolSize">20</property>
         <property name="hibernate.hikari.idleTimeout">300000</property>
-        <property name="hibernate.hikari.jdbcUrl">jdbc:mysql://openeyes.vm/openeyes</property>
+        <property name="hibernate.hikari.jdbcUrl">jdbc:mysql://localhost/openeyes</property>
         <property name="hibernate.hikari.dataSource.user">openeyes</property>
         <property name="hibernate.hikari.dataSource.password">openeyes</property>
-
 
         <!-- SQL dialect -->
         <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
         <!-- Echo all executed SQL to stdout -->
-        <property name="show_sql">true</property>
-        <property name="format_sql">true</property>
-        <property name="use_sql_comments">true</property>
+        <property name="show_sql">false</property>
+        <property name="format_sql">false</property>
+        <property name="use_sql_comments">false</property>
         <!-- Drop and re-create the database schema on startup -->
         <property name="hbm2ddl.auto">validate</property>
         <property name="hibernate.connection.autocommit">false</property>
         <!--Names the annotated entity class-->
-        <mapping class="com.abehrdigital.dicomprocessor.Request"></mapping>
+        <mapping class="com.abehrdigital.dicomprocessor.models.Request"></mapping>
         <mapping class="com.abehrdigital.dicomprocessor.models.RequestRoutine"></mapping>
         <mapping class="com.abehrdigital.dicomprocessor.models.RequestRoutineExecution"></mapping>
         <mapping class="com.abehrdigital.dicomprocessor.models.RoutineLibrary"></mapping>

@@ -5,118 +5,175 @@
  */
 package com.abehrdigital.dicomprocessor;
 
+import com.abehrdigital.dicomprocessor.dao.RequestQueueDaoManager;
+import com.abehrdigital.dicomprocessor.exceptions.RequestQueueMissingException;
 import com.abehrdigital.dicomprocessor.models.RequestQueue;
-import com.abehrdigital.dicomprocessor.models.RequestQueueLock;
-import com.abehrdigital.dicomprocessor.utils.HibernateUtil;
+import com.abehrdigital.dicomprocessor.models.RequestRoutine;
+import com.abehrdigital.dicomprocessor.utils.DaoFactory;
+import com.abehrdigital.dicomprocessor.utils.RoutineScriptAccessor;
+import com.abehrdigital.dicomprocessor.utils.StackTraceUtil;
 import org.hibernate.LockMode;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 /**
- *
  * @author admin
  */
-public class RequestQueueExecutor {
+public class RequestQueueExecutor implements RequestThreadListener {
 
     private String requestQueueName;
-    private DaoManager daoManager;
+    private RequestQueueLocker requestQueueLocker;
+    private final RequestQueueDaoManager daoManager;
+    private final Map<Integer, Runnable> requestIdToThreadSyncMap;
+    private RequestQueue currentRequestQueue;
+    private int currentActiveThreads;
+    private int currentRequestId;
+    private final static int LOCK_MAXIMUM_TRY_COUNT = 20;
+    private RoutineLibrarySynchronizer routineLibrarySynchronizer;
+    private long shutdownMsClock;
 
-    public RequestQueueExecutor(String requestQueueName, DaoManager daoManager) {
+    public RequestQueueExecutor(String requestQueueName, RoutineLibrarySynchronizer routineLibrarySynchronizer,
+                                long shutdownMsClock) {
         this.requestQueueName = requestQueueName;
-        this.daoManager = daoManager;
+        daoManager = DaoFactory.createRequestQueueExecutorDaoManager();
+        requestQueueLocker = new RequestQueueLocker(requestQueueName);
+        requestIdToThreadSyncMap = new HashMap<>();
+        this.routineLibrarySynchronizer = routineLibrarySynchronizer;
+        this.shutdownMsClock = shutdownMsClock;
     }
 
-    public void execute() throws Exception {
-
-//       checkIntegrityOfDbConnection();
-        RequestQueue requestQueue = daoManager.getQueueDao().get(requestQueueName);
-        if (requestQueue == null) {
-            throw new Exception("Request queue doesn't exist");
-        } else {
-            if (!establishQueueLock()) {
-                lockingFailed();
-            } else {
-
-            }
-        }
-    }
-
-//    private void checkIntegrityOfDbConnection() throws HibernateException {
-//        if(mDbSessionRequestQueueLock != null){
-//            if(!mDbSessionRequestQueueLock.isConnected()){
-//                try {
-//                    mDbSessionRequestQueueLock.disconnect();
-//                } catch (HibernateException exception){
-//                    //ignore errors
-//                }
-//                mDbSessionRequestQueueLock = null;
-//            }
-//        }
-//        
-//        if(mDbSessionRequestQueueLock == null){
-//            mDbSessionRequestQueueLock = HibernateUtil.getSessionFactory().openSession();
-//        }
-//    }
-    public boolean establishQueueLock() {
-        Boolean queueLocked = false;
-        for (int tryCount = 0; tryCount < 20; tryCount++) {
-
-            System.out.println("Queue Name " + requestQueueName
-                    + " attempting to get request_queue_lock");
-            Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-                    "Queue Name " + requestQueueName
-                    + " attempting to get request_queue_lock");
-
-            daoManager.manualTransactionStart();
-            RequestQueueLock queueLock = daoManager.getQueueLockDao().
-                    getWithLock(requestQueueName, LockMode.UPGRADE_NOWAIT);
-            if (queueLock == null) {
-                queueLock = new RequestQueueLock(requestQueueName);
-                daoManager.getQueueLockDao().save(queueLock);
-                daoManager.manualCommit();
-            } else {
-                queueLocked = true;
-                break;
-            }
-
-            sleepFiveSeconds();
-        }
-        return queueLocked;
-
-    }
-
-    private boolean getRequestQueueLocked() {
-
-        return false;
-//        RequestQueueLock queueLock = daoManager.getQueueLockDao().
-//                getWithLock(requestQueueName, LockMode.UPGRADE_NOWAIT);
-//
-//        if (queueLock == null) {
-//            queueLock = new RequestQueueLock(requestQueueName);
-//            daoManager.getQueueLockDao().save(queueLock);
-//            return true;
-//        }
-    }
-
-    private void lockingFailed() throws Exception {
-        System.err.println("Queue Name " + requestQueueName
-                + " failed");
-        Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-                null,
-                "Queue Name " + requestQueueName
-                + " failed");
-        throw new Exception("lock failed");
-    }
-
-    private void sleepFiveSeconds() {
+    public void execute() throws RequestQueueMissingException {
         try {
-            TimeUnit.SECONDS.sleep(5);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(RequestQueueExecutor.class.getName()).log(Level.SEVERE, null, ex);
+            requestQueueLocker.lockWithMaximumTryCount(LOCK_MAXIMUM_TRY_COUNT);
+            List<RequestRoutine> requestRoutinesForExecution;
+            synchronized (daoManager) {
+                requestRoutinesForExecution = daoManager
+                        .getRequestRoutineDao()
+                        .getRoutinesForQueueProcessing(requestQueueName);
+            }
+
+            for (RequestRoutine routineForExecution : requestRoutinesForExecution) {
+                //Check if needs shutting down and break the loop if so
+                if (System.currentTimeMillis() > shutdownMsClock) {
+                    break;
+                }
+                synchronized (daoManager) {
+                    currentRequestQueue = getUpToDateRequestQueue();
+                }
+                currentRequestId = routineForExecution.getRequestId();
+                boolean requestIsInActiveThreadMap;
+
+                synchronized (requestIdToThreadSyncMap) {
+                    currentActiveThreads = requestIdToThreadSyncMap.size();
+                    requestIsInActiveThreadMap = requestIdToThreadSyncMap.containsKey(currentRequestId);
+                }
+
+                if (currentActiveThreads >= currentRequestQueue.getMaximumActiveThreads()) {
+                    break;
+                }
+
+                if (!requestIsInActiveThreadMap) {
+                    saveAndStartRequestWorker(createRequestWorkerWithCurrentRequestId());
+                    saveWithLock(false, 0, 0);
+                }
+            }
+            synchronized (daoManager) {
+                currentRequestQueue = getUpToDateRequestQueue();
+            }
+
+            if (requestRoutinesForExecution.size() != 0) {
+                TimeUnit.MILLISECONDS.sleep(currentRequestQueue.getBusyYieldMs());
+            } else {
+                routineLibrarySynchronizer.sync();
+                TimeUnit.MILLISECONDS.sleep(currentRequestQueue.getIdleYieldMs());
+            }
+        } catch (RequestQueueMissingException queueMissingException) {
+            throw queueMissingException;
+        } catch (Exception exception) {
+            daoManager.rollback();
+            Logger.getLogger(RequestQueueExecutor.class.getName()).log(Level.SEVERE,
+                    exception.toString() + " Executor exception");
+            exception.printStackTrace();
         }
     }
 
+    //TODO REFACTOR THIS
+    private synchronized void saveWithLock(boolean dequeue, int successfulRoutineCount, int failedRoutineCount) {
+        synchronized (daoManager) {
+            try {
+                currentRequestQueue = getUpToDateRequestQueueForUpdate();
+                if (dequeue) {
+                    setActiveThreadAndExecutionCounts(successfulRoutineCount, failedRoutineCount);
+                } else {
+                    setLastThreadSpawnDateAndRequestId();
+                    currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
+                }
+                daoManager.getRequestQueueDao().update(currentRequestQueue);
+                daoManager.commit();
+
+            } catch (Exception exception) {
+                System.err.println(StackTraceUtil.getStackTraceAsString(exception));
+                daoManager.rollback();
+            }
+        }
+    }
+
+    private RequestQueue getUpToDateRequestQueue() {
+        daoManager.clearSession();
+        return daoManager.getRequestQueueDao().get(requestQueueName);
+    }
+
+    private void setLastThreadSpawnDateAndRequestId() {
+        currentRequestQueue.setLastThreadSpawnRequestId(currentRequestId);
+        currentRequestQueue.setLastThreadSpawnDateToCurrentTimestamp();
+    }
+
+    private RequestQueue getUpToDateRequestQueueForUpdate() {
+        daoManager.transactionStart();
+        return daoManager.getRequestQueueDao().getWithLock(requestQueueName, LockMode.UPGRADE_NOWAIT);
+    }
+
+    private Thread createRequestWorkerWithCurrentRequestId() {
+        return new Thread(
+                new RequestWorker(currentRequestId, requestQueueName,
+                        this,
+                        new RoutineScriptAccessor()),
+                "request_id=" + currentRequestId + " worker thread"
+        );
+    }
+
+    private void saveAndStartRequestWorker(Thread requestWorker) {
+        synchronized (requestIdToThreadSyncMap) {
+            requestIdToThreadSyncMap.put(currentRequestId, requestWorker);
+            currentActiveThreads = requestIdToThreadSyncMap.size();
+        }
+        requestWorker.start();
+    }
+
+    @Override
+    public synchronized void deQueue(int requestId, int successfulRoutineCount, int failedRoutineCount) {
+        synchronized (requestIdToThreadSyncMap) {
+            requestIdToThreadSyncMap.remove(requestId);
+            currentActiveThreads = requestIdToThreadSyncMap.size();
+        }
+
+        saveWithLock(true, successfulRoutineCount, failedRoutineCount);
+    }
+
+    private void setActiveThreadAndExecutionCounts(int successfulRoutineCount, int failedRoutineCount) {
+        currentRequestQueue.setTotalActiveThreadCount(currentActiveThreads);
+        currentRequestQueue.incrementSuccessCount(successfulRoutineCount);
+        currentRequestQueue.incrementFailCount(failedRoutineCount);
+        currentRequestQueue.updateTotalExecuteCount();
+    }
+
+    public void shutDown() {
+        requestQueueLocker.unlock();
+        daoManager.shutDown();
+    }
 }

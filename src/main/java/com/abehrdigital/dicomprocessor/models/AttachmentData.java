@@ -5,13 +5,10 @@
  */
 package com.abehrdigital.dicomprocessor.models;
 
-import com.abehrdigital.dicomprocessor.*;
-import java.sql.Blob;
-import java.sql.Date;
 import javax.persistence.*;
+import java.sql.Blob;
 
 /**
- *
  * @author admin
  */
 @Entity
@@ -26,7 +23,13 @@ public class AttachmentData {
     private Integer requestId;
     @Column(name = "blob_data")
     private Blob blobData;
-    @Column(name = "json_data" , columnDefinition = "LONGTEXT")
+    @Column(name = "thumbnail_small_blob", columnDefinition="mediumblob")
+    private Blob smallThumbnail;
+    @Column(name = "thumbnail_medium_blob", columnDefinition="mediumblob")
+    private Blob mediumThumbnail;
+    @Column(name = "thumbnail_large_blob", columnDefinition="mediumblob")
+    private Blob largeThumbnail;
+    @Column(name = "json_data", columnDefinition = "LONGTEXT")
     private String jsonData;
     @Column(name = "attachment_type")
     private String attachmentType;
@@ -38,10 +41,10 @@ public class AttachmentData {
     private String attachmentMnemonic;
     @Column(name = "system_only_managed")
     private int systemOnlyManaged;
-    
-    public AttachmentData(){
+
+    public AttachmentData() {
     }
-    
+
     public static class Builder {
         //Required
         private final int requestId;
@@ -49,36 +52,40 @@ public class AttachmentData {
         private final String attachmentMnemonic;
         private final String attachmentType;
         private final String bodySiteSnomedType;
-        
+
         private int systemOnlyManaged = 0;
         private String jsonData = null;
         private Blob blobData = null;
-        
-        public Builder(int requestId , String mimeType ,
-                String attachmentMnemonic , String attachmentType ,
-                String bodySiteSnomedType){
+
+        public Builder(int requestId, String mimeType,
+                       String attachmentMnemonic, String attachmentType,
+                       String bodySiteSnomedType) {
             this.requestId = requestId;
             this.mimeType = mimeType;
             this.attachmentMnemonic = attachmentMnemonic;
             this.attachmentType = attachmentType;
             this.bodySiteSnomedType = bodySiteSnomedType;
         }
-        
-        public Builder systemOnlyManaged (int val){
-            systemOnlyManaged = val;
+
+        public Builder systemOnlyManaged(int value) {
+            systemOnlyManaged = value;
             return this;
         }
-        
-        public Builder jsonData (String val){
-            jsonData = val;
+
+        public Builder jsonData(String value) {
+            if (value.equals("")) {
+                jsonData = null;
+            } else {
+                jsonData = value;
+            }
             return this;
         }
-        
-        public Builder blobData (Blob val){
-            blobData = val;
+
+        public Builder blobData(Blob value) {
+            blobData = value;
             return this;
         }
-        
+
         public AttachmentData build() {
             return new AttachmentData(this);
         }
@@ -111,6 +118,10 @@ public class AttachmentData {
         return mimeType;
     }
 
+    public int getId() {
+        return id;
+    }
+
     public String getAttachmentMnemonic() {
         return attachmentMnemonic;
     }
@@ -123,8 +134,32 @@ public class AttachmentData {
         return blobData;
     }
 
-    public int getId() {
-        return id;
+    public Integer getRequestId() {
+        return requestId;
+    }
+
+    public Blob getSmallThumbnail() {
+        return smallThumbnail;
+    }
+
+    public Blob getMediumThumbnail() {
+        return mediumThumbnail;
+    }
+
+    public Blob getLargeThumbnail() {
+        return largeThumbnail;
+    }
+
+    public void setSmallThumbnail(Blob smallThumbnail) {
+        this.smallThumbnail = smallThumbnail;
+    }
+
+    public void setMediumThumbnail(Blob mediumThumbnail) {
+        this.mediumThumbnail = mediumThumbnail;
+    }
+
+    public void setLargeThumbnail(Blob largeThumbnail) {
+        this.largeThumbnail = largeThumbnail;
     }
 
     public void setBlobData(Blob value) {
@@ -132,6 +167,10 @@ public class AttachmentData {
     }
 
     public void setJson(String value) {
-        jsonData = value;
+        if (value.equals("")) {
+            jsonData = null;
+        } else {
+            jsonData = value;
+        }
     }
 }

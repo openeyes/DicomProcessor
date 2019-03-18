@@ -1,0 +1,121 @@
+{
+  "_OE_System": "ABEHR Jason Local v3.0",
+  "_Version": "v0.1",
+  "$$_XID_Map_$$": [
+    {
+      "$$_XID_$$": "$$_event[1]_$$",
+      "$$_DataSet_$$": "event",
+      "id": 4871
+    },
+    {
+      "$$_XID_$$": "$$_mime_type[1]_$$",
+      "$$_DataSet_$$": "mime_type",
+      "mime_type": "application/dicom"
+    }
+  ],
+  "$$_SaveSet[1]_$$": [
+    {
+      "$$_DataSet_$$": "body_site_type",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "retrieve",
+          "body_site_snomed_type": "$$_body_site_type[1]_$$",
+          "title_short": "Right"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "attachment_type",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "retrieve",
+          "attachment_type": "$$_attachment_type[1]_$$",
+          "title_short": "Dicom"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "user",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "retrieve",
+          "id": "$$_user[1]_$$",
+          "username": "admin"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "element_type",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "retrieve",
+          "id": "$$_element_type[1]_$$",
+          "name": "OCT",
+          "event_type_id": 27
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "event_attachment_group",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "merge",
+          "id": "$$_event_attachment_group[1]_$$",
+          "event_id": "$$_event[1].id_$$",
+          "element_type_id": "$$_element_type[1].id_$$"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "request",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "retrieve",
+          "id": "$$_request[1]_$$",
+          "request_type": "dicom_request"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "attachment_data",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "merge",
+          "id": "$$_attachment_data[1]_$$",
+          "request_id": "$$_request[1].id_$$",
+          "attachment_mnemonic": "mnemonic7",
+          "body_site_snomed_type": "$$_body_site_type[1].body_site_snomed_type_$$",
+          "system_only_managed": "1",
+          "attachment_type": "$$_attachment_type[1].attachment_type_$$",
+          "mime_type": "$$_mime_type[1].mime_type_$$",
+          "blob_data": "null",
+          "json_data": "null",
+          "upload_file_name": "null",
+          "thumbnail_small_blob": "null",
+          "thumbnail_medium_blob": "null",
+          "thumbnail_large_blob": "null",
+          "last_modified_user_id": "$$_user[1].id_$$",
+          "last_modified_date": "$$_SysDateTime_$$",
+          "created_user_id": "$$_user[1].id_$$",
+          "created_date": "$$_SysDateTime_$$"
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "event_attachment_item",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "merge",
+          "id": "$$_event_attachment_item[1]_$$",
+          "event_attachment_group_id": "$$_event_attachment_group[1].id_$$",
+          "attachment_data_id": "$$_attachment_data[1].id_$$",
+          "system_only_managed": "1",
+          "last_modified_user_id": "$$_user[1].id_$$",
+          "last_modified_date": "$$_SysDateTime_$$",
+          "created_user_id": "$$_user[1].id_$$",
+          "created_date": "$$_SysDateTime_$$"
+        }
+      ]
+    }
+  ]
+}

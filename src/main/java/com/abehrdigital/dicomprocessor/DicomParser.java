@@ -1,11 +1,10 @@
 package com.abehrdigital.dicomprocessor;
 
 
-import org.dcm4che3.io.DicomInputStream;
+import com.abehrdigital.dicomprocessor.utils.PDFUtils;
 import org.dcm4che3.data.Attributes;
+import org.dcm4che3.io.DicomInputStream;
 
-
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.sql.Blob;
@@ -20,27 +19,27 @@ public class DicomParser {
     private Attributes attributes;
     private int pdfTagNumber;
 
-    public DicomParser(Blob dicomBlob){
+    public DicomParser(Blob dicomBlob) throws Exception {
         this.dicomBlob = dicomBlob;
         //this.file = dicomFile;
         this.study = new Study(); //TODO: consider injecting this dependency
         this.pdfTagNumber = 4325393; // TODO: change so that this is not hardcoded
-        try {   run();
-        } catch (Exception e){
-            System.out.println(e);
+        try {
+            run();
+        } catch (Exception exception) {
+            throw new Exception("Failed to parse dicomBlob " , exception);
         }
     }
 
     private void init() throws IOException, SQLException {
-        System.out.println(dicomBlob);
         dicomInputStream = new DicomInputStream(dicomBlob.getBinaryStream());
         attributes = dicomInputStream.readDataset(-1, -1);
     }
 
-    private Map<Integer, String> simpleElements(){
+    private Map<Integer, String> simpleElements() {
         Map<Integer, String> elements = new HashMap<>();
         for (int tag : attributes.tags()) {
-            if(tag != pdfTagNumber) {
+            if (tag != pdfTagNumber) {
                 byte[] valueAsByte;
                 try {
                     valueAsByte = (byte[]) attributes.getValue(tag); //casted because getValue() returns Object
@@ -59,14 +58,11 @@ public class DicomParser {
         init();
         // Put set study pdf member variables:
         byte[] pdfBytes = attributes.getBytes(pdfTagNumber);
-        study.setPdfFields(pdfBytes, PDFUtils.extractPdfFromBytes(pdfBytes));
+        study.setPdfFields(pdfBytes);
         study.setSimpleDicomElements(simpleElements());
     }
 
     public Study getStudy() {
         return study;
     }
-
-
-
 }

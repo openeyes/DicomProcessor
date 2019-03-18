@@ -1,0 +1,5 @@
+var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null));
+
+if(requestData != null && requestData.attachmentDataItemToDelete != null){
+    deleteEventAttachmentByAttachmentId(requestData.attachmentDataItemToDelete);
+}

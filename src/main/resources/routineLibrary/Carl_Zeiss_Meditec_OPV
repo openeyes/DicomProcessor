@@ -1,0 +1,4 @@
+addRoutine('GENERIC_EXTRACT_PDF');
+addRoutine('GENERIC_EVENT_MEDICAL_REPORT_AUGMENT');
+addRoutine('GENERIC_PAS_API');
+addRoutine('create_event');

@@ -5,28 +5,32 @@
  */
 package com.abehrdigital.dicomprocessor.utils;
 
-import org.hibernate.HibernateException;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.annotations.Entity;
 import org.hibernate.cfg.Configuration;
 
 public class HibernateUtil {
 
-    private static final SessionFactory sessionFactory = buildSessionFactory();
+    private static SessionFactory sessionFactory = null;
 
-    private static SessionFactory buildSessionFactory() {
+    public static void buildSessionFactory(Configuration hibernateConfig) {
         try {
             // Use hibernate.cfg.xml to get a SessionFactory
-            return new Configuration().configure().buildSessionFactory();
-        } catch (Throwable ex) {
+            sessionFactory = hibernateConfig.buildSessionFactory();
+        } catch (Exception ex) {
             System.err.println("SessionFactory creation failed." + ex);
             throw new ExceptionInInitializerError(ex);
         }
     }
 
     public static SessionFactory getSessionFactory() {
+        if (sessionFactory == null) {
+            buildDefaultSessionFactory();
+        }
         return sessionFactory;
+    }
+
+    private static void buildDefaultSessionFactory() {
+        buildSessionFactory(new Configuration().configure());
     }
 
     public static void shutdown() {

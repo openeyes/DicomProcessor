@@ -1,0 +1,58 @@
+{
+  "_OE_System": "ABEHR Jason Local v3.0",
+  "_Version": "v0.1",
+  "$$_XID_Map_$$": [
+  ],
+  "$$_SaveSet[1]_$$": [
+    {
+      "$$_DataSet_$$": "event_attachment_item",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "MERGE",
+          "id": "$$_event_type[1]_$$",
+          "event_attachment_group_id": 1,
+          "attachment_data_id": 16,
+          "system_only_managed": 1
+        }
+      ]
+    }
+  ],
+  "$$_SaveSet[2]_$$": [
+    {
+      "$$_DataSet_$$": "event_attachment_item",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "MERGE",
+          "id": "$$_event_type[2]_$$",
+          "event_attachment_group_id": 1,
+          "attachment_data_id": 16,
+          "system_only_managed": 0
+        }
+      ]
+    }
+  ],
+  "$$_SaveSet[3]_$$": [
+    {
+      "$$_DataSet_$$": "event_attachment_item",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "MERGE",
+          "id": "$$_event_type[3]_$$",
+          "event_attachment_group_id": 1,
+          "attachment_data_id": 17,
+          "system_only_managed": 1
+        }
+      ]
+    },
+    {
+      "$$_DataSet_$$": "event_type",
+      "$$_ROW_$$": [
+        {
+          "$$_CRUD_$$": "RETRIEVE",
+          "id": "$$_event_type[4]_$$",
+          "class_name": "OphDrInj==ection"
+        }
+      ]
+    }
+  ]
+}
