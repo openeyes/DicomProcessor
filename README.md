@@ -8,6 +8,7 @@ To compile you'll need JDK version 1.8 or higher and Apache Maven
 
 https://maven.apache.org/install.html
 
+Run command in root of the project
 ```
 mvn package
 ```
