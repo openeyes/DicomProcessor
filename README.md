@@ -32,7 +32,7 @@ DATABASE_NAME
 Which are used in such matter:
 ```
 "jdbc:mysql://" + host + ":" + port + "/" + databaseName;
-``
+```
 
 ## Execution
 
