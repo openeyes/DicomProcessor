@@ -29,6 +29,11 @@ DATABASE_PORT
 DATABASE_NAME
 ```
 
+Which are used in such matter:
+```
+"jdbc:mysql://" + host + ":" + port + "/" + databaseName;
+``
+
 ## Execution
 
 Required options
