@@ -20,10 +20,10 @@ import java.util.logging.Logger;
  */
 public class DicomEngine {
 
-    private static String requestQueue;
+    private static String requestQueue = "dicom_queue";
     private static int SHUTDOWN_AFTER_MINUTES = 3;
     private static int SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES;
-    public static String SCRIPT_FILE_LOCATION;
+    public static String SCRIPT_FILE_LOCATION = "src/main/resources/routineLibrary/";
 
     /**
      * @param args the command line arguments
