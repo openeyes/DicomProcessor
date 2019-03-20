@@ -9,6 +9,7 @@ import com.abehrdigital.dicomprocessor.models.AttachmentData;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
 import com.abehrdigital.dicomprocessor.utils.AttachmentDataThumbnailAdder;
+import com.abehrdigital.dicomprocessor.utils.PatientSearchApi;
 import com.abehrdigital.dicomprocessor.utils.RoutineScriptAccessor;
 import org.hibernate.HibernateException;
 
@@ -144,13 +145,12 @@ public class RoutineScriptService {
         dataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName);
     }
 
-    public int getPatientId(int hospitalNumber, int dateOfBirth, String gender) throws Exception {
-        int patientId;
+    public String getPatientId(String hospitalNumber) throws Exception {
+        String patientId;
         try{
-            patientId =  daoManager.getPatientDao().getIdByHospitalNumber(hospitalNumber, dateOfBirth, gender);
+            patientId = PatientSearchApi.searchPatient(hospitalNumber);
         } catch (Exception exception) {
-            throw new Exception("Patient was not found with Hospital number: " + hospitalNumber + " DateOfBirth " +
-                    dateOfBirth + " Gender: " + gender, exception);
+            throw new Exception("Patient was not found with Hospital number: " + hospitalNumber , exception);
         }
         return patientId;
     }
