@@ -19,6 +19,7 @@ public class DatabaseConfiguration {
     }
 
     private static void initParameters() {
+        String poolSize = getEnvironmentVariableReturnNullIfDoesntExist("POOL_SIZE");
         String host = getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_HOST");
         String port = getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_PORT");
         String databaseName = getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_NAME");
@@ -27,10 +28,14 @@ public class DatabaseConfiguration {
             parameters.put("hibernate.hikari.jdbcUrl", connectionString);
         }
 
+        if (poolSize != null) {
+            parameters.put("hibernate.hikari.maximumPoolSize", poolSize);
+        }
+
         String username;
         try {
             username = Files.asCharSource(new File("run/secrets/DATABASE_USER"), Charsets.UTF_8).read().trim();
-        } catch (Exception e) {
+        } catch (Exception exception) {
             username = getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_USER");
         }
         parameters.put("hibernate.hikari.dataSource.user", username);
