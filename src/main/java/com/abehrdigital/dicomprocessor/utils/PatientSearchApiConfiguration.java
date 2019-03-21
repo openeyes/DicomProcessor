@@ -4,7 +4,7 @@ import com.abehrdigital.dicomprocessor.models.ApiConfig;
 
 public class PatientSearchApiConfiguration {
     private static String host = "localhost";
-    private static String port = "8888";
+    private static String port = "80";
     private static String username = "admin";
     private static String password = "admin";
     private static ApiConfig apiConfig = null;
