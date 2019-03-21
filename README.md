@@ -51,10 +51,7 @@ API_USER
 ```
 API_PASSWORD
 ```
-
-## Execution
-
-Required options
+## Required options
 
 ### shutdownAfterMinutes
 ```
@@ -86,6 +83,8 @@ Example value : "src/main/resources/routineLibrary/"
 minutes delay when the engine should synchronize the specified scriptFileLocation with the routine_library table
 
 Example value : 1
+
+## Execution
 
 After the project is built the file that has to be run is under target/appassembler/bin/
 
