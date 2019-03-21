@@ -61,7 +61,7 @@ Required options
 ```
 shutdownAfterMinutes An option that will be used to determine how long the engine should run and will shutdown after the specified amount of minutes
 
-Example value : "60"
+Example value : 60
 ```
 -rq
 ```
@@ -79,7 +79,7 @@ Example value : "src/main/resources/routineLibrary/"
 ```
 synchronizeRoutine Delay of minutes when the engine should synchronize the specified scriptFileLocation with the routine_library table
 
-Example value : "1"
+Example value : 1
 
 After the project is built the file that has to be run is under target/appassembler/bin/
 
