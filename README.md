@@ -60,18 +60,26 @@ Required options
 -sa 
 ```
 shutdownAfterMinutes An option that will be used to determine how long the engine should run and will shutdown after the specified amount of minutes
+
+Example value : "60"
 ```
 -rq
 ```
 requestQueue The request queue of the table request_queue in the database that should be processed
+
+Example value : "dicom_queue"
 ```
 -sf 
 ```
 scriptFileLocation The location of the directory of the javascript scripts that the engine will use to process the medical device files
+
+Example value : "src/main/resources/routineLibrary/"
 ```
 -sy 
 ```
 synchronizeRoutine Delay of minutes when the engine should synchronize the specified scriptFileLocation with the routine_library table
+
+Example value : "1"
 
 After the project is built the file that has to be run is under target/appassembler/bin/
 
