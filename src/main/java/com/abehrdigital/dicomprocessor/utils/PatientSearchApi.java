@@ -34,10 +34,10 @@ public class PatientSearchApi {
     private static final String EMPTY_JSON_RESPONSE = "[]";
 
     public static void init(ApiConfig apiConfig) {
-                host = apiConfig.getHost();
-                port = apiConfig.getPort();
-                authUserName = apiConfig.getUsername();
-                authUserPassword = apiConfig.getPassword();
+        host = apiConfig.getHost();
+        port = apiConfig.getPort();
+        authUserName = apiConfig.getUsername();
+        authUserPassword = apiConfig.getPassword();
     }
 
     /**
@@ -49,7 +49,7 @@ public class PatientSearchApi {
      */
     public static String searchPatient(String hospitalNumber) throws Exception {
         String jsonPatientData = read(hospitalNumber);
-        if(jsonPatientData.equals(EMPTY_JSON_RESPONSE)){
+        if (jsonPatientData.equals(EMPTY_JSON_RESPONSE)) {
             throw new Exception("Empty JSON RESPONSE");
         }
         return getPatientIdFromJson(jsonPatientData);
@@ -59,11 +59,11 @@ public class PatientSearchApi {
         int ONE_PATIENT_RESULT = 1;
         JSONParser parser = new JSONParser();
         Object parsedJson = parser.parse(jsonPatientData);
-        JSONArray jsonArray= (JSONArray) parsedJson;
-        if(jsonArray.size() == ONE_PATIENT_RESULT){
+        JSONArray jsonArray = (JSONArray) parsedJson;
+        if (jsonArray.size() == ONE_PATIENT_RESULT) {
             Iterator jsonArrayIterator = jsonArray.iterator();
-            while(jsonArrayIterator.hasNext()){
-                JSONObject jsonObject = (JSONObject)jsonArrayIterator.next();
+            while (jsonArrayIterator.hasNext()) {
+                JSONObject jsonObject = (JSONObject) jsonArrayIterator.next();
                 return (String) jsonObject.get("id");
             }
         } else {
@@ -75,6 +75,7 @@ public class PatientSearchApi {
 
     /**
      * Trigger a WS call through HTTP for patient search
+     *
      * @return The json string of patient data
      * @throws ConnectException
      */
@@ -82,7 +83,7 @@ public class PatientSearchApi {
             throws ConnectException, AuthenticationException, UnsupportedEncodingException {
 
         String result = "";
-        String strURL = "http://" + host + "/api/v1/patient/search?term=" + URLEncoder.encode(term , java.nio.charset.StandardCharsets.UTF_8.toString());
+        String strURL = "http://" + host + ":" + port + "/api/v1/patient/search?term=" + URLEncoder.encode(term, java.nio.charset.StandardCharsets.UTF_8.toString());
 
         HttpGet get = new HttpGet(strURL);
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
