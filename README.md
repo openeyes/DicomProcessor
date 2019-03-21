@@ -14,7 +14,7 @@ mvn package
 ```
 
 ## Database configuration
-This is either done from docker secrets or enviroment variables
+This is either done from docker secrets or environment variables
 
 Docker secrets are being read from run/secrets/
 
@@ -32,6 +32,24 @@ DATABASE_NAME
 Which are used in such matter:
 ```
 "jdbc:mysql://" + host + ":" + port + "/" + databaseName;
+```
+
+## Patient Search Api Configuration
+This is done with envronment variables and api is used to look for a patient with a call to openeyes where
+it handles hospital number regexs and calls PAS
+
+List of needed environment variables:
+```
+API_HOST
+```
+```
+API_PORT
+```
+```
+API_USER
+```
+```
+API_PASSWORD
 ```
 
 ## Execution
