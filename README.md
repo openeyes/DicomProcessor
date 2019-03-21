@@ -56,28 +56,34 @@ API_PASSWORD
 
 Required options
 
+### shutdownAfterMinutes
 ```
 -sa 
 ```
-shutdownAfterMinutes An option that will be used to determine how long the engine should run and will shutdown after the specified amount of minutes
+ An option that will be used to determine how long the engine should run and will shutdown after the specified amount of minutes
 
 Example value : 60
+
+### requestQueue
 ```
 -rq
 ```
-requestQueue The request queue of the table request_queue in the database that should be processed
+The request queue of the table request_queue in the database that should be processed
 
 Example value : "dicom_queue"
+### scriptFileLocation
 ```
 -sf 
 ```
-scriptFileLocation The location of the directory of the javascript scripts that the engine will use to process the medical device files
+The location of the directory of the javascript scripts that the engine will use to process the medical device files
 
 Example value : "src/main/resources/routineLibrary/"
+
+### synchronizeRoutineDelay
 ```
 -sy 
 ```
-synchronizeRoutine Delay of minutes when the engine should synchronize the specified scriptFileLocation with the routine_library table
+minutes delay when the engine should synchronize the specified scriptFileLocation with the routine_library table
 
 Example value : 1
 
