@@ -18,10 +18,11 @@ import java.util.logging.Logger;
 public class DicomEngine {
 
     private static String requestQueue = "dicom_queue";
-    private static int SHUTDOWN_AFTER_MINUTES = 3;
+    private static Integer SHUTDOWN_AFTER_MINUTES;
     private static int SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES;
     public static String SCRIPT_FILE_LOCATION = "src/main/resources/routineLibrary/";
     private static long shutdownMsClock;
+    private static boolean runAsService = false;
     private static long synchronizeRoutineLibraryDelay;
 
     /**
@@ -47,13 +48,14 @@ public class DicomEngine {
         RequestQueueExecutor requestQueueExecutor = new RequestQueueExecutor(
                 requestQueue,
                 routineLibrarySynchronizer,
-                shutdownMsClock);
+                shutdownMsClock,
+                runAsService);
 
         // Stability recovery loop
-        while (System.currentTimeMillis() < shutdownMsClock) {
+        while (runAsService || System.currentTimeMillis() < shutdownMsClock) {
             try {
                 // Main request handler iterator
-                while (System.currentTimeMillis() < shutdownMsClock) {
+                while (runAsService || System.currentTimeMillis() < shutdownMsClock) {
                     requestQueueExecutor.execute();
                 }
                 throw new OrderlyExitSuccessException("Engine run was successful");
@@ -75,6 +77,7 @@ public class DicomEngine {
     }
 
     private static void init(String[] args) {
+        System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
         initialiseParametersFromCommandLineArguments(args);
         buildSessionFactory();
         initialisePatientSearchApi();
@@ -112,6 +115,8 @@ public class DicomEngine {
             }
             if (commandLine.hasOption("sa") || commandLine.hasOption("shutdownAfterMinutes")) {
                 SHUTDOWN_AFTER_MINUTES = Integer.parseInt(commandLine.getOptionValue("shutdownAfterMinutes"));
+            } else {
+                runAsService = true;
             }
             if (commandLine.hasOption("sy") || commandLine.hasOption("synchronizeRoutine")) {
                 SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES = Integer.parseInt(commandLine.getOptionValue("synchronizeRoutine"));
@@ -131,7 +136,9 @@ public class DicomEngine {
 
     private static void initialiseClocks() {
         int MILLISECONDS_TO_MINUTES_MULTIPLIER = 60000;
-        shutdownMsClock = System.currentTimeMillis() + MILLISECONDS_TO_MINUTES_MULTIPLIER * SHUTDOWN_AFTER_MINUTES;
+        if(SHUTDOWN_AFTER_MINUTES != null) {
+            shutdownMsClock = System.currentTimeMillis() + MILLISECONDS_TO_MINUTES_MULTIPLIER * SHUTDOWN_AFTER_MINUTES;
+        }
         synchronizeRoutineLibraryDelay = MILLISECONDS_TO_MINUTES_MULTIPLIER * SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES;
     }
 
