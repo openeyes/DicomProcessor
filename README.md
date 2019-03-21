@@ -51,7 +51,7 @@ API_USER
 ```
 API_PASSWORD
 ```
-## Required options
+## Required command line arguments
 
 ### shutdownAfterMinutes
 ```
