@@ -1,5 +1,6 @@
 package com.abehrdigital.dicomprocessor.utils;
 
+import com.abehrdigital.dicomprocessor.models.ApiConfig;
 import com.sun.javaws.exceptions.InvalidArgumentException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -11,13 +12,11 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.ini4j.Wini;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
@@ -25,29 +24,20 @@ import java.net.ConnectException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 public class PatientSearchApi {
     private static String host = "localhost";
-    private static Integer port = 8888;
+    private static String port = "8888";
     private static String authUserName = "admin";
     private static String authUserPassword = "admin";
     private static final String EMPTY_JSON_RESPONSE = "[]";
 
-    public static void init(String configFile) {
-        File APIConfig = new File(configFile);
-        if (APIConfig.exists() && !APIConfig.isDirectory()) {
-            try {
-                Wini ini = new Wini(APIConfig);
-                host = ini.get("?", "api_host");
-                port = Integer.parseInt(ini.get("?", "api_port"));
-                authUserName = ini.get("?", "api_user");
-                authUserPassword = ini.get("?", "api_password");
-            } catch (Exception ex) {
-                Logger.getLogger(PatientSearchApi.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+    public static void init(ApiConfig apiConfig) {
+                host = apiConfig.getHost();
+                port = apiConfig.getPort();
+                authUserName = apiConfig.getUsername();
+                authUserPassword = apiConfig.getPassword();
     }
 
     /**
