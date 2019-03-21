@@ -6,6 +6,7 @@ import com.abehrdigital.dicomprocessor.exceptions.InvalidNumberOfRowsAffectedExc
 import com.abehrdigital.dicomprocessor.exceptions.NoSearchedFieldsProvidedException;
 import com.abehrdigital.dicomprocessor.exceptions.ValuesNotFoundException;
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
+import com.abehrdigital.dicomprocessor.models.EventAttachmentItem;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
 import com.abehrdigital.dicomprocessor.utils.AttachmentDataThumbnailAdder;
@@ -16,6 +17,7 @@ import org.hibernate.HibernateException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Blob;
+import java.util.List;
 
 public class RoutineScriptService {
     private static final String EMPTY_JSON_STRING = "{}";
@@ -165,7 +167,16 @@ public class RoutineScriptService {
     }
 
     public void deleteEventAttachmentByAttachmentId(int attachmentId) {
-        daoManager.getEventAttachmentItemDao().deleteByAttachmentDataId(attachmentId);
+        List<EventAttachmentItem> eventAttachmentItems = daoManager.getEventAttachmentItemDao().getByAttachmentDataId(attachmentId);
+        for(EventAttachmentItem eventAttachmentItem : eventAttachmentItems){
+            int eventAttachmentGroupSize = daoManager
+                    .getEventAttachmentItemDao()
+                    .getByEventAttachmentGroupId(eventAttachmentItem.getEventAttachmentGroupId())
+                    .size();
+            if(eventAttachmentGroupSize > 1) {
+                daoManager.getEventAttachmentItemDao().delete(eventAttachmentItem);
+            }
+        }
     }
 
     public String createEvent(String eventData) throws Exception, EmptyKnownFieldsException, ValuesNotFoundException,
