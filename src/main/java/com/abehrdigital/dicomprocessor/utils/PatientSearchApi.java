@@ -27,10 +27,10 @@ import java.util.Iterator;
 
 
 public class PatientSearchApi {
-    private static String host = "localhost";
-    private static String port = "8888";
-    private static String authUserName = "admin";
-    private static String authUserPassword = "admin";
+    private static String host;
+    private static String port;
+    private static String authUserName;
+    private static String authUserPassword;
     private static final String EMPTY_JSON_RESPONSE = "[]";
 
     public static void init(ApiConfig apiConfig) {
