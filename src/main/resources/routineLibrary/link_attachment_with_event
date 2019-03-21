@@ -12,8 +12,13 @@ eventData.$$_XID_Map_$$.forEach(function(data){
 var attachmentId = attachmentPdf.getId();
 if(requestData.attachmentDataItemToDelete == attachmentId){
     requestData.attachmentDataItemToDelete = null;
-}
-
-deleteEventAttachmentByAttachmentId(attachmentId);
+} else {
 linkAttachmentDataWithEvent(attachmentPdf , eventID , 'OEModule\\OphGeneric\\models\\Attachment');
+}
 createAndSetThumbnailsOnAttachmentData(attachmentPdf);
+
+  putJson(
+        'REQUEST_DATA',
+        JSON.stringify(requestData),
+         'NONE' ,
+          null, 'application/json');

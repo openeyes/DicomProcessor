@@ -88,7 +88,7 @@ public class RequestWorker implements Runnable {
             // we we're executing the engine and we don't know what the changes were
             // so we leave it as it is and it will run again if it has the right conditions
             service.rollback();
-            logMessage += lockException.toString();
+            logMessage += getStackTraceAsString(lockException);
         } catch (Exception exception) {
             service.rollback();
             Logger.getLogger(RequestWorker.class.getName()).log(Level.SEVERE,
