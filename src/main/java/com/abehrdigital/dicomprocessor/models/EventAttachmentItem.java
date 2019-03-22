@@ -13,7 +13,7 @@ public class EventAttachmentItem {
     @Column(name = "event_attachment_group_id")
     private int eventAttachmentGroupId;
     @Column(name = "attachment_data_id")
-    private int attachment_data_id;
+    private int attachmentDataId;
     @Column(name = "system_only_managed")
     private int systemOnlyManaged;
     @Column(name = "event_document_view_set")

@@ -26,7 +26,7 @@ public class EventAttachmentItemDao {
         CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
         CriteriaQuery<EventAttachmentItem> criteriaQuery = criteriaBuilder.createQuery(EventAttachmentItem.class);
         Root<EventAttachmentItem> root = criteriaQuery.from(EventAttachmentItem.class);
-        criteriaQuery.where(criteriaBuilder.equal(root.get("attachment_data_id"), attachmentId));
+        criteriaQuery.where(criteriaBuilder.equal(root.get("attachmentDataId"), attachmentId));
         criteriaQuery.orderBy(criteriaBuilder.asc(root.get("id")));
         return session.createQuery(criteriaQuery).getResultList();
     }
@@ -35,7 +35,7 @@ public class EventAttachmentItemDao {
         CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
         CriteriaQuery<EventAttachmentItem> criteriaQuery = criteriaBuilder.createQuery(EventAttachmentItem.class);
         Root<EventAttachmentItem> root = criteriaQuery.from(EventAttachmentItem.class);
-        criteriaQuery.where(criteriaBuilder.equal(root.get("event_attachment_group_id"), eventAttachmentGroupId));
+        criteriaQuery.where(criteriaBuilder.equal(root.get("eventAttachmentGroupId"), eventAttachmentGroupId));
         criteriaQuery.orderBy(criteriaBuilder.asc(root.get("id")));
         return session.createQuery(criteriaQuery).getResultList();
     }
