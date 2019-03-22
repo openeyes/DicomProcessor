@@ -1,7 +1,6 @@
 package com.abehrdigital.dicomprocessor.utils;
 
 import com.abehrdigital.dicomprocessor.models.ApiConfig;
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.auth.AuthenticationException;
@@ -55,7 +54,7 @@ public class PatientSearchApi {
         return getPatientIdFromJson(jsonPatientData);
     }
 
-    private static String getPatientIdFromJson(String jsonPatientData) throws ParseException, InvalidArgumentException {
+    private static String getPatientIdFromJson(String jsonPatientData) throws Exception {
         int ONE_PATIENT_RESULT = 1;
         JSONParser parser = new JSONParser();
         Object parsedJson = parser.parse(jsonPatientData);
@@ -67,7 +66,7 @@ public class PatientSearchApi {
                 return (String) jsonObject.get("id");
             }
         } else {
-            throw new InvalidArgumentException(new String[]{"More than one patient returned " + jsonPatientData});
+            throw new Exception("More than one patient returned " + jsonPatientData);
         }
 
         return null;
