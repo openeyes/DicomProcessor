@@ -57,7 +57,7 @@ API_PASSWORD
 ```
 -sa 
 ```
- It's an optional value and when not provided will run as service without stopping
+ It's an optional value and when not provided will run as service without stopping.
  An option that will be used to determine how long the engine should run and will shutdown after the specified amount of minutes
 
 Example value : 60
