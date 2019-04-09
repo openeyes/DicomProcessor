@@ -37,5 +37,6 @@
         <mapping class="com.abehrdigital.dicomprocessor.models.AttachmentData"></mapping>
         <mapping class="com.abehrdigital.dicomprocessor.models.RequestQueue"></mapping>
         <mapping class="com.abehrdigital.dicomprocessor.models.RequestQueueLock"></mapping>
+        <mapping class="com.abehrdigital.dicomprocessor.models.EventAttachmentItem"></mapping>
     </session-factory>
 </hibernate-configuration>

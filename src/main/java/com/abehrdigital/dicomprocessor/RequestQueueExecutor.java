@@ -36,15 +36,17 @@ public class RequestQueueExecutor implements RequestThreadListener {
     private final static int LOCK_MAXIMUM_TRY_COUNT = 20;
     private RoutineLibrarySynchronizer routineLibrarySynchronizer;
     private long shutdownMsClock;
+    private boolean runAsService;
 
     public RequestQueueExecutor(String requestQueueName, RoutineLibrarySynchronizer routineLibrarySynchronizer,
-                                long shutdownMsClock) {
+                                long shutdownMsClock , boolean runAsService) {
         this.requestQueueName = requestQueueName;
         daoManager = DaoFactory.createRequestQueueExecutorDaoManager();
         requestQueueLocker = new RequestQueueLocker(requestQueueName);
         requestIdToThreadSyncMap = new HashMap<>();
         this.routineLibrarySynchronizer = routineLibrarySynchronizer;
         this.shutdownMsClock = shutdownMsClock;
+        this.runAsService = runAsService;
     }
 
     public void execute() throws RequestQueueMissingException {
@@ -59,7 +61,7 @@ public class RequestQueueExecutor implements RequestThreadListener {
 
             for (RequestRoutine routineForExecution : requestRoutinesForExecution) {
                 //Check if needs shutting down and break the loop if so
-                if (System.currentTimeMillis() > shutdownMsClock) {
+                if (!runAsService && System.currentTimeMillis() > shutdownMsClock) {
                     break;
                 }
                 synchronized (daoManager) {

@@ -1,5 +1,6 @@
 package com.abehrdigital.dicomprocessor.utils;
 
+import com.abehrdigital.dicomprocessor.models.ApiConfig;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.auth.AuthenticationException;
@@ -10,36 +11,32 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.ini4j.Wini;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Iterator;
+
 
 public class PatientSearchApi {
-    private static String host = "localhost";
-    private static Integer port = 8888;
-    private static String authUserName = "admin";
-    private static String authUserPassword = "admin";
+    private static String host;
+    private static String port;
+    private static String authUserName;
+    private static String authUserPassword;
+    private static final String EMPTY_JSON_RESPONSE = "[]";
 
-    public static void init(String configFile) {
-        File APIConfig = new File(configFile);
-        if (APIConfig.exists() && !APIConfig.isDirectory()) {
-            Wini ini = null;
-            try {
-                ini = new Wini(APIConfig);
-                host = ini.get("?", "api_host");
-                port = Integer.parseInt(ini.get("?", "api_port"));
-                authUserName = ini.get("?", "api_user");
-                authUserPassword = ini.get("?", "api_password");
-            } catch (Exception ex) {
-                Logger.getLogger(PatientSearchApi.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+    public static void init(ApiConfig apiConfig) {
+        host = apiConfig.getHost();
+        port = apiConfig.getPort();
+        authUserName = apiConfig.getUsername();
+        authUserPassword = apiConfig.getPassword();
     }
 
     /**
@@ -49,29 +46,44 @@ public class PatientSearchApi {
      * @return The status code of the HTTP response
      * @throws ConnectException
      */
-    public static String searchPatient(String hospitalNumber) throws ConnectException, AuthenticationException {
-        return read("Patient", "identifier=" + hospitalNumber);
+    public static String searchPatient(String hospitalNumber) throws Exception {
+        String jsonPatientData = read(hospitalNumber);
+        if (jsonPatientData.equals(EMPTY_JSON_RESPONSE)) {
+            throw new Exception("Empty JSON RESPONSE");
+        }
+        return getPatientIdFromJson(jsonPatientData);
+    }
+
+    private static String getPatientIdFromJson(String jsonPatientData) throws Exception {
+        int ONE_PATIENT_RESULT = 1;
+        JSONParser parser = new JSONParser();
+        Object parsedJson = parser.parse(jsonPatientData);
+        JSONArray jsonArray = (JSONArray) parsedJson;
+        if (jsonArray.size() == ONE_PATIENT_RESULT) {
+            Iterator jsonArrayIterator = jsonArray.iterator();
+            while (jsonArrayIterator.hasNext()) {
+                JSONObject jsonObject = (JSONObject) jsonArrayIterator.next();
+                return (String) jsonObject.get("id");
+            }
+        } else {
+            throw new Exception("More than one patient returned " + jsonPatientData);
+        }
+
+        return null;
     }
 
     /**
      * Trigger a WS call through HTTP for patient search
      *
-     * @param resourceType  The REST resource name (only "Patient" supported now)
-     * @param requestParams The arguments for the HTTP call
-     * @return The status code from the HTTP answer
+     * @return The json string of patient data
      * @throws ConnectException
      */
-    public static String read(String resourceType, String requestParams)
-            throws ConnectException, AuthenticationException {
+    public static String read(String term)
+            throws ConnectException, AuthenticationException, UnsupportedEncodingException {
 
         String result = "";
-        String strURL = "http://" + host + ":" + port + "/api/"
-                + resourceType + "?resource_type=Patient&_format=xml";
+        String strURL = "http://" + host + ":" + port + "/api/v1/patient/search?term=" + URLEncoder.encode(term, java.nio.charset.StandardCharsets.UTF_8.toString());
 
-        System.out.println("URL " + strURL);
-        if (requestParams != null) {
-            strURL += "&" + requestParams;
-        }
         HttpGet get = new HttpGet(strURL);
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
                 authUserName, authUserPassword);

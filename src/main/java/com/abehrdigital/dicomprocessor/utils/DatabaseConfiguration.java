@@ -19,19 +19,25 @@ public class DatabaseConfiguration {
     }
 
     private static void initParameters() {
-        String host = getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_HOST");
-        String port = getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_PORT");
-        String databaseName = getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_NAME");
+        String poolSize = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("POOL_SIZE");
+        String host = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_HOST");
+        String port = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_PORT");
+        String databaseName = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_NAME");
+
         if (host != null && port != null && databaseName != null) {
             String connectionString = "jdbc:mysql://" + host + ":" + port + "/" + databaseName;
             parameters.put("hibernate.hikari.jdbcUrl", connectionString);
         }
 
+        if (poolSize != null) {
+            parameters.put("hibernate.hikari.maximumPoolSize", poolSize);
+        }
+
         String username;
         try {
             username = Files.asCharSource(new File("run/secrets/DATABASE_USER"), Charsets.UTF_8).read().trim();
-        } catch (Exception e) {
-            username = getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_USER");
+        } catch (Exception exception) {
+            username = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_USER");
         }
         parameters.put("hibernate.hikari.dataSource.user", username);
 
@@ -39,21 +45,9 @@ public class DatabaseConfiguration {
         try {
             password = Files.asCharSource(new File("run/secrets/DATABASE_PASSWORD"), Charsets.UTF_8).read().trim();
         } catch (Exception e) {
-            password = getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_PASS");
+            password = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_PASS");
         }
         parameters.put("hibernate.hikari.dataSource.password", password);
-    }
-
-    private static String getEnvironmentVariableReturnNullIfDoesntExist(String name) {
-        String environmentVariable;
-
-        try {
-            environmentVariable = System.getenv(name);
-        } catch (Exception exception) {
-            environmentVariable = null;
-        }
-
-        return environmentVariable;
     }
 
     private static void setParametersToHibernateConfiguration() {

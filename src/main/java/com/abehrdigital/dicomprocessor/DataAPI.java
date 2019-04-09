@@ -513,19 +513,11 @@ public class DataAPI {
 
     void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId,
                                      String elementTypeClassName) throws InvalidNumberOfRowsAffectedException {
-        try {
-            // set a new savepoint before making any processing to the database
-            savepoint = setSavepoint("savepoint");
-
             // insert a new record for the event_attachment_group if there isn't already one in the table for the givven event_id
             int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(this.session, eventId, elementTypeClassName);
 
             // insert a new record for the event_attachment_item table to link together the attachment_data with the attachment_group
-            Query.insertAttachmentItem(this.session, eventAttachmentGroupID, attachmentData.getId());
-        } catch (InvalidNumberOfRowsAffectedException exception) {
-            rollbackSavepoint(savepoint);
-            throw exception;
-        }
+            Query.insertIfNotExistAttachmentItem(this.session, eventAttachmentGroupID, attachmentData.getId());
     }
 
     static void printDebugBanner(int length, String message) {

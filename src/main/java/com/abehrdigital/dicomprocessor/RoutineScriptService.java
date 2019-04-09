@@ -6,15 +6,18 @@ import com.abehrdigital.dicomprocessor.exceptions.InvalidNumberOfRowsAffectedExc
 import com.abehrdigital.dicomprocessor.exceptions.NoSearchedFieldsProvidedException;
 import com.abehrdigital.dicomprocessor.exceptions.ValuesNotFoundException;
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
+import com.abehrdigital.dicomprocessor.models.EventAttachmentItem;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
 import com.abehrdigital.dicomprocessor.utils.AttachmentDataThumbnailAdder;
+import com.abehrdigital.dicomprocessor.utils.PatientSearchApi;
 import com.abehrdigital.dicomprocessor.utils.RoutineScriptAccessor;
 import org.hibernate.HibernateException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Blob;
+import java.util.List;
 
 public class RoutineScriptService {
     private static final String EMPTY_JSON_STRING = "{}";
@@ -144,13 +147,12 @@ public class RoutineScriptService {
         dataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName);
     }
 
-    public int getPatientId(int hospitalNumber, int dateOfBirth, String gender) throws Exception {
-        int patientId;
+    public String getPatientId(String hospitalNumber) throws Exception {
+        String patientId;
         try{
-            patientId =  daoManager.getPatientDao().getIdByHospitalNumber(hospitalNumber, dateOfBirth, gender);
+            patientId = PatientSearchApi.searchPatient(hospitalNumber);
         } catch (Exception exception) {
-            throw new Exception("Patient was not found with Hospital number: " + hospitalNumber + " DateOfBirth " +
-                    dateOfBirth + " Gender: " + gender, exception);
+            throw new Exception("Patient was not found with Hospital number: " + hospitalNumber , exception);
         }
         return patientId;
     }
@@ -165,7 +167,16 @@ public class RoutineScriptService {
     }
 
     public void deleteEventAttachmentByAttachmentId(int attachmentId) {
-        daoManager.getEventAttachmentItemDao().deleteByAttachmentDataId(attachmentId);
+        List<EventAttachmentItem> eventAttachmentItems = daoManager.getEventAttachmentItemDao().getByAttachmentDataId(attachmentId);
+        for(EventAttachmentItem eventAttachmentItem : eventAttachmentItems){
+            int eventAttachmentGroupSize = daoManager
+                    .getEventAttachmentItemDao()
+                    .getByEventAttachmentGroupId(eventAttachmentItem.getEventAttachmentGroupId())
+                    .size();
+            if(eventAttachmentGroupSize > 1) {
+                daoManager.getEventAttachmentItemDao().delete(eventAttachmentItem);
+            }
+        }
     }
 
     public String createEvent(String eventData) throws Exception, EmptyKnownFieldsException, ValuesNotFoundException,

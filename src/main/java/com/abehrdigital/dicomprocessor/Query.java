@@ -640,13 +640,20 @@ public class Query {
         return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
     }
 
-    static void insertAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id)
+    static void insertIfNotExistAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id)
             throws InvalidNumberOfRowsAffectedException {
-        executeInsertUpdate(
-            session.createSQLQuery("INSERT INTO event_attachment_item (attachment_data_id, event_attachment_group_id," +
-                " system_only_managed) VALUES ( :attachment_data_id , :eventAttachmentGroupID, 1);")
-                .setParameter("attachment_data_id", attachment_data_id)
-                .setParameter("eventAttachmentGroupID", eventAttachmentGroupID));
+        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(
+                session.createSQLQuery("SELECT id from event_attachment_item where attachment_data_id = :attachment_data_id and event_attachment_group_id = :eventAttachmentGroupID")
+                        .setParameter("attachment_data_id", attachment_data_id)
+                        .setParameter("eventAttachmentGroupID", eventAttachmentGroupID),
+                NO_ROWS);
+        if (aliasToValueMapList.size() == NO_ROWS) {
+            executeInsertUpdate(
+                    session.createSQLQuery("INSERT INTO event_attachment_item (attachment_data_id, event_attachment_group_id," +
+                            " system_only_managed) VALUES ( :attachment_data_id , :eventAttachmentGroupID, 1);")
+                            .setParameter("attachment_data_id", attachment_data_id)
+                            .setParameter("eventAttachmentGroupID", eventAttachmentGroupID));
+        }
     }
 
     private static List<HashMap<String, Object>> executeSelect(NativeQuery sqlQuery, int minRowsExpected)
