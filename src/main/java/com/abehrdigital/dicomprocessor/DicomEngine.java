@@ -12,6 +12,7 @@ import org.apache.commons.cli.*;
 import org.hibernate.cfg.Configuration;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,55 +24,16 @@ public class DicomEngine {
     private static String requestQueue;
     private static int SHUTDOWN_AFTER_MINUTES = 3;
     private static int SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES;
+    private static int RETRY_DATABASE_CONNECTION_FOR_MINUTES;
     public static String SCRIPT_FILE_LOCATION;
 
     /**
      * @param args the command line arguments
      */
-    //TODO SHUT DOWN AFER MINUTES SHOULD COME THROUGH ARGS
-    public static void main(String[] args) {
-        Options options = new Options();
-        Option optionScriptFileLocation = new Option("sf", "scriptFileLocation",
-                true,
-                "Specify the location of routine library scripts");
-        Option optionRequestQueue = new Option("rq", "requestQueue",
-                true,
-                "Specify the request_queue to process");
-        Option optionShutDownAfterMinutes = new Option("sa" ,"shutdownAfterMinutes",
-                true,
-                "Specify the amount of minutes after which the engine should shut down");
-        Option optionRoutineLibraryAfterMinutes = new Option("sy" , "synchronizeRoutine",
-                true,
-                "Specify the delay in minutes that the routine library in the database should be synchronized after");
-        options.addOption(optionRequestQueue);
-        options.addOption(optionScriptFileLocation);
-        options.addOption(optionShutDownAfterMinutes);
-        options.addOption(optionRoutineLibraryAfterMinutes);
-
-        CommandLineParser parser;
-        parser = new DefaultParser();
-        try {
-            CommandLine commandLine = parser.parse(options, args);
-            if (commandLine.hasOption("sf") || commandLine.hasOption("scriptFileLocation")) {
-                SCRIPT_FILE_LOCATION = commandLine.getOptionValue("scriptFileLocation");
-            }
-            if (commandLine.hasOption("rq") || commandLine.hasOption("requestQueue")) {
-                requestQueue = commandLine.getOptionValue("requestQueue");
-            }
-            if (commandLine.hasOption("sa") || commandLine.hasOption("shutdownAfterMinutes")) {
-                SHUTDOWN_AFTER_MINUTES = Integer.parseInt(commandLine.getOptionValue("shutdownAfterMinutes"));
-            }
-            if (commandLine.hasOption("sy") || commandLine.hasOption("synchronizeRoutine")) {
-                SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES = Integer.parseInt(commandLine.getOptionValue("synchronizeRoutine"));
-            }
-            //maximumPoolSize
-        } catch (Exception ex) {
-            System.err.println("Error: " + ex.getMessage());
-            // exit code 1: unable to parse command line arguments
-            System.exit(1);
-        }
-
+    public static void main(String[] args) throws InterruptedException {
+        initOptions(args);
         buildSessionFactory();
+
         long shutdownMsClock = System.currentTimeMillis() + 60 * 1000 * SHUTDOWN_AFTER_MINUTES;
         long synchronizeRoutineLibraryDelay = 60 * 1000 * SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES;
         RoutineLibrarySynchronizer routineLibrarySynchronizer = new RoutineLibrarySynchronizer(
@@ -88,7 +50,7 @@ public class DicomEngine {
         }
 
         RequestQueueExecutor requestQueueExecutor = new RequestQueueExecutor(
-                    requestQueue,
+                requestQueue,
                 routineLibrarySynchronizer,
                 shutdownMsClock);
 
@@ -117,9 +79,72 @@ public class DicomEngine {
         requestQueueExecutor.shutDown();
     }
 
-    private static void buildSessionFactory() {
+    private static void initOptions(String[] args) {
+        Options options = new Options();
+        Option optionScriptFileLocation = new Option("sf", "scriptFileLocation",
+                true,
+                "Specify the location of routine library scripts");
+        Option optionRequestQueue = new Option("rq", "requestQueue",
+                true,
+                "Specify the request_queue to process");
+        Option optionShutDownAfterMinutes = new Option("sa", "shutdownAfterMinutes",
+                true,
+                "Specify the amount of minutes after which the engine should shut down");
+        Option optionRoutineLibraryAfterMinutes = new Option("sy", "synchronizeRoutine",
+                true,
+                "Specify the delay in minutes that the routine library in the database should be synchronized after");
+        Option optionRetryDatabaseConnectionForMinutes = new Option("rd", "retryDatabaseConnectionForMinutes",
+                true,
+                "Specify the amount of minutes to try connecting to the database");
+        options.addOption(optionRequestQueue);
+        options.addOption(optionScriptFileLocation);
+        options.addOption(optionShutDownAfterMinutes);
+        options.addOption(optionRoutineLibraryAfterMinutes);
+        options.addOption(optionRetryDatabaseConnectionForMinutes);
+
+        CommandLineParser parser;
+        parser = new DefaultParser();
+        try {
+            CommandLine commandLine = parser.parse(options, args);
+            if (commandLine.hasOption("sf") || commandLine.hasOption("scriptFileLocation")) {
+                SCRIPT_FILE_LOCATION = commandLine.getOptionValue("scriptFileLocation");
+            }
+            if (commandLine.hasOption("rq") || commandLine.hasOption("requestQueue")) {
+                requestQueue = commandLine.getOptionValue("requestQueue");
+            }
+            if (commandLine.hasOption("sa") || commandLine.hasOption("shutdownAfterMinutes")) {
+                SHUTDOWN_AFTER_MINUTES = Integer.parseInt(commandLine.getOptionValue("shutdownAfterMinutes"));
+            }
+            if (commandLine.hasOption("sy") || commandLine.hasOption("synchronizeRoutine")) {
+                SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES = Integer.parseInt(commandLine.getOptionValue("synchronizeRoutine"));
+            }
+            if (commandLine.hasOption("rd") || commandLine.hasOption("retryDatabaseConnectionForMinutes")) {
+                RETRY_DATABASE_CONNECTION_FOR_MINUTES = Integer.parseInt(commandLine.getOptionValue("retryDatabaseConnectionForMinutes"));
+            }
+        } catch (Exception ex) {
+            System.err.println("Error: " + ex.getMessage());
+            // exit code 1: unable to parse command line arguments
+            System.exit(1);
+        }
+    }
+
+    private static void buildSessionFactory() throws InterruptedException {
         DatabaseConfiguration.init();
         Configuration hibernateConfig = DatabaseConfiguration.getHibernateConfiguration();
-        HibernateUtil.buildSessionFactory(hibernateConfig);
+        ExceptionInInitializerError lastException = new ExceptionInInitializerError("Failed connecting to the database");
+        long shutdownRetryDatabaseConnectionClock = System.currentTimeMillis() * 60 * 1000 * RETRY_DATABASE_CONNECTION_FOR_MINUTES;
+        boolean connectionAcquired = false;
+        while (System.currentTimeMillis() < shutdownRetryDatabaseConnectionClock && !connectionAcquired) {
+            try {
+                connectionAcquired = HibernateUtil.buildSessionFactory(hibernateConfig);
+            } catch (ExceptionInInitializerError exception) {
+                lastException = exception;
+                TimeUnit.SECONDS.sleep(5);
+            }
+        }
+
+        if (!connectionAcquired) {
+            throw lastException;
+        }
     }
 }
