@@ -32,7 +32,13 @@ public class DicomEngine {
      */
     public static void main(String[] args) throws InterruptedException {
         initOptions(args);
-        buildSessionFactory();
+        try {
+            buildSessionFactory();
+        } catch (ExceptionInInitializerError exception) {
+            Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
+                    StackTraceUtil.getStackTraceAsString(exception));
+            System.exit(1);
+        }
 
         long shutdownMsClock = System.currentTimeMillis() + 60 * 1000 * SHUTDOWN_AFTER_MINUTES;
         long synchronizeRoutineLibraryDelay = 60 * 1000 * SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES;
