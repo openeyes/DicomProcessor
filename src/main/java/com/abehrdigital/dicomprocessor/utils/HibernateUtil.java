@@ -12,12 +12,13 @@ public class HibernateUtil {
 
     private static SessionFactory sessionFactory = null;
 
-    public static void buildSessionFactory(Configuration hibernateConfig) {
+    public static boolean buildSessionFactory(Configuration hibernateConfig) {
         try {
             // Use hibernate.cfg.xml to get a SessionFactory
             sessionFactory = hibernateConfig.buildSessionFactory();
+            return true;
         } catch (Exception ex) {
-            System.err.println("SessionFactory creation failed." + ex);
+            System.err.println("SessionFactory creation failed.");
             throw new ExceptionInInitializerError(ex);
         }
     }
