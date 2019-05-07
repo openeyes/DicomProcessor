@@ -1,2 +1,2 @@
-var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null));
+var requestData = bindObject('REQUEST_DATA', null);
 addRoutine('Carl_Zeiss_Meditec_' + requestData.modality);

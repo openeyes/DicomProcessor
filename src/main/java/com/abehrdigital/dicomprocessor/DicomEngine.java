@@ -12,6 +12,7 @@ import com.abehrdigital.dicomprocessor.utils.*;
 import org.apache.commons.cli.*;
 import org.hibernate.cfg.Configuration;
 
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +21,7 @@ public class DicomEngine {
     private static String requestQueue = "dicom_queue";
     private static Integer SHUTDOWN_AFTER_MINUTES;
     private static int SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES;
+    private static int RETRY_DATABASE_CONNECTION_FOR_MINUTES;
     public static String SCRIPT_FILE_LOCATION = "src/main/resources/routineLibrary/";
     private static long shutdownMsClock;
     private static boolean runAsService = false;
@@ -79,7 +81,15 @@ public class DicomEngine {
     private static void init(String[] args) {
         System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
         initialiseParametersFromCommandLineArguments(args);
-        buildSessionFactory();
+        try {
+            buildSessionFactory();
+        } catch (ExceptionInInitializerError exception) {
+            Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
+                    StackTraceUtil.getStackTraceAsString(exception));
+            System.exit(1);
+        } catch (InterruptedException interruptedException) {
+            interruptedException.printStackTrace();
+        }
         initialisePatientSearchApi();
         initialiseClocks();
     }
@@ -98,10 +108,14 @@ public class DicomEngine {
         Option optionRoutineLibraryAfterMinutes = new Option("sy", "synchronizeRoutine",
                 true,
                 "Specify the delay in minutes that the routine library in the database should be synchronized after");
+        Option optionRetryDatabaseConnectionForMinutes = new Option("rd", "retryDatabaseConnectionForMinutes",
+                true,
+                "Specify the amount of minutes to try connecting to the database");
         options.addOption(optionRequestQueue);
         options.addOption(optionScriptFileLocation);
         options.addOption(optionShutDownAfterMinutes);
         options.addOption(optionRoutineLibraryAfterMinutes);
+        options.addOption(optionRetryDatabaseConnectionForMinutes);
 
         CommandLineParser parser;
         parser = new DefaultParser();
@@ -121,6 +135,9 @@ public class DicomEngine {
             if (commandLine.hasOption("sy") || commandLine.hasOption("synchronizeRoutine")) {
                 SYNCHRONIZE_ROUTINE_LIBRARY_AFTER_MINUTES = Integer.parseInt(commandLine.getOptionValue("synchronizeRoutine"));
             }
+            if (commandLine.hasOption("rd") || commandLine.hasOption("retryDatabaseConnectionForMinutes")) {
+                RETRY_DATABASE_CONNECTION_FOR_MINUTES = Integer.parseInt(commandLine.getOptionValue("retryDatabaseConnectionForMinutes"));
+            }
         } catch (Exception ex) {
             System.err.println("Error: " + ex.getMessage());
             // exit code 1: unable to parse command line arguments
@@ -128,10 +145,24 @@ public class DicomEngine {
         }
     }
 
-    private static void buildSessionFactory() {
+    private static void buildSessionFactory() throws InterruptedException {
         DatabaseConfiguration.init();
         Configuration hibernateConfig = DatabaseConfiguration.getHibernateConfiguration();
-        HibernateUtil.buildSessionFactory(hibernateConfig);
+        ExceptionInInitializerError lastException = new ExceptionInInitializerError("Failed connecting to the database");
+        long shutdownRetryDatabaseConnectionClock = System.currentTimeMillis() * 60 * 1000 * RETRY_DATABASE_CONNECTION_FOR_MINUTES;
+        boolean connectionAcquired = false;
+        while (System.currentTimeMillis() < shutdownRetryDatabaseConnectionClock && !connectionAcquired) {
+            try {
+                connectionAcquired = HibernateUtil.buildSessionFactory(hibernateConfig);
+            } catch (ExceptionInInitializerError exception) {
+                lastException = exception;
+                TimeUnit.SECONDS.sleep(5);
+            }
+        }
+
+        if (!connectionAcquired) {
+            throw lastException;
+        }
     }
 
     private static void initialiseClocks() {

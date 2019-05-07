@@ -85,20 +85,31 @@ minutes delay when the engine should synchronize the specified scriptFileLocatio
 
 Example value : 1
 
+###  retryDatabaseConnectionForMinutes
+```
+-rd
+```
+To help with the containers starting out of order this option will retry a database connection for X minutes before failing if a connection has been failed to establish
+
+Example value : 1
+
 ## Execution
 
 After the project is built the file that has to be run is under target/appassembler/bin/
 
 For Windows the file is called
 ```
-app.bat
+dicomEngine.bat
 ```
 For Linux the file is called
 ```
-app
+dicomEngine
 ```
 
 Example of execution in windows:
 ```
 .\target\appassembler\bin\app.bat -sf src/main/resources/routineLibrary/ -rq dicom_queue -sa 1 -sy 1
 ```
+## Logging
+
+Logs are saved in rott directory logs folder with name applog.txt
