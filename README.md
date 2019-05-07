@@ -85,6 +85,14 @@ minutes delay when the engine should synchronize the specified scriptFileLocatio
 
 Example value : 1
 
+###  retryDatabaseConnectionForMinutes
+```
+-rd
+```
+To help with the containers starting out of order this option will retry a database connection for X minutes before failing if a connection has been failed to establish
+
+Example value : 1
+
 ## Execution
 
 After the project is built the file that has to be run is under target/appassembler/bin/
