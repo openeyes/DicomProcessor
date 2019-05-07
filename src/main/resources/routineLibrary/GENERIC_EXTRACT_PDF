@@ -1,4 +1,4 @@
- var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null));
+ var requestData = bindObject('REQUEST_DATA', null);
 
  var dicomParser = getDicomParser('REQUEST_BLOB', null).getStudy();
  var dicomHeader = JSON.parse(dicomParser.getHeaderJsonString());
@@ -22,10 +22,3 @@
              'NONE',
              requestData.bodySiteSnomed ,
              'application/pdf');
-
-      putJson(
-               'REQUEST_DATA',
-                JSON.stringify(requestData),
-                'NONE',
-                null,
-                'application/json');
