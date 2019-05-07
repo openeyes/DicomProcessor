@@ -110,3 +110,6 @@ Example of execution in windows:
 ```
 .\target\appassembler\bin\app.bat -sf src/main/resources/routineLibrary/ -rq dicom_queue -sa 1 -sy 1
 ```
+## Logging
+
+Logs are saved in rott directory logs folder with name applog.txt
