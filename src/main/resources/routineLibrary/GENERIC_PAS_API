@@ -1,7 +1,3 @@
- var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null));
-     requestData.patientId = getPatientId(requestData.hosNum.toString());
-        putJson(
-        'REQUEST_DATA',
-        JSON.stringify(requestData),
-         'NONE' ,
-          null, 'application/json');
+
+ var requestData = bindObject('REQUEST_DATA', null);
+ requestData.patientId = getPatientId(requestData.hosNum.toString());

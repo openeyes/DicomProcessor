@@ -1,4 +1,5 @@
-var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null));
+
+var requestData = bindObject('REQUEST_DATA', null);
 //Get dicom headers from dicom blob
  var dicomHeader = JSON.parse(getDicomParser('REQUEST_BLOB', null).getStudy().getHeaderJsonString());
 
@@ -20,7 +21,7 @@ requestData.content_date = dicomHeader['524323'];
 requestData.content_time = dicomHeader['524339'];
 requestData.station_name = dicomHeader['00081010'];
 requestData.operators_name = dicomHeader['528400'];
-requestData.hosNum = dicomHeader['1048608'];
+requestData.hosNum = dicomHeader['1048608'].trim();
 requestData.name = dicomHeader['1048592'];
 requestData.gender = dicomHeader['1048640'];
 requestData.dateOfBirth = dicomHeader['1048624'];
@@ -39,13 +40,6 @@ requestData.sop_instance_uid = dicomHeader['524312'];
              'NONE',
              null,
              'application/json');
-
-    //Save Request Data
-     putJson(
-             'REQUEST_DATA',
-             JSON.stringify(requestData),
-             'NONE',
-             null, 'application/json');
 
     //Calling manufacturer device handler
      addRoutine(requestData.manufacturer.replace(/ /g,"_"));

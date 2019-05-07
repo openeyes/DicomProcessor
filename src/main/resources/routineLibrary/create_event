@@ -1,5 +1,5 @@
  var eventData = JSON.parse(getJsonIfNullReturnEmptyJson('event_data', null));
-     var requestData = JSON.parse(getJsonIfNullReturnEmptyJson('REQUEST_DATA', null));
+     var requestData = bindObject('REQUEST_DATA', null);
     var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf' , requestData.bodySiteSnomed);
 
           eventData.$$_XID_Map_$$.forEach(function(data){
@@ -42,11 +42,11 @@
                    medicalReportRow.sop_instance_uid = requestData.sop_instance_uid;
                    }});
 
-    var updatedJson = createEvent(JSON.stringify(eventData));
+    var eventData = createEvent(JSON.stringify(eventData));
         putJson(
-              'event_data',
-             updatedJson ,
-             'NONE',
-             null, 'application/json');
+                      'event_data',
+                     eventData ,
+                     'NONE',
+                     null, 'application/json');
     addRoutine('link_attachment_with_event');
 
