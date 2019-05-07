@@ -99,11 +99,11 @@ After the project is built the file that has to be run is under target/appassemb
 
 For Windows the file is called
 ```
-app.bat
+dicomEngine.bat
 ```
 For Linux the file is called
 ```
-app
+dicomEngine
 ```
 
 Example of execution in windows:
