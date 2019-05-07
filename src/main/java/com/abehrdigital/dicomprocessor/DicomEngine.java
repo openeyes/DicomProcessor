@@ -108,10 +108,14 @@ public class DicomEngine {
         Option optionRoutineLibraryAfterMinutes = new Option("sy", "synchronizeRoutine",
                 true,
                 "Specify the delay in minutes that the routine library in the database should be synchronized after");
+        Option optionRetryDatabaseConnectionForMinutes = new Option("rd", "retryDatabaseConnectionForMinutes",
+                true,
+                "Specify the amount of minutes to try connecting to the database");
         options.addOption(optionRequestQueue);
         options.addOption(optionScriptFileLocation);
         options.addOption(optionShutDownAfterMinutes);
         options.addOption(optionRoutineLibraryAfterMinutes);
+        options.addOption(optionRetryDatabaseConnectionForMinutes);
 
         CommandLineParser parser;
         parser = new DefaultParser();
