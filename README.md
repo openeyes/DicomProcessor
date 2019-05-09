@@ -108,7 +108,7 @@ dicomEngine
 
 Example of execution in windows:
 ```
-.\target\appassembler\bin\app.bat -sf src/main/resources/routineLibrary/ -rq dicom_queue -sa 1 -sy 1
+.\target\appassembler\bin\dicomEngine.bat -sf src/main/resources/routineLibrary/ -rq dicom_queue -sa 1 -sy 1
 ```
 ## Logging
 
