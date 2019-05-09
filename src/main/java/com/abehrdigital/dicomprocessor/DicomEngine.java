@@ -151,8 +151,10 @@ public class DicomEngine {
         ExceptionInInitializerError lastException = new ExceptionInInitializerError("Failed connecting to the database");
         long shutdownRetryDatabaseConnectionClock = System.currentTimeMillis() * 60 * 1000 * RETRY_DATABASE_CONNECTION_FOR_MINUTES;
         boolean connectionAcquired = false;
-        while (System.currentTimeMillis() < shutdownRetryDatabaseConnectionClock && !connectionAcquired) {
+        boolean triedAtleastOnce = false;
+        while (!triedAtleastOnce || (System.currentTimeMillis() < shutdownRetryDatabaseConnectionClock && !connectionAcquired)) {
             try {
+                triedAtleastOnce = true;
                 connectionAcquired = HibernateUtil.buildSessionFactory(hibernateConfig);
             } catch (ExceptionInInitializerError exception) {
                 lastException = exception;
