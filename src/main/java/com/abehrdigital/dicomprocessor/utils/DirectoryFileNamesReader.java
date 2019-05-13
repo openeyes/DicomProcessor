@@ -5,10 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DirectoryFileNamesReader {
-    public DirectoryFileNamesReader() {
-    }
 
-    public List<String> read(String directoryLocation) {
+    public static List<String> read(String directoryLocation) {
         List<String> filenames = new ArrayList<>();
         File folder = new File(directoryLocation);
         File[] listOfFiles = folder.listFiles();
