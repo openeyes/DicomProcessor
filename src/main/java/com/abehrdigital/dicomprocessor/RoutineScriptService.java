@@ -25,16 +25,13 @@ public class RoutineScriptService {
             daoManager;
     private int requestId;
     private String requestQueueName;
-    private RoutineScriptAccessor scriptAccessor;
 
     public RoutineScriptService(ScriptEngineDaoManager daoManager,
                                 int requestId,
-                                String requestQueueName,
-                                RoutineScriptAccessor scriptAccessor) {
+                                String requestQueueName) {
         this.daoManager = daoManager;
         this.requestId = requestId;
         this.requestQueueName = requestQueueName;
-        this.scriptAccessor = scriptAccessor;
     }
 
     public String getJsonIfNullReturnEmptyJson(String attachmentMnemonic, String bodySite) throws Exception {
