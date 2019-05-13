@@ -15,7 +15,7 @@ public class Study {
 
     private PDDocument pdfDoc;
     private byte[] pdfAsBytes; //We want to keep this to make sure pdf/a docs appear untampered
-    private Map<Integer, String> nonSequenceDicomElements;
+    private Map<String, String> nonSequenceDicomElements;
     private Map<Integer, Sequence> sequenceDicomElements;
 
     public Study() {
@@ -44,7 +44,7 @@ public class Study {
     }
 
     //Simple elements includes non-pdf and non-sequence elements only
-    public void setSimpleDicomElements(Map<Integer, String> elements) {
+    public void setSimpleDicomElements(Map<String, String> elements) {
         nonSequenceDicomElements = elements;
     }
 
@@ -64,7 +64,7 @@ public class Study {
     // TODO: consider using Linked HashMap to maintain order
     public String dumpData() {
         String output = "";
-        for (Map.Entry<Integer, String> entry : nonSequenceDicomElements.entrySet()) {
+        for (Map.Entry<String, String> entry : nonSequenceDicomElements.entrySet()) {
             output += entry.getKey().toString() + " " + entry.getValue() + "\n";
         }
         return output;
