@@ -36,8 +36,8 @@ public class DicomParser {
         attributes = dicomInputStream.readDataset(-1, -1);
     }
 
-    private Map<Integer, String> simpleElements() {
-        Map<Integer, String> elements = new HashMap<>();
+    private Map<String, String> simpleElements() {
+        Map<String, String> elements = new HashMap<>();
         for (int tag : attributes.tags()) {
             if (tag != pdfTagNumber) {
                 byte[] valueAsByte;
@@ -48,7 +48,7 @@ public class DicomParser {
                     continue;
                 }
                 String value = new String(valueAsByte, Charset.forName("UTF-8"));
-                elements.put(tag, value);
+                elements.put(Integer.toHexString(tag), value.trim());
             }
         }
         return elements;
