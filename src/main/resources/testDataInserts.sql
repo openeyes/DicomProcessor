@@ -1,91 +1,91 @@
 
 
-INSERT INTO routine_library (routine_name)
-VALUES
+insert into routine_library (routine_name)
+values
   (
     "create_event"
   );
 
-INSERT INTO routine_library (routine_name)
-VALUES
+insert into routine_library (routine_name)
+values
   (
     "prototype_event"
   );
 
-INSERT INTO routine_library (routine_name)
-VALUES
+insert into routine_library (routine_name)
+values
   (
     "link_attachment_with_event"
   );
 
-INSERT INTO request (
+insert into request (
   system_message,
   request_type,
   request_override_default_queue
 )
-VALUES
+values
   (
     "eyes open eyes open",
     "dicom_request",
     "dicom_queue"
   );
 
-INSERT INTO request (
+insert into request (
   system_message,
   request_type,
   request_override_default_queue
 )
-VALUES
+values
   (
     "eyes open eyes open",
     "dicom_request",
     "dicom_queue"
   );
 
-INSERT INTO request (
+insert into request (
   system_message,
   request_type,
   request_override_default_queue
 )
-VALUES
+values
   (
     "eyes open eyes open",
     "dicom_request",
     "dicom_queue"
   );
 
-INSERT INTO request (
+insert into request (
   system_message,
   request_type,
   request_override_default_queue
 )
-VALUES
+values
   (
     "eyes open eyes open",
     "dicom_request",
     "dicom_queue"
   );
 
-INSERT INTO request (
+insert into request (
   system_message,
   request_type,
   request_override_default_queue
 )
-VALUES
+values
   (
     "eyes open eyes open",
     "dicom_request",
     "dicom_queue"
   );
 
-INSERT INTO request_routine (
+insert into request_routine (
   request_id,
   execute_request_queue,
   STATUS,
   routine_name,
   execute_sequence
 )
-VALUES
+values
   (
     2,
     "dicom_queue",
@@ -94,14 +94,14 @@ VALUES
     10
   );
 
-INSERT INTO request_routine (
+insert into request_routine (
   request_id,
   execute_request_queue,
   STATUS,
   routine_name,
   execute_sequence
 )
-VALUES
+values
   (
     1,
     "dicom_queue",
@@ -110,14 +110,14 @@ VALUES
     10
   );
 
-INSERT INTO request_routine (
+insert into request_routine (
   request_id,
   execute_request_queue,
   STATUS,
   routine_name,
   execute_sequence
 )
-VALUES
+values
   (
     3,
     "dicom_queue",
@@ -126,14 +126,14 @@ VALUES
     10
   );
 
-INSERT INTO request_routine (
+insert into request_routine (
   request_id,
   execute_request_queue,
   STATUS,
   routine_name,
   execute_sequence
 )
-VALUES
+values
   (
     4,
     "dicom_queue",
@@ -142,14 +142,14 @@ VALUES
     10
   );
 
-INSERT INTO request_routine (
+insert into request_routine (
   request_id,
   execute_request_queue,
   STATUS,
   routine_name,
   execute_sequence
 )
-VALUES
+values
   (
     5,
     "dicom_queue",
@@ -158,13 +158,13 @@ VALUES
     10
   );
 
-INSERT INTO attachment_type (
+insert into attachment_type (
   attachment_type,
   title_full,
   title_short,
   title_abbreviated
 )
-VALUES
+values
   (
     "request_json",
     "json from attachment",
@@ -172,30 +172,30 @@ VALUES
     "JSON"
   );
 
-INSERT INTO attachment_type (
+insert into attachment_type (
   attachment_type,
   title_full,
   title_short,
   title_abbreviated
 )
-VALUES
+values
   ("event_pdf", "pdf", "pdf", "pdf");
 
-INSERT INTO attachment_type (
+insert into attachment_type (
   attachment_type,
   title_full,
   title_short,
   title_abbreviated
 )
-VALUES ("event_data", "pdf", "pdf", "pdf");
+values ("event_data", "pdf", "pdf", "pdf");
 
-INSERT INTO attachment_type (
+insert into attachment_type (
   attachment_type,
   title_full,
   title_short,
   title_abbreviated
 )
-VALUES
+values
   (
     "biometry_report",
     "biometry_report",
@@ -203,15 +203,15 @@ VALUES
     "biometry"
   );
 
-INSERT INTO mime_type (mime_type)
-VALUES
+insert into mime_type (mime_type)
+values
   ("json");
 
-INSERT INTO mime_type (mime_type)
-VALUES
+insert into mime_type (mime_type)
+values
   ("dicom");
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -219,7 +219,7 @@ INSERT INTO attachment_data (
   mime_type,
   json_data
 )
-VALUES
+values
   (
     1,
     "request_data",
@@ -229,7 +229,7 @@ VALUES
     "{}"
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -237,17 +237,17 @@ INSERT INTO attachment_data (
   mime_type,
   blob_data
 )
-VALUES
+values
   (
     1,
     "dicom_header",
     1,
     "dicom_header",
     "dicom",
-    NULL
+    null
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -255,17 +255,17 @@ INSERT INTO attachment_data (
   mime_type,
   blob_data
 )
-VALUES
+values
   (
     1,
     "request_blob",
     1,
     "dicom",
     "application/pdf",
-    NULL
+    null
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -273,7 +273,7 @@ INSERT INTO attachment_data (
   mime_type,
   json_data
 )
-VALUES
+values
   (
     2,
     "request_data",
@@ -283,7 +283,7 @@ VALUES
     "{}"
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -291,17 +291,17 @@ INSERT INTO attachment_data (
   mime_type,
   blob_data
 )
-VALUES
+values
   (
     2,
     "dicom_header",
     1,
     "dicom_header",
     "dicom",
-    NULL
+    null
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -309,17 +309,17 @@ INSERT INTO attachment_data (
   mime_type,
   blob_data
 )
-VALUES
+values
   (
     2,
     "request_blob",
     1,
     "dicom",
     "application/pdf",
-    NULL
+    null
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -327,7 +327,7 @@ INSERT INTO attachment_data (
   mime_type,
   json_data
 )
-VALUES
+values
   (
     3,
     "request_data",
@@ -337,7 +337,7 @@ VALUES
     "{}"
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -345,17 +345,17 @@ INSERT INTO attachment_data (
   mime_type,
   blob_data
 )
-VALUES
+values
   (
     3,
     "dicom_header",
     1,
     "dicom_header",
     "dicom",
-    NULL
+    null
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -363,17 +363,17 @@ INSERT INTO attachment_data (
   mime_type,
   blob_data
 )
-VALUES
+values
   (
     3,
     "request_blob",
     1,
     "dicom",
     "application/pdf",
-    NULL
+    null
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -381,7 +381,7 @@ INSERT INTO attachment_data (
   mime_type,
   json_data
 )
-VALUES
+values
   (
     4,
     "request_data",
@@ -391,7 +391,7 @@ VALUES
     "{}"
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -399,17 +399,17 @@ INSERT INTO attachment_data (
   mime_type,
   blob_data
 )
-VALUES
+values
   (
     4,
     "dicom_header",
     1,
     "dicom_header",
     "dicom",
-    NULL
+    null
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -417,17 +417,17 @@ INSERT INTO attachment_data (
   mime_type,
   blob_data
 )
-VALUES
+values
   (
     4,
     "request_blob",
     1,
     "dicom",
     "application/pdf",
-    NULL
+    null
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -435,7 +435,7 @@ INSERT INTO attachment_data (
   mime_type,
   json_data
 )
-VALUES
+values
   (
     5,
     "request_data",
@@ -445,7 +445,7 @@ VALUES
     "{}"
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -453,17 +453,17 @@ INSERT INTO attachment_data (
   mime_type,
   blob_data
 )
-VALUES
+values
   (
     5,
     "dicom_header",
     1,
     "dicom_header",
     "dicom",
-    NULL
+    null
   );
 
-INSERT INTO attachment_data (
+insert into attachment_data (
   request_id,
   attachment_mnemonic,
   system_only_managed,
@@ -471,13 +471,26 @@ INSERT INTO attachment_data (
   mime_type,
   blob_data
 )
-VALUES
+values
   (
     5,
     "request_blob",
     1,
     "dicom",
     "application/pdf",
-    NULL
+    null
   );
+
+insert into event_subtype (
+    event_subtype,
+    dicom_modality_code,
+    icon_name,
+    display_name
+) values
+    (
+     'test_subtype',
+     'OAM',
+     'i-InBlood',
+     'Test from Dicom Engine'
+    );
 
