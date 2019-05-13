@@ -1,25 +1,19 @@
 var eventData = bindObject('event_data', null);
 var requestData = bindObject('REQUEST_DATA', null);
-var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf' , requestData.bodySiteSnomed);
+var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
 var eventID;
 
 
-eventData.$$_XID_Map_$$.forEach(function(data){
-    if(data.$$_XID_$$ == '$$_event[1]_$$'){
+eventData.$$_XID_Map_$$.forEach(function(data) {
+    if (data.$$_XID_$$ == '$$_event[1]_$$') {
         eventID = data.id;
-   }
+    }
 });
 var attachmentId = attachmentPdf.getId();
-if(requestData.attachmentDataItemToDelete == attachmentId){
+if (requestData.attachmentDataItemToDelete == attachmentId) {
     requestData.attachmentDataItemToDelete = null;
 } else {
-linkAttachmentDataWithEvent(attachmentPdf , eventID , 'OEModule\\OphGeneric\\models\\Attachment');
+    linkAttachmentDataWithEvent(attachmentPdf, eventID, 'OEModule\\OphGeneric\\models\\Attachment');
 }
 createAndSetThumbnailsOnAttachmentData(attachmentPdf);
 addRoutine('delink_attachment');
-
-  putJson(
-        'REQUEST_DATA',
-        JSON.stringify(requestData),
-         'NONE' ,
-          null, 'application/json');

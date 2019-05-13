@@ -1,9 +1,11 @@
  var requestData = bindObject('REQUEST_DATA', null);
+ var dicomObject = getDicom('REQUEST_BLOB', null);
+ var dicomHeader = dicomObject.bindDicomHeader('DICOM_HEADER' , null);
 
- var dicomParser = getDicomParser('REQUEST_BLOB', null).getStudy();
- var dicomHeader = JSON.parse(dicomParser.getHeaderJsonString());
 
-
+        //IF( REQUESTDATA.ATTACHMENT TYPE != FALSE  OR UNDEFINED OR NOT EMPTY STRING){
+       //     NEW error ( attachment type NOT EXSISTS);
+       // }
     //Lookup Laterality
     if(requestData.laterality == 'L' || requestData.image_laterality  == 'L'){
         requestData.bodySiteSnomed = 8966001;
@@ -14,11 +16,7 @@
     } else {
         new Error('Unknown laterality has been found : LATERALITY: ' + requestData.laterality + " IMAGE_LATERALITY: " + requestData.image_laterality);
     }
+    // ADD MODALITY CODE FROM REQUEST DATA
     //Get PDF from Dicom and Save
-     var pdf = dicomParser.getPdfAsBlob();
-
-     putBlob('event_pdf',
-             pdf,
-             'NONE',
-             requestData.bodySiteSnomed ,
-             'application/pdf');
+    //attachment_type = requestDATA.ATTACHMENT_TYPE
+     var pdf = dicomObject.bindPdf('event_pdf' , requestData.bodySiteSnomed , );
