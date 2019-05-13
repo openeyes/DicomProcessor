@@ -112,4 +112,4 @@ Example of execution in windows:
 ```
 ## Logging
 
-Logs are saved in rott directory logs folder with name applog.txt
+Logs are saved in root directory logs folder with name applog.txt
