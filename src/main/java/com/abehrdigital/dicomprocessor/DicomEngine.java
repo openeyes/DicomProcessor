@@ -34,7 +34,6 @@ public class DicomEngine {
         init(args);
         RoutineLibrarySynchronizer routineLibrarySynchronizer = new RoutineLibrarySynchronizer(
                 new RoutineScriptAccessor(),
-                new DirectoryFileNamesReader(),
                 DaoFactory.createEngineInitialisationDaoManager(),
                 synchronizeRoutineLibraryDelay
         );
@@ -92,6 +91,7 @@ public class DicomEngine {
         }
         initialisePatientSearchApi();
         initialiseClocks();
+        RoutineScriptWrapperFunctions.init();
     }
 
     private static void initialiseParametersFromCommandLineArguments(String[] args) {
