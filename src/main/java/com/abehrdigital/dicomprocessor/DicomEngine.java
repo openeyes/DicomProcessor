@@ -44,6 +44,7 @@ public class DicomEngine {
             Logger.getLogger(DicomEngine.class.getName()).log(Level.WARNING,
                     StackTraceUtil.getStackTraceAsString(synchronizeException)
             );
+            System.exit(1);
         }
 
         RequestQueueExecutor requestQueueExecutor = new RequestQueueExecutor(
