@@ -488,9 +488,9 @@ insert into event_subtype (
     display_name
 ) values
     (
-     'test_subtype',
+     'OCT',
      'OAM',
-     'i-InBlood',
-     'Test from Dicom Engine'
+     'i-ImToricIOL',
+     'oct event subtype from dicom'
     );
 
