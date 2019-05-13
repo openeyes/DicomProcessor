@@ -1,0 +1,54 @@
+ let bindedObjects = [];
+ let json = "JSON";
+ let blob = "BLOB";
+                   
+ function bindObject (attachmentMnemonic, bodySite){
+    let object = {};
+    object.attachmentMnemonic = attachmentMnemonic;
+    object.bodySite = bodySite;
+    object.saveMethod = json;
+    object.item = JSON.parse(getJsonIfNullReturnEmptyJson(attachmentMnemonic, bodySite));
+    bindedObjects.push(object);
+    return object.item;
+ }
+
+ function getDicom (attachmentMnemonic, bodySite){
+    let object = {};
+    object.attachmentMnemonic = attachmentMnemonic;
+    object.bodySite = bodySite;
+    object.item = getDicomParser(attachmentMnemonic, bodySite).getStudy();
+    object.bindDicomHeader = function bindDicomHeader (attachmentMnemonic, bodySite){
+        let dicomHeaders = {};
+        dicomHeaders.attachmentMnemonic = attachmentMnemonic;
+        dicomHeaders.bodySite = bodySite;
+        dicomHeaders.saveMethod = json;
+        dicomHeaders.item = JSON.parse(this.item.getHeaderJsonString());
+        bindedObjects.push(dicomHeaders);
+        return dicomHeaders.item;
+    }
+
+    object.bindPdf = function bindPdf (attachmentMnemonic, bodySite){
+        let pdf = {};
+        pdf.attachmentMnemonic = attachmentMnemonic;
+        pdf.bodySite = bodySite;
+        pdf.saveMethod = blob;
+        pdf.item = this.item.getPdfAsBlob();
+        bindedObjects.push(pdf);
+        return pdf.item;
+    }
+
+    return object;
+ }
+
+ function convertStudyDateTimeToSqlTime(dateString , timeString){
+ var time = timeString.substring(0,6);
+ var year = dateString.substring(0,4);
+ var month = dateString.substring(4,6);
+ var day = dateString.substring(6,8);
+ var hour = timeString.substring(0,2);
+ var minute = timeString.substring(2,4);
+ var seconds = timeString.substring(4,6);
+ var date = new Date(year, month-1, day , hour , minute , seconds);
+
+ return date.toISOString().slice(0, 19).replace('T', ' ');
+ }
