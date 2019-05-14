@@ -1,54 +1,88 @@
- let bindedObjects = [];
- let json = "JSON";
- let blob = "BLOB";
-                   
- function bindObject (attachmentMnemonic, bodySite){
+let bindedObjects = [];
+let json = "JSON";
+let blob = "BLOB";
+
+function isEmpty(obj) {
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+}
+
+function bindObject(attachmentMnemonic, attachmentType = null, bodySite = null,
+    mimeType = null, systemOnlyManaged = null, initFrom = null) {
     let object = {};
     object.attachmentMnemonic = attachmentMnemonic;
+    if (attachmentType == null) {
+        attachmentType = "NONE";
+    }
+    object.attachmentType = attachmentType;
+    if (mimeType == null) {
+        mimeType = 'application/json';
+    }
+    object.mimeType = mimeType;
     object.bodySite = bodySite;
     object.saveMethod = json;
     object.item = JSON.parse(getJsonIfNullReturnEmptyJson(attachmentMnemonic, bodySite));
+
+    if (isEmpty(object.item) && initFrom != null) {
+        object.item = JSON.parse(initFrom);
+    }
+
     bindedObjects.push(object);
     return object.item;
- }
+}
 
- function getDicom (attachmentMnemonic, bodySite){
+function getDicom(attachmentMnemonic, attachmentType = null, bodySite = null,
+    mimeType = null, systemOnlyManaged = null, initFrom = null) {
     let object = {};
     object.attachmentMnemonic = attachmentMnemonic;
+    object.attachmentType = attachmentType;
     object.bodySite = bodySite;
+
     object.item = getDicomParser(attachmentMnemonic, bodySite).getStudy();
-    object.bindDicomHeader = function bindDicomHeader (attachmentMnemonic, bodySite){
-        let dicomHeaders = {};
-        dicomHeaders.attachmentMnemonic = attachmentMnemonic;
-        dicomHeaders.bodySite = bodySite;
-        dicomHeaders.saveMethod = json;
-        dicomHeaders.item = JSON.parse(this.item.getHeaderJsonString());
-        bindedObjects.push(dicomHeaders);
-        return dicomHeaders.item;
+    return object.item;
+}
+
+function bindBinary(attachmentMnemonic, attachmentType = null, bodySite = null,
+    mimeType = null, systemOnlyManaged = null, initFrom = null) {
+    let binaryObject = {};
+    binaryObject.attachmentMnemonic = attachmentMnemonic;
+    binaryObject.bodySite = bodySite;
+    if (attachmentType == null) {
+        attachmentType = "NONE";
+    }
+    binaryObject.attachmentType = attachmentType;
+    binaryObject.saveMethod = blob;
+    if (mimeType == null) {
+        mimeType = 'application/pdf';
+    }
+    binaryObject.mimeType = mimeType;
+
+    let attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
+    if (attachmentData != null) {
+        binaryObject.blob = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite).getBlobData();
+    } else {
+        binaryObject.blob = null;
+    }
+    if (binaryObject.blob == null && initFrom != null) {
+        binaryObject.blob = initFrom;
     }
 
-    object.bindPdf = function bindPdf (attachmentMnemonic, bodySite){
-        let pdf = {};
-        pdf.attachmentMnemonic = attachmentMnemonic;
-        pdf.bodySite = bodySite;
-        pdf.saveMethod = blob;
-        pdf.item = this.item.getPdfAsBlob();
-        bindedObjects.push(pdf);
-        return pdf.item;
-    }
+    bindedObjects.push(binaryObject);
+    return binaryObject.blob;
+}
 
-    return object;
- }
+function convertStudyDateTimeToSqlTime(dateString, timeString) {
+    var time = timeString.substring(0, 6);
+    var year = dateString.substring(0, 4);
+    var month = dateString.substring(4, 6);
+    var day = dateString.substring(6, 8);
+    var hour = timeString.substring(0, 2);
+    var minute = timeString.substring(2, 4);
+    var seconds = timeString.substring(4, 6);
+    var date = new Date(year, month - 1, day, hour, minute, seconds);
 
- function convertStudyDateTimeToSqlTime(dateString , timeString){
- var time = timeString.substring(0,6);
- var year = dateString.substring(0,4);
- var month = dateString.substring(4,6);
- var day = dateString.substring(6,8);
- var hour = timeString.substring(0,2);
- var minute = timeString.substring(2,4);
- var seconds = timeString.substring(4,6);
- var date = new Date(year, month-1, day , hour , minute , seconds);
-
- return date.toISOString().slice(0, 19).replace('T', ' ');
- }
+    return date.toISOString().slice(0, 19).replace('T', ' ');
+}

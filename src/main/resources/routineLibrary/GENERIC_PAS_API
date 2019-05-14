@@ -1,2 +1,2 @@
-var requestData = bindObject('REQUEST_DATA', null);
+var requestData = bindObject('REQUEST_DATA');
 requestData.patientId = getPatientId(requestData.hosNum.toString());

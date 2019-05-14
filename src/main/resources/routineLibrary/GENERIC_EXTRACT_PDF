@@ -1,6 +1,6 @@
- var requestData = bindObject('REQUEST_DATA', null);
- var dicomObject = getDicom('REQUEST_BLOB', null);
- var dicomHeader = dicomObject.bindDicomHeader('DICOM_HEADER' , null);
+ var requestData = bindObject('REQUEST_DATA');
+ var dicomObject = getDicom('REQUEST_BLOB');
+ var dicomHeader =  bindObject('DICOM_HEADER', null , null, null ,null , dicomObject.getHeaderJsonString());
 
 
         //IF( REQUESTDATA.ATTACHMENT TYPE != FALSE  OR UNDEFINED OR NOT EMPTY STRING){
@@ -19,4 +19,4 @@
     // ADD MODALITY CODE FROM REQUEST DATA
     //Get PDF from Dicom and Save
     //attachment_type = requestDATA.ATTACHMENT_TYPE
-     var pdf = dicomObject.bindPdf('event_pdf' , requestData.bodySiteSnomed , );
+     var pdf = bindBinary('event_pdf' , null, requestData.bodySiteSnomed , null , null, dicomObject.getPdfAsBlob());

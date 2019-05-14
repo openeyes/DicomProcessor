@@ -1,8 +1,6 @@
-var requestData = bindObject('REQUEST_DATA', null);
+var requestData = bindObject('REQUEST_DATA');
 var previousEventData = null;
 
-
-// ADD EVENT_SUB_ITEM TO TEMPALTE
 var eventTemplate = {
                       _OE_System: 'ABEHR Jason Local v3.0',
                       _Version: 'v0.1',

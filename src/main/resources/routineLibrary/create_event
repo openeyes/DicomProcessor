@@ -1,5 +1,5 @@
 var eventData = JSON.parse(getJsonIfNullReturnEmptyJson('event_data', null));
-var requestData = bindObject('REQUEST_DATA', null);
+var requestData = bindObject('REQUEST_DATA');
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
 let eventSubtype = "OCT";
 let eventDisplayOrder = 2;
@@ -12,7 +12,7 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
     if (data.$$_XID_$$ == '$$_patient[1]_$$') {
         data.id = requestData.patientId;
     }
-    // add event sub type
+
     if (data.$$_XID_$$ == '$$_event_date[1]_$$') {
         data.date = convertStudyDateTimeToSqlTime(requestData.study_date, requestData.study_time);
     }
@@ -22,7 +22,7 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
     }
 
     if(data.$$_XID_$$ == '$$_event_subtype[2]_$$') {
-           data.display_order = eventDisplayOrder;
+       data.display_order = eventDisplayOrder;
     }
 });
 

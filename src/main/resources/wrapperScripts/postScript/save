@@ -1,16 +1,16 @@
 bindedObjects.forEach(function(object){
         if(object.saveMethod == json){
-                       putJson( 
+                       putJson(
                                 object.attachmentMnemonic,
                                 JSON.stringify(object.item),
-                                'NONE',
+                                object.attachmentType,
                                 object.bodySite,
-                                'application/json');
+                                object.mimeType);
         } else if(object.saveMethod == blob) {
                 putBlob(object.attachmentMnemonic,
-                             object.item,
-                             'NONE',
+                             object.blob,
+                             object.attachmentType,
                              object.bodySite,
-                             'application/pdf');
+                             object.mimeType);
         }
                        });
