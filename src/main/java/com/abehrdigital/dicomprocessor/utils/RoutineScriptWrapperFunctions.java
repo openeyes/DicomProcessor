@@ -22,8 +22,8 @@ public class RoutineScriptWrapperFunctions {
         InputStream postScriptInputStream = DicomEngine.class.getResourceAsStream(postScriptLocation);
         InputStream preScriptInputStream = DicomEngine.class.getResourceAsStream(preScriptLocation);
         try {
-            preScripts = readFromInputStream(postScriptInputStream);
-            postScripts = readFromInputStream(preScriptInputStream);
+            preScripts = readFromInputStream(preScriptInputStream);
+            postScripts = readFromInputStream(postScriptInputStream);
         } catch (IOException exception) {
             Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
                     StackTraceUtil.getStackTraceAsString(exception));
