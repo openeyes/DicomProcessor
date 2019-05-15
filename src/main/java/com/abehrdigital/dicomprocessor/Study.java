@@ -15,6 +15,7 @@ public class Study {
 
     private PDDocument pdfDoc;
     private byte[] pdfAsBytes; //We want to keep this to make sure pdf/a docs appear untampered
+    private byte[] imageAsBytes;
     private Map<String, String> nonSequenceDicomElements;
     private Map<Integer, Sequence> sequenceDicomElements;
 
@@ -39,8 +40,16 @@ public class Study {
         return new SerialBlob(pdfAsBytes);
     }
 
+    public SerialBlob getImageAsBlob() throws SQLException {
+        return new SerialBlob(imageAsBytes);
+    }
+
     public void setPdfFields(byte[] pdfAsBytes) {
         this.pdfAsBytes = pdfAsBytes;
+    }
+
+    public void setImageFields(byte[] imageAsBytes) {
+        this.imageAsBytes = imageAsBytes;
     }
 
     //Simple elements includes non-pdf and non-sequence elements only
