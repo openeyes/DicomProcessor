@@ -1,10 +1,13 @@
 package com.abehrdigital.dicomprocessor;
 
 
-import com.abehrdigital.dicomprocessor.utils.PDFUtils;
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.io.DicomInputStream;
 
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.sql.Blob;
@@ -16,6 +19,7 @@ public class DicomParser {
     private Study study;
     private Blob dicomBlob;
     private DicomInputStream dicomInputStream;
+    private static final String imageFormat = "png";
     private Attributes attributes;
     private int pdfTagNumber;
 
@@ -27,7 +31,7 @@ public class DicomParser {
         try {
             run();
         } catch (Exception exception) {
-            throw new Exception("Failed to parse dicomBlob " , exception);
+            throw new Exception(exception);
         }
     }
 
@@ -58,6 +62,11 @@ public class DicomParser {
         init();
         // Put set study pdf member variables:
         byte[] pdfBytes = attributes.getBytes(pdfTagNumber);
+        ImageInputStream inputStream = javax.imageio.ImageIO.createImageInputStream(dicomBlob.getBinaryStream());
+        BufferedImage image = ImageIO.read(inputStream);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, imageFormat, baos);
+        study.setImageFields(baos.toByteArray());
         study.setPdfFields(pdfBytes);
         study.setSimpleDicomElements(simpleElements());
     }
