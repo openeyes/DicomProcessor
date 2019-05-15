@@ -1,6 +1,7 @@
 package com.abehrdigital.dicomprocessor.utils;
 
 import com.abehrdigital.dicomprocessor.models.AttachmentData;
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -8,10 +9,7 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import javax.imageio.ImageIO;
 import javax.sql.rowset.serial.SerialBlob;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InvalidObjectException;
+import java.io.*;
 import java.sql.Blob;
 import java.sql.SQLException;
 
@@ -22,8 +20,20 @@ public class AttachmentDataThumbnailAdder {
     private static final int SMALL_THUMBNAIL_SIZE = 20;
     private static final int MEDIUM_THUMBNAIL_SIZE = 50;
     private static final int LARGE_THUMBNAIL_SIZE = 100;
+    private static final double SMALL_THUMBNAIL_SCALE = 0.2;
+    private static final double MEDIUM_THUMBNAIL_SCALE = 0.4;
+    private static final double LARGE_THUMBNAIL_SCALE = 0.6;
 
     public static void addThumbnails(AttachmentData attachmentData) throws Exception {
+        String attachmentType = attachmentData.getAttachmentType();
+        if (attachmentType.equals("application/pdf")) {
+            addPdfThumbnails(attachmentData);
+        } else {
+            addImageThumbnails(attachmentData);
+        }
+    }
+
+    private static void addPdfThumbnails(AttachmentData attachmentData) throws Exception {
         Blob attachmentDataBlob = attachmentData.getBlobData();
         if (attachmentDataBlob != null) {
             int blobLength = (int) attachmentDataBlob.length();
@@ -45,6 +55,25 @@ public class AttachmentDataThumbnailAdder {
         } else {
             throw new InvalidObjectException("Blob data is null in the provided attachment Data");
         }
+    }
+
+    private static void addImageThumbnails(AttachmentData attachmentData) throws IOException, SQLException {
+        Blob thumbnailSmallBlob;
+        Blob thumbnailMediumBlob;
+        Blob thumbnailLargeBlob;
+        InputStream blobBinaryStream = attachmentData.getBlobData().getBinaryStream();
+        BufferedImage image = ImageIO.read(blobBinaryStream);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(Thumbnails.of(image).scale(SMALL_THUMBNAIL_SCALE).asBufferedImage(), DEFAULT_IMAGE_FORMAT, baos);
+        thumbnailSmallBlob = new SerialBlob(baos.toByteArray());
+        ImageIO.write(Thumbnails.of(image).scale(MEDIUM_THUMBNAIL_SCALE).asBufferedImage(), DEFAULT_IMAGE_FORMAT, baos);
+        thumbnailMediumBlob = new SerialBlob(baos.toByteArray());
+        ImageIO.write(Thumbnails.of(image).scale(LARGE_THUMBNAIL_SCALE).asBufferedImage(), DEFAULT_IMAGE_FORMAT, baos);
+        thumbnailLargeBlob = new SerialBlob(baos.toByteArray());
+
+        attachmentData.setSmallThumbnail(thumbnailSmallBlob);
+        attachmentData.setMediumThumbnail(thumbnailMediumBlob);
+        attachmentData.setLargeThumbnail(thumbnailLargeBlob);
     }
 
     private static Blob getThumbnail(int dpiSize, PDFRenderer pdfRenderer) throws IOException, SQLException {
