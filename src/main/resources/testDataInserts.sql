@@ -90,7 +90,7 @@ values
     2,
     "dicom_queue",
     "NEW",
-    "DICOM_SEED",
+    "OCT_SEED",
     10
   );
 
