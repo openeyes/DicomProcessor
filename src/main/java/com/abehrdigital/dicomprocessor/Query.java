@@ -671,7 +671,8 @@ public class Query {
         // throw an exception of the number of rows affected does not correspond to the one expected
         if (aliasToValueMapList.size() < minRowsExpected || aliasToValueMapList.size() > 1) {
             throw new InvalidNumberOfRowsAffectedException(aliasToValueMapList.size() +
-                    " rows returned! Expected no less than " + minRowsExpected + " rows and no more than one.");
+                    " rows returned! Expected no less than " + minRowsExpected + " rows and no more than one."
+            + sqlQuery.getQueryString());
         }
         return aliasToValueMapList;
     }
