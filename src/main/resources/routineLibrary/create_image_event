@@ -3,6 +3,7 @@ var requestData = bindObject('REQUEST_DATA');
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
 let eventSubtype = "OCT";
 let eventDisplayOrder = 2;
+// HARD CODED ID
 requestData.patientId = 19372;
 
 eventData.$$_XID_Map_$$.forEach(function(data) {
@@ -32,7 +33,7 @@ eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
     if (dataSet == "et_ophgeneric_medical_report") {
         var medicalReportRow = data.$$_ROW_$$[0];
         medicalReportRow.manufacturer = requestData.manufacturer;
-        medicalReportRow.manufacturer_model_name = requestData.manufacturer;
+        medicalReportRow.manufacturer_model_name = requestData.manufacturer_model_name;
         medicalReportRow.modality = requestData.modality;
         medicalReportRow.series_description = requestData.series_description;
         medicalReportRow.laterality = requestData.laterality;
