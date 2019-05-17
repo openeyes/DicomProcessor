@@ -25,8 +25,8 @@ public class AttachmentDataThumbnailAdder {
     private static final double LARGE_THUMBNAIL_SCALE = 0.6;
 
     public static void addThumbnails(AttachmentData attachmentData) throws Exception {
-        String attachmentType = attachmentData.getAttachmentType();
-        if (attachmentType.equals("application/pdf")) {
+        String mimeType = attachmentData.getMimeType();
+        if (mimeType.equals("application/pdf")) {
             addPdfThumbnails(attachmentData);
         } else {
             addImageThumbnails(attachmentData);
