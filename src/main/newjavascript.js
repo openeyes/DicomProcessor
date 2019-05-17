@@ -1,5 +1,5 @@
 
- var requestData = JSON.parse(controller.getJson('request_data', null));
+ var requestData = JSON.parse(controller.getText('request_data', null));
 
  var dicomParser = controller.getDicom('request_blob', null);
 
@@ -40,7 +40,7 @@ controller.putJson(
 	 controller.addRoutine('prototype_event');
 controller.addRoutine('PAS_API');
 
-	 var biometry = JSON.parse(controller.getJson('biometry_data', null));
+	 var biometry = JSON.parse(controller.getText('biometry_data', null));
 	 biometry.studyId = dicomHeader['2097168'];
 	 biometry.time = dicomHeader['524336'];
 	 biometry.date = dicomHeader['4194884'];

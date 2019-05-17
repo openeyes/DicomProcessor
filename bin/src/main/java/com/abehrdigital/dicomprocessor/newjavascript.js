@@ -1,4 +1,4 @@
-var requestData = JSON.parse(request.getJson('request_data', null));
+var requestData = JSON.parse(request.getText('request_data', null));
 
 var dicomParser = request.getDicom('request_blob', null);
 
@@ -37,7 +37,7 @@ if (requestData.manufacturer === 'Carl Zeiss Meditec' && requestData.model === '
             null, 'json');
     request.addRoutine('PAS_API');
 
-    var biometry = JSON.parse(request.getJson('biometry_data', null));
+    var biometry = JSON.parse(request.getText('biometry_data', null));
     biometry.studyId = dicomHeader['2097168'];
     biometry.time = dicomHeader['524336'];
     biometry.date = dicomHeader['4194884'];

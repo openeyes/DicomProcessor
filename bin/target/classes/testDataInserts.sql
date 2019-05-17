@@ -1,5 +1,5 @@
 INSERT INTO routine_library (routine_name , routine_body)
-VALUES ("dicom_routine", "var requestData = JSON.parse(request.getJson('request_data', null));
+VALUES ("dicom_routine", "var requestData = JSON.parse(request.getText('request_data', null));
 
 var dicomParser = request.getDicom('request_blob', null);
 
@@ -38,7 +38,7 @@ if (requestData.manufacturer === 'Carl Zeiss Meditec' && requestData.model === '
             null, 'json');
     request.addRoutine('PAS_API');
 
-    var biometry = JSON.parse(request.getJson('biometry_data', null));
+    var biometry = JSON.parse(request.getText('biometry_data', null));
     biometry.studyId = dicomHeader['2097168'];
     biometry.time = dicomHeader['524336'];
     biometry.date = dicomHeader['4194884'];
@@ -92,7 +92,7 @@ VALUES ("dicom_header" , "hedar" , "heder" , "heda");
 INSERT INTO attachment_type (attachment_type , title_full , title_short , title_abbreviated)
 VALUES ("dicom" , "hedar" , "heder" , "heda");
 
-INSERT INTO attachment_data (request_id , attachment_mnemonic , system_only_managed , attachment_type , mime_type , json_data)
+INSERT INTO attachment_data (request_id , attachment_mnemonic , system_only_managed , attachment_type , mime_type , text_data)
 VALUES (1 , "request_data" , 0 , "request_json" , "json" , "{}");
 
 INSERT INTO attachment_data (request_id , attachment_mnemonic , system_only_managed , attachment_type , mime_type , blob_data)

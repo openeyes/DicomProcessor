@@ -89,7 +89,7 @@
           "attachment_type": "$$_attachment_type[1].attachment_type_$$",
           "mime_type": "$$_mime_type[1].mime_type_$$",
           "blob_data": "null",
-          "json_data": "null",
+          "text_data": "null",
           "upload_file_name": "null",
           "thumbnail_small_blob": "null",
           "thumbnail_medium_blob": "null",
