@@ -19,4 +19,4 @@
     // ADD MODALITY CODE FROM REQUEST DATA
     //Get PDF from Dicom and Save
     //attachment_type = requestDATA.ATTACHMENT_TYPE
-     var pdf = bindBinary('event_pdf' , null, requestData.bodySiteSnomed , null , null, dicomObject.getPdfAsBlob());
+     var pdf = bindBinary('event_pdf' , null, requestData.bodySiteSnomed , null , null, dicomObject.getAttachmentAsBlob());
