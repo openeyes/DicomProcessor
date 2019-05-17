@@ -24,7 +24,7 @@ function bindObject(attachmentMnemonic, attachmentType = null, bodySite = null,
     object.mimeType = mimeType;
     object.bodySite = bodySite;
     object.saveMethod = json;
-    object.item = JSON.parse(getJsonIfNullReturnEmptyJson(attachmentMnemonic, bodySite));
+    object.item = JSON.parse(getTextIfNullReturnEmptyJson(attachmentMnemonic, bodySite));
 
     if (isEmpty(object.item) && initFrom != null) {
         object.item = JSON.parse(initFrom);

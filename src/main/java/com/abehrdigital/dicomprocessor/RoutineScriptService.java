@@ -34,11 +34,11 @@ public class RoutineScriptService {
         this.requestQueueName = requestQueueName;
     }
 
-    public String getJsonIfNullReturnEmptyJson(String attachmentMnemonic, String bodySite) throws Exception {
+    public String getTextIfNullReturnEmptyJson(String attachmentMnemonic, String bodySite) throws Exception {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
 
-        if (attachmentData != null && attachmentData.getJson() != null) {
-            return attachmentData.getJson();
+        if (attachmentData != null && attachmentData.getText() != null) {
+            return attachmentData.getText();
         } else {
             return EMPTY_JSON_STRING;
         }
@@ -68,7 +68,7 @@ public class RoutineScriptService {
                 .getByAttachmentMnemonicAndBodySite(attachmentMnemonic, null, requestId);
     }
 
-    public void putJson(
+    public void putText(
             String attachmentMnemonic,
             String json,
             String attachmentType,
@@ -77,14 +77,14 @@ public class RoutineScriptService {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
 
         if (attachmentData != null) {
-            attachmentData.setJson(json);
+            attachmentData.setTextData(json);
             daoManager.getAttachmentDataDao().save(attachmentData);
         } else {
             attachmentData = new AttachmentData.Builder(
                     requestId, mimeType,
                     attachmentMnemonic, attachmentType,
                     bodySite)
-                    .jsonData(json)
+                    .textData(json)
                     .build();
             daoManager.getAttachmentDataDao().save(attachmentData);
         }

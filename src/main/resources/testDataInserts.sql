@@ -217,7 +217,7 @@ insert into attachment_data (
   system_only_managed,
   attachment_type,
   mime_type,
-  json_data
+  text_data
 )
 values
   (
@@ -271,7 +271,7 @@ insert into attachment_data (
   system_only_managed,
   attachment_type,
   mime_type,
-  json_data
+  text_data
 )
 values
   (
@@ -325,7 +325,7 @@ insert into attachment_data (
   system_only_managed,
   attachment_type,
   mime_type,
-  json_data
+  text_data
 )
 values
   (
@@ -379,7 +379,7 @@ insert into attachment_data (
   system_only_managed,
   attachment_type,
   mime_type,
-  json_data
+  text_data
 )
 values
   (
@@ -433,7 +433,7 @@ insert into attachment_data (
   system_only_managed,
   attachment_type,
   mime_type,
-  json_data
+  text_data
 )
 values
   (

@@ -167,3 +167,4 @@ fabric.properties
 ### PROJECT-SPECIFIC IGNORABLES ###
 applog.txt
 *.iml
+/bin
