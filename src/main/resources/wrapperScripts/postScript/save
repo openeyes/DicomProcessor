@@ -1,6 +1,6 @@
 bindedObjects.forEach(function(object){
         if(object.saveMethod == json){
-                       putJson(
+                       putText(
                                 object.attachmentMnemonic,
                                 JSON.stringify(object.item),
                                 object.attachmentType,

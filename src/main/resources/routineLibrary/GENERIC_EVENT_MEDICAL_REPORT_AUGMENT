@@ -239,7 +239,7 @@ if (previousEventId != -1) {
 
 
 //Save event data ( from template or previous request)
-putJson(
+putText(
     'event_data',
     JSON.stringify(eventTemplate),
     'NONE',

@@ -34,7 +34,7 @@ public class RoutineScriptService {
         this.requestQueueName = requestQueueName;
     }
 
-    public String getJsonIfNullReturnEmptyJson(String attachmentMnemonic, String bodySite) throws Exception {
+    public String getTextIfNullReturnEmptyJson(String attachmentMnemonic, String bodySite) throws Exception {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
 
         if (attachmentData != null && attachmentData.getText() != null) {
@@ -68,7 +68,7 @@ public class RoutineScriptService {
                 .getByAttachmentMnemonicAndBodySite(attachmentMnemonic, null, requestId);
     }
 
-    public void putJson(
+    public void putText(
             String attachmentMnemonic,
             String json,
             String attachmentType,
