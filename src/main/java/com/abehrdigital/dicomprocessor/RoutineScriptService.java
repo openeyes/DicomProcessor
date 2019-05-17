@@ -51,7 +51,7 @@ public class RoutineScriptService {
                     " body site: " + bodySite + " for Request : " + requestId);
         }
 
-        return new DicomParser(attachmentData.getBlobData());
+        return new DicomParser(attachmentData.getBlobData() , new Study());
     }
 
     public AttachmentData getAttachmentDataByAttachmentMnemonicAndBodySite(String attachmentMnemonic, String bodySite)
