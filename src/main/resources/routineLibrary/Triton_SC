@@ -1,3 +1,4 @@
 addRoutine('GENERIC_EXTRACT_IMAGE');
 addRoutine('GENERIC_EVENT_MEDICAL_REPORT_AUGMENT');
+addRoutine('GENERIC_PAS_API');
 addRoutine('create_image_event');
