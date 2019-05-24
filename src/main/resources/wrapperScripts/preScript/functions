@@ -1,6 +1,139 @@
-let bindedObjects = [];
-let json = "JSON";
-let blob = "BLOB";
+var bindedObjects = [];
+var json = "JSON";
+var blob = "BLOB";
+var xPath;
+
+var XmlNodeList = function(nodeList) {
+    this._nodeList = nodeList;
+    this.size = nodeList.getLength();
+}
+
+XmlNodeList.prototype.get = function(index) {
+    var node = this._nodeList.item(index);
+    var nodeType = node.getNodeType();
+    if (nodeType) {
+        return new XmlElement(node);
+    } else if (nodeType) {
+        return new XmlAttribute(node);
+    } else {
+        return new XmlNode(node);
+    }
+}
+
+var XmlNode = function(node) {
+    this._node = node;
+    this.nodeType = node.getNodeType();
+    this.nodeName = node.getNodeName();
+}
+
+XmlNode.prototype.getNodeValue = function() {
+    return this._node.getNodeValue();
+}
+
+XmlNode.prototype.getNodeName = function() {
+    return this._node.getNodeName();
+}
+
+XmlNode.prototype.getChildNodes = function() {
+    return new XmlNodeList(this._node.getChildNodes());
+}
+
+XmlNode.prototype.getAttributes = function() {
+    return new XmlNodeList(this._node.getAttributes());
+}
+
+XmlNode.prototype.getNodeList = function(expression) {
+    return new XmlNodeList(xPath.compile(expression)
+    .evaluate(this._node,javax.xml.xpath.XPathConstants.NODESET));
+}
+
+XmlNode.prototype.getNode = function(expression) {
+    var nodeList = new XmlNodeList(xPath.compile(expression).evaluate(this._node,javax.xml.xpath.XPathConstants.NODESET));
+    if(nodeList.size === 1) {
+            return nodeList.get(0);
+        } else {
+            throw new Error("Maximum number of allowed results is 1. For expression " +
+            expression +
+            " A number of : " +
+            nodeList.size +
+            " has been returned");
+        }
+    }
+function concatEnclosures(matchArray) {
+  var concatenatedEnclosures = "";
+  for(var matchIndex = 1; matchIndex < matches.length; matchIndex++) {
+          concatenatedEnclosures += matches[matchIndex];
+  }
+  return concatenatedEnclosures;
+}
+
+// NODE SET SHOULD HAVE ONE , AND RETURN THE TEXT OF IT VALUE DEPENDING ON THE TYPE
+
+XmlNode.prototype.getText = function(expression, regex) {
+    var nodeList = new XmlNodeList(xPath.compile(expression).evaluate(this._node,javax.xml.xpath.XPathConstants.NODESET));
+    if(nodeList.size === 1){
+        var node = nodeList.get(0);
+        var textValue = node.getNodeValue();
+        var matches = textValue.match(regex);
+        if(typeof matches.groups !== 'undefined' ) {
+            return concatEnclosures(Object.values(matches.groups));
+        }
+        if(matches.length > 1) {
+            return concatEnclosures(matches);
+        } else {
+            return matches[0];
+        }
+    } else {
+        throw new Error("Maximum number of allowed results is 1. For expression " +
+        expression +
+        " A number of : " +
+        nodeList.size +
+        " has been returned");
+    }
+}
+
+var XmlElement = function(node) {
+    XmlNode.call(this, node);
+}
+
+
+XmlElement.prototype = Object.create(XmlNode.prototype);
+XmlElement.prototype.constructor = XmlElement;
+
+XmlElement.prototype.getNodeValue = function () {
+    return this._node.getTextContent();
+}
+
+XmlElement.prototype.getElementsByTagName = function(name) {
+    return new XmlNodeList(this._node.getElementsByTagName(name));
+}
+
+XmlElement.prototype.getAttribute = function(attributeName) {
+    return this._node.getAttribute(attributeName);
+}
+
+XmlElement.prototype.getAttributeNode = function(name) {
+    return new XmlAttribute(this._node.getAttributeNode());
+}
+
+XmlElement.prototype.getTagName = function() {
+    return this._node.getTagName();
+}
+
+XmlAttribute = function(node) {
+    XmlNode.call(this, node);
+}
+
+XmlAttribute.prototype = Object.create(XmlNode.prototype);
+XmlAttribute.prototype.constructor = XmlAttribute;
+
+XmlAttribute.prototype.getValue = function() {
+    return this._node.getValue();
+}
+
+XmlAttribute.prototype.getName = function() {
+    return this._node.getName();
+}
 
 function isEmpty(obj) {
     for (var key in obj) {
@@ -10,9 +143,9 @@ function isEmpty(obj) {
     return true;
 }
 
-function bindObject(attachmentMnemonic, attachmentType = null, bodySite = null,
-    mimeType = null, systemOnlyManaged = null, initFrom = null) {
-    let object = {};
+function bindObject(attachmentMnemonic, attachmentType, bodySite,
+    mimeType, systemOnlyManaged, initFrom) {
+    var object = {};
     object.attachmentMnemonic = attachmentMnemonic;
     if (attachmentType == null) {
         attachmentType = "NONE";
@@ -34,14 +167,40 @@ function bindObject(attachmentMnemonic, attachmentType = null, bodySite = null,
     return object.item;
 }
 
-function getDicom(attachmentMnemonic, attachmentType = null, bodySite = null,
-    mimeType = null, systemOnlyManaged = null, initFrom = null) {
-    let object = {};
+function bindXml(attachmentMnemonic, attachmentType, bodySite, mimeType, systemOnlyManaged, initFrom) {
+    var object = {};
+    object.attachmentMnemonic = attachmentMnemonic;
+    if (attachmentType == null) {
+        attachmentType = "NONE";
+    }
+    object.attachmentType = attachmentType;
+    if (mimeType == null) {
+        mimeType = 'application/json';
+    }
+    object.mimeType = mimeType;
+    object.bodySite = bodySite;
+    object.saveMethod = json;
+    object.item = getTextData(object.attachmentMnemonic, object.bodySite);
+
+    var xmlBytes = object.item.getBytes("UTF-8");
+    var factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+    var builder = factory.newDocumentBuilder();
+    var xmlInput = new java.io.ByteArrayInputStream(xmlBytes);
+    var document = builder.parse(xmlInput);
+    document.normalize();
+    xPath = Packages.javax.xml.xpath.XPathFactory.newInstance().newXPath();
+
+    return new XmlNode(document.getDocumentElement());
+}
+
+function getDicom(attachmentMnemonic, attachmentType, bodySite,
+    mimeType, systemOnlyManaged, initFrom) {
+    var object = {};
     object.attachmentMnemonic = attachmentMnemonic;
     object.attachmentType = attachmentType;
     object.bodySite = bodySite;
-
     object.item = getDicomParser(attachmentMnemonic, bodySite).getStudy();
+
     return object.item;
 }
 
