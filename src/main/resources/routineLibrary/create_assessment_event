@@ -1,0 +1,49 @@
+var eventData = JSON.parse(getTextIfNullReturnEmptyJson('event_data', null));
+var requestData = bindObject('REQUEST_DATA');
+var requestId = getRequestId();
+var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
+var eventSubtype = "OCT";
+var eventDisplayOrder = 2;
+
+eventData.$$_XID_Map_$$.forEach(function(data) {
+    if (data.$$_XID_$$ == '$$_attachment_data[1]_$$') {
+        //data.id = attachmentPdf.getId().toString();
+        data.request_id = requestId;
+    }
+    if (data.$$_XID_$$ == '$$_patient[1]_$$') {
+        data.id = requestData.patientId;
+    }
+
+    if (data.$$_XID_$$ == '$$_event_date[1]_$$') {
+        data.date = convertReportDateToSqlTime(requestData.reportDate);
+    }
+
+    if(data.$$_XID_$$ == '$$_event_subtype[1]_$$') {
+       data.event_subtype = eventSubtype;
+    }
+
+    if(data.$$_XID_$$ == '$$_event_subtype[2]_$$') {
+       data.display_order = eventDisplayOrder;
+    }
+});
+
+eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
+    var dataSet = data.$$_DataSet_$$;
+    if (dataSet == "et_ophgeneric_assessment") {
+        var assessmentReportRow = data.$$_ROW_$$[0];
+        assessmentReportRow.avg_thickness = requestData.averageThickness;
+        assessmentReportRow.crt = requestData.crt;
+        assessmentReportRow.total_vol = requestData.totalVolume;
+
+    }
+});
+
+var eventData = createEvent(JSON.stringify(eventData));
+
+putText(
+    'event_data',
+    eventData,
+    'NONE',
+    null, 'application/json');
+addRoutine('link_attachment_with_event');
+addRoutine('TIDY_OCT_XML');
