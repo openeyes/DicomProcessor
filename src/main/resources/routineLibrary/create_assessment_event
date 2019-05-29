@@ -45,5 +45,5 @@ putText(
     eventData,
     'NONE',
     null, 'application/json');
-addRoutine('link_attachment_with_event');
+addRoutine('link_oct_image_with_event');
 addRoutine('TIDY_OCT_XML');
