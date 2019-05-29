@@ -171,11 +171,11 @@ var eventTemplate = {
                           ]
                            },
                         {
-                          $$_DataSet_$$: 'et_ophgeneric_medical_report',
+                          $$_DataSet_$$: 'et_ophgeneric_device_information',
                           $$_ROW_$$: [
                             {
                               $$_CRUD_$$: 'MERGE',
-                              id: '$$_et_ophgeneric_medical_report[1]_$$',
+                              id: '$$_et_ophgeneric_device_information[1]_$$',
                               manufacturer: 'null',
                               manufacturer_model_name: 'null',
                               modality: 'null',
@@ -215,7 +215,7 @@ var eventTemplate = {
 var previousEventId = -1;
 var attachmentDataItemToDelete;
 if (requestData.study_instance_uid != null) {
-    var attachmentData = getEventDataByMedicalReportStudyInstanceUID('event_data', requestData.study_instance_uid.toString());
+    var attachmentData = getEventDataByDeviceInformationStudyInstanceUID('event_data', requestData.study_instance_uid.toString());
     if (attachmentData != null) {
         previousEventData = JSON.parse(attachmentData.getText());
         if (previousEventData != null) {

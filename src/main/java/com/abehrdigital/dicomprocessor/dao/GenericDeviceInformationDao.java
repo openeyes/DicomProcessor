@@ -5,11 +5,11 @@ import org.hibernate.query.NativeQuery;
 
 import java.util.List;
 
-public class GenericMedicalReportDao {
+public class GenericDeviceInformationDao {
 
     private Session session;
 
-    public GenericMedicalReportDao(Session session) {
+    public GenericDeviceInformationDao(Session session) {
         this.session = session;
     }
 

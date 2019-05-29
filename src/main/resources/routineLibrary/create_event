@@ -28,32 +28,32 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
 
 eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
     var dataSet = data.$$_DataSet_$$;
-    if (dataSet == "et_ophgeneric_medical_report") {
-        var medicalReportRow = data.$$_ROW_$$[0];
-        medicalReportRow.manufacturer = requestData.manufacturer;
-        medicalReportRow.manufacturer_model_name = requestData.manufacturer_model_name;
-        medicalReportRow.modality = requestData.modality;
-        medicalReportRow.series_description = requestData.series_description;
-        medicalReportRow.laterality = requestData.laterality;
-        medicalReportRow.image_laterality = requestData.image_laterality;
-        medicalReportRow.study_description = requestData.study_description;
-        medicalReportRow.document_title = requestData.document_title;
-        medicalReportRow.acquisition_date_time = requestData.acquisition_date_time;
-        medicalReportRow.study_date = requestData.study_date;
-        medicalReportRow.study_time = requestData.study_time;
-        medicalReportRow.content_date = requestData.content_date;
-        medicalReportRow.content_time = requestData.content_time;
-        medicalReportRow.station_name = requestData.station_name;
-        medicalReportRow.operators_name = requestData.operators_name;
-        medicalReportRow.software_version = requestData.software_version;
-        medicalReportRow.study_instance_uid = requestData.study_instance_uid;
-        medicalReportRow.series_instance_uid = requestData.series_instance_uid;
-        medicalReportRow.study_id = requestData.study_id;
-        medicalReportRow.series_number = requestData.series_number;
-        medicalReportRow.instance_number = requestData.instance_number;
-        medicalReportRow.modifying_system = requestData.modifying_system;
-        medicalReportRow.operator_identification_sequence = requestData.operator_identification_sequence;
-        medicalReportRow.sop_instance_uid = requestData.sop_instance_uid;
+    if (dataSet == "et_ophgeneric_device_information") {
+        var deviceInformationRow = data.$$_ROW_$$[0];
+        deviceInformationRow.manufacturer = requestData.manufacturer;
+        deviceInformationRow.manufacturer_model_name = requestData.manufacturer_model_name;
+        deviceInformationRow.modality = requestData.modality;
+        deviceInformationRow.series_description = requestData.series_description;
+        deviceInformationRow.laterality = requestData.laterality;
+        deviceInformationRow.image_laterality = requestData.image_laterality;
+        deviceInformationRow.study_description = requestData.study_description;
+        deviceInformationRow.document_title = requestData.document_title;
+        deviceInformationRow.acquisition_date_time = requestData.acquisition_date_time;
+        deviceInformationRow.study_date = requestData.study_date;
+        deviceInformationRow.study_time = requestData.study_time;
+        deviceInformationRow.content_date = requestData.content_date;
+        deviceInformationRow.content_time = requestData.content_time;
+        deviceInformationRow.station_name = requestData.station_name;
+        deviceInformationRow.operators_name = requestData.operators_name;
+        deviceInformationRow.software_version = requestData.software_version;
+        deviceInformationRow.study_instance_uid = requestData.study_instance_uid;
+        deviceInformationRow.series_instance_uid = requestData.series_instance_uid;
+        deviceInformationRow.study_id = requestData.study_id;
+        deviceInformationRow.series_number = requestData.series_number;
+        deviceInformationRow.instance_number = requestData.instance_number;
+        deviceInformationRow.modifying_system = requestData.modifying_system;
+        deviceInformationRow.operator_identification_sequence = requestData.operator_identification_sequence;
+        deviceInformationRow.sop_instance_uid = requestData.sop_instance_uid;
     }
 });
 

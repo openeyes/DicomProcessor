@@ -166,8 +166,8 @@ public class RoutineScriptService {
         return patientId;
     }
 
-    public AttachmentData getEventDataByMedicalReportStudyInstanceUID(String attachmentMnemonic, String studyInstanceUID) {
-        Integer requestId = daoManager.getGenericMedicalReportDao().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
+    public AttachmentData getEventDataByDeviceInformationStudyInstanceUID(String attachmentMnemonic, String studyInstanceUID) {
+        Integer requestId = daoManager.getGenericDeviceInformationDao().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
         if (requestId != -1) {
             return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic, requestId);
         } else {
