@@ -30,6 +30,10 @@ XmlNode.prototype.getNodeValue = function() {
     return this._node.getNodeValue();
 }
 
+XmlNode.prototype.getTextValue = function() {
+    return this._node.getNodeValue();
+}
+
 XmlNode.prototype.getNodeName = function() {
     return this._node.getNodeName();
 }
@@ -73,7 +77,7 @@ XmlNode.prototype.getText = function(expression, regex) {
     var nodeList = new XmlNodeList(xPath.compile(expression).evaluate(this._node,javax.xml.xpath.XPathConstants.NODESET));
     if(nodeList.size === 1){
         var node = nodeList.get(0);
-        var textValue = node.getNodeValue();
+        var textValue = node.getTextValue();
         var matches = textValue.match(regex);
         if(typeof matches.groups !== 'undefined' ) {
             return concatEnclosures(Object.values(matches.groups));
@@ -100,8 +104,13 @@ var XmlElement = function(node) {
 XmlElement.prototype = Object.create(XmlNode.prototype);
 XmlElement.prototype.constructor = XmlElement;
 
-XmlElement.prototype.getNodeValue = function () {
-    return this._node.getTextContent();
+XmlElement.prototype.getTextValue = function () {
+    var childNodes = this.getChildNodes();
+    if(childNodes.size == 1) {
+    return getChildNodes.get(0).getNodeValue();
+    } else {
+        throw new Error("Element has more than just a text node which is not allowed when extracting data.")
+    }
 }
 
 XmlElement.prototype.getElementsByTagName = function(name) {
