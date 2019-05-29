@@ -16,7 +16,7 @@ public class GenericDeviceInformationDao {
     public Integer getRequestIdByStudyInstanceUniqueId(String studyInstanceUID){
         NativeQuery query = session.createSQLQuery("" +
                 "SELECT mdrp.last_request_id" +
-                " FROM et_ophgeneric_medical_report mdrp " +
+                " FROM et_ophgeneric_device_information mdrp " +
                 "WHERE mdrp.study_instance_uid = :study_instance_uid ")
                 .setParameter("study_instance_uid", studyInstanceUID);
 
