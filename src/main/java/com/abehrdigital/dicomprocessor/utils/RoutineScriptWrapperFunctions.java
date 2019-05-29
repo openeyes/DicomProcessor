@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,12 +23,29 @@ public class RoutineScriptWrapperFunctions {
         InputStream postScriptInputStream = DicomEngine.class.getResourceAsStream(postScriptLocation);
         InputStream preScriptInputStream = DicomEngine.class.getResourceAsStream(preScriptLocation);
         try {
-            preScripts = readFromInputStream(preScriptInputStream);
+            preScripts = getEnvironmentVariablesJsObject();
+            preScripts += readFromInputStream(preScriptInputStream);
             postScripts = readFromInputStream(postScriptInputStream);
         } catch (IOException exception) {
             Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
                     StackTraceUtil.getStackTraceAsString(exception));
         }
+    }
+
+    private static String getEnvironmentVariablesJsObject() {
+        Map<String, String> map = System.getenv();
+
+        StringBuilder environmentVariables = new StringBuilder("var env = {};");
+        for (Map.Entry <String, String> entry: map.entrySet()) {
+            environmentVariables.append("\n");
+            environmentVariables.append("env[\'");
+            environmentVariables.append(entry.getKey());
+            environmentVariables.append("\'] = \'");
+            environmentVariables.append(entry.getValue().replace('\\', '/'));
+            environmentVariables.append("\';");
+        }
+
+        return environmentVariables.toString();
     }
 
     public static String addWrapperScripts(String script) {
