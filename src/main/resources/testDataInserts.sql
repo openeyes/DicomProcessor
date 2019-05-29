@@ -205,6 +205,16 @@ insert into attachment_type (
 values
   ("event_pdf", "pdf", "pdf", "pdf");
 
+
+insert into attachment_type (
+  attachment_type,
+  title_full,
+  title_short,
+  title_abbreviated
+)
+values
+  ("OCT_JPG", "OCT_JPG", "OCT_JPG", "OCT_JPG");
+
 insert into attachment_type (
   attachment_type,
   title_full,
