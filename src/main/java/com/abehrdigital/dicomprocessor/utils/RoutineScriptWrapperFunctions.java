@@ -33,19 +33,19 @@ public class RoutineScriptWrapperFunctions {
     }
 
     private static String getEnvironmentVariablesJsObject() {
-        Map<String, String> map = System.getenv();
+        Map<String, String> environmentVariables = System.getenv();
 
-        StringBuilder environmentVariables = new StringBuilder("var env = {};");
-        for (Map.Entry <String, String> entry: map.entrySet()) {
-            environmentVariables.append("\n");
-            environmentVariables.append("env[\'");
-            environmentVariables.append(entry.getKey());
-            environmentVariables.append("\'] = \'");
-            environmentVariables.append(entry.getValue().replace('\\', '/'));
-            environmentVariables.append("\';");
+        StringBuilder environmentVariablesInJavascript = new StringBuilder("var env = {};");
+        for (Map.Entry <String, String> entry: environmentVariables.entrySet()) {
+            environmentVariablesInJavascript.append("\n");
+            environmentVariablesInJavascript.append("env[\'");
+            environmentVariablesInJavascript.append(entry.getKey());
+            environmentVariablesInJavascript.append("\'] = \'");
+            environmentVariablesInJavascript.append(entry.getValue().replace('\\', '/'));
+            environmentVariablesInJavascript.append("\';");
         }
 
-        return environmentVariables.toString();
+        return environmentVariablesInJavascript.toString();
     }
 
     public static String addWrapperScripts(String script) {
