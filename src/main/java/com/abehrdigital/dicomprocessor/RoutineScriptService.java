@@ -10,11 +10,20 @@ import com.abehrdigital.dicomprocessor.models.EventAttachmentItem;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
 import com.abehrdigital.dicomprocessor.utils.AttachmentDataThumbnailAdder;
+import com.abehrdigital.dicomprocessor.utils.DirectoryFileNamesReader;
 import com.abehrdigital.dicomprocessor.utils.PatientSearchApi;
+import org.apache.commons.io.IOUtils;
 import org.hibernate.HibernateException;
 
+import javax.sql.rowset.serial.SerialBlob;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Blob;
+import java.sql.SQLException;
 import java.util.List;
 
 public class RoutineScriptService {
@@ -188,5 +197,33 @@ public class RoutineScriptService {
 
     public boolean eventIsDeleted(int eventId) {
         return daoManager.getEventDao().getNotDeleted(eventId).isEmpty();
+    }
+
+    public List<String> searchFiles(String directory, String regex) throws IOException {
+        return DirectoryFileNamesReader.read(directory, regex);
+    }
+
+    public Blob getFileAsBlob(String directory, String fileName) throws IOException, SQLException {
+        File file = new File(directory + "\\"+ fileName);
+        FileInputStream fileInputStream = new FileInputStream(file);
+        return new SerialBlob(IOUtils.toByteArray(fileInputStream));
+    }
+
+    public int getRequestId(){
+        return requestId;
+    }
+
+    public boolean moveMedicalFile(String directoryFrom, String fileName, String directoryTo) throws IOException {
+       return moveMedicalFile(directoryFrom,fileName,directoryTo,fileName);
+    }
+
+    public boolean moveMedicalFile(String directoryFrom, String fileName, String directoryTo, String newFileName) throws IOException {
+        newFileName = newFileName.replaceAll("/", "-");
+        Path movedPath = Files.move(
+                Paths.get(directoryFrom + "\\"+ fileName),
+                Paths.get(directoryTo + "\\"+ newFileName.replaceAll("/", "-"))
+        );
+
+        return movedPath != null;
     }
 }
