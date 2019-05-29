@@ -209,7 +209,7 @@ public class RoutineScriptService {
         return new SerialBlob(IOUtils.toByteArray(fileInputStream));
     }
 
-    public int getRequestId(){
+    public int getCurrentRequestId(){
         return requestId;
     }
 
