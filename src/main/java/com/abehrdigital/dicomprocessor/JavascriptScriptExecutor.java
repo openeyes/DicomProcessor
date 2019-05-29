@@ -11,7 +11,7 @@ import javax.script.ScriptException;
 import java.io.StringWriter;
 
 public class JavascriptScriptExecutor {
-    private static final String ENGINE_NAME = "graal.js";
+    private static final String ENGINE_NAME = "Nashorn";
     private static final int JAVA_CLASS_NAME_IN_ENGINE_LENGTH = 6;
 
     private StringWriter engineScriptWriter;
@@ -57,7 +57,7 @@ public class JavascriptScriptExecutor {
         return engineScriptWriter.toString();
     }
 
-    public int getScriptHashCode(){
+    public int getScriptHashCode() {
         return scriptHashCodeBeforeConversion;
     }
 }

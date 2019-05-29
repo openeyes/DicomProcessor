@@ -1,0 +1,19 @@
+var eventData = bindObject('event_data');
+var requestData = bindObject('REQUEST_DATA');
+var octImage = getAttachmentDataByAttachmentMnemonicAndBodySite('OCT_REPORT_JPG', null);
+var eventID;
+
+
+eventData.$$_XID_Map_$$.forEach(function(data) {
+    if (data.$$_XID_$$ == '$$_event[1]_$$') {
+        eventID = data.id;
+    }
+});
+var attachmentId = octImage.getId();
+if (requestData.attachmentDataItemToDelete == attachmentId) {
+    requestData.attachmentDataItemToDelete = null;
+} else {
+    linkAttachmentDataWithEvent(octImage, eventID, 'OEModule\\OphGeneric\\models\\Attachment');
+}
+createAndSetThumbnailsOnAttachmentData(octImage);
+addRoutine('delink_attachment');

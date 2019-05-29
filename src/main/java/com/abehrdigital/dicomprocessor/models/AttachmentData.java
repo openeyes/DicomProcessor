@@ -126,10 +126,6 @@ public class AttachmentData {
         return attachmentMnemonic;
     }
 
-    public String getText() {
-        return textData;
-    }
-
     public Blob getBlobData() {
         return blobData;
     }

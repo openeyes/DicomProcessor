@@ -9,6 +9,18 @@ values
 insert into routine_library (routine_name)
 values
   (
+    "DICOM_SEED"
+  );
+
+  insert into routine_library (routine_name)
+values
+  (
+    "OCT_SEED"
+  );
+
+insert into routine_library (routine_name)
+values
+  (
     "prototype_event"
   );
 
@@ -17,6 +29,18 @@ values
   (
     "link_attachment_with_event"
   );
+
+insert into routine_library (routine_name)
+values
+  (
+    "XML_SEED"
+  );
+
+insert into request_type (request_type, title_full , title_short, default_routine_name, default_request_queue)
+values
+    (
+    "allscripts_request", "All scripts request", "Allscripts", "XML_SEED", "dicom_queue"
+    );
 
 insert into request (
   system_message,
@@ -180,6 +204,16 @@ insert into attachment_type (
 )
 values
   ("event_pdf", "pdf", "pdf", "pdf");
+
+
+insert into attachment_type (
+  attachment_type,
+  title_full,
+  title_short,
+  title_abbreviated
+)
+values
+  ("OCT_JPG", "OCT_JPG", "OCT_JPG", "OCT_JPG");
 
 insert into attachment_type (
   attachment_type,
