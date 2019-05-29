@@ -1,6 +1,6 @@
 var eventData = bindObject('event_data');
 var requestData = bindObject('REQUEST_DATA');
-var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('OCT_REPORT_JPG', null);
+var octImage = getAttachmentDataByAttachmentMnemonicAndBodySite('OCT_REPORT_JPG', null);
 var eventID;
 
 
@@ -9,11 +9,11 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
         eventID = data.id;
     }
 });
-var attachmentId = attachmentPdf.getId();
+var attachmentId = octImage.getId();
 if (requestData.attachmentDataItemToDelete == attachmentId) {
     requestData.attachmentDataItemToDelete = null;
 } else {
-    linkAttachmentDataWithEvent(attachmentPdf, eventID, 'OEModule\\OphGeneric\\models\\Attachment');
+    linkAttachmentDataWithEvent(octImage, eventID, 'OEModule\\OphGeneric\\models\\Attachment');
 }
-createAndSetThumbnailsOnAttachmentData(attachmentPdf);
+createAndSetThumbnailsOnAttachmentData(octImage);
 addRoutine('delink_attachment');
