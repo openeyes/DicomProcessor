@@ -11,9 +11,9 @@ var XmlNodeList = function(nodeList) {
 XmlNodeList.prototype.get = function(index) {
     var node = this._nodeList.item(index);
     var nodeType = node.getNodeType();
-    if (nodeType) {
+    if (nodeType == 1) {
         return new XmlElement(node);
-    } else if (nodeType) {
+    } else if (nodeType == 2) {
         return new XmlAttribute(node);
     } else {
         return new XmlNode(node);
