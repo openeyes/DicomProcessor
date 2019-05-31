@@ -213,11 +213,11 @@ public class RoutineScriptService {
         return requestId;
     }
 
-    public boolean moveMedicalFile(String directoryFrom, String fileName, String directoryTo) throws IOException {
-       return moveMedicalFile(directoryFrom,fileName,directoryTo,fileName);
+    public boolean moveFile(String directoryFrom, String fileName, String directoryTo) throws IOException {
+       return moveFileWithRename(directoryFrom,fileName,directoryTo,fileName);
     }
 
-    public boolean moveMedicalFile(String directoryFrom, String fileName, String directoryTo, String newFileName) throws IOException {
+    public boolean moveFileWithRename(String directoryFrom, String fileName, String directoryTo, String newFileName) throws IOException {
         newFileName = newFileName.replaceAll("/", "-");
         Path movedPath = Files.move(
                 Paths.get(directoryFrom + "\\"+ fileName),

@@ -7,6 +7,6 @@ if(reportFileArray.size() != 1) {
     " Returned: " +  reportFileArray.size() + " Expected: 1");
 }
 
-moveMedicalFile(env.TOPCON_PENDING_DIR, reportFileArray.get(0),"C:\\www\\mirthFiles\\complete",
+ moveFileWithRename(env.TOPCON_PENDING_DIR, reportFileArray.get(0),"C:\\www\\mirthFiles\\complete",
  requestData.patientId +"_" + requestData.dob + "_" + requestData.gender + "_" +
   requestData.reportDate + "_(" + requestData.firstName + "_" + requestData.lastName + ")_" + requestData.file_name + ".jpg");
