@@ -27,7 +27,7 @@ requestData.averageThickness = documentNode.getText('/*/Dataset/Analysis/Attr/@v
 requestData.crt = documentNode.getText('/*/Dataset/Analysis/ETDRS/@Center', '.*');
 requestData.totalVolume = documentNode.getText('/*/Dataset/Analysis/ETDRS/@InS', '.*');
 
-addRoutine('GENERIC_EVENT_ASSESMENT_AUGMENT');
+addRoutine('GENERIC_EVENT_ASSESSMENT_AUGMENT');
 addRoutine('GENERIC_PAS_API');
 addRoutine('create_assessment_event');
 
