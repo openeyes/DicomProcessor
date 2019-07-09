@@ -1,8 +1,8 @@
-var eventData = JSON.parse(getJsonIfNullReturnEmptyJson('event_data', null));
+var eventData = JSON.parse(getTextIfNullReturnEmptyJson('event_data', null));
 var requestData = bindObject('REQUEST_DATA');
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
-let eventSubtype = "OCT";
-let eventDisplayOrder = 2;
+var eventSubtype = "OCT";
+var eventDisplayOrder = 2;
 // HARD CODED ID
 requestData.patientId = 19372;
 
@@ -61,7 +61,7 @@ eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
 
 var eventData = createEvent(JSON.stringify(eventData));
 
-putJson(
+putText(
     'event_data',
     eventData,
     'NONE',
