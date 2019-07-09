@@ -208,7 +208,9 @@ public class DataAPI {
                 // parse all JSON objects in the array
                 for (Object jsonContent : (JSONArray) rowContent) {
                     // add Query object resulted to the array result
-                    saveSet.add(parseJsonQuery((JSONObject) jsonContent, dataSet));
+                        if(!jsonContent.toString().equals("{}")) {
+                            saveSet.add(parseJsonQuery((JSONObject) jsonContent, dataSet));
+                        }
                 }
             // or a JSON object
             } else if (rowContent instanceof JSONObject) {
