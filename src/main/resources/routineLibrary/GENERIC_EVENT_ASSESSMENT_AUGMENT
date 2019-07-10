@@ -190,9 +190,68 @@ var eventTemplate = {
                               cct: 'null',
                               cd_ratio: 'null',
                               event_id: '$$_event[1].id_$$',
-                            }
+                              eye_id:'1'
+                                                              },
+                                                              {
+                                                                 $$_CRUD_$$:'MERGE',
+                                                                 id:'$$_et_ophgeneric_assessment[2]_$$',
+                                                                 crt:'null',
+                                                                 avg_thickness:'null',
+                                                                 total_vol:'null',
+                                                                 fluids_id:'null',
+                                                                 irf:'null',
+                                                                 srf:'null',
+                                                                 srf:'null',
+                                                                 retinal_thickening:'null',
+                                                                 ped:'null',
+                                                                 cmo:'null',
+                                                                 dmo:'null',
+                                                                 heamorrhage:'null',
+                                                                 exudates:'null',
+                                                                 avg_rnfl:'null',
+                                                                 cct:'null',
+                                                                 cd_ratio:'null',
+                                                                 event_id:'$$_event[1].id_$$',
+                                                                 eye_id:'2'
+                                                              },
+
                           ]
-                        }
+                        },
+                        {
+                                                  $$_DataSet_$$: 'et_ophgeneric_device_information',
+                                                  $$_ROW_$$: [
+                                                    {
+                                                      $$_CRUD_$$: 'MERGE',
+                                                      id: '$$_et_ophgeneric_device_information[1]_$$',
+                                                      manufacturer: 'null',
+                                                      manufacturer_model_name: 'null',
+                                                      modality: 'null',
+                                                      series_description: 'null',
+                                                      laterality: 'null',
+                                                      image_laterality: 'null',
+                                                      study_description: 'null',
+                                                      document_title: 'null',
+                                                      acquisition_date_time: 'null',
+                                                      study_date: 'null',
+                                                      study_time: 'null',
+                                                      content_date: 'null',
+                                                      content_time: 'null',
+                                                      station_name: 'null',
+                                                      operators_name: 'null',
+                                                      software_version: 'null',
+                                                      study_instance_uid: 'null',
+                                                      series_instance_uid: 'null',
+                                                      study_id: 'null',
+                                                      series_number: 'null',
+                                                      instance_number: 'null',
+                                                      sop_instance_uid: 'null',
+                                                      modifying_system: 'null',
+                                                      operator_identification_sequence: 'null',
+                                                      event_id: '$$_event[1].id_$$',
+                                                      last_request_id: '$$_attachment_data[1].request_id_$$'
+                                                    }
+                                                  ]
+                                                }
                       ]
                     }
 
