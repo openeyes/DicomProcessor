@@ -167,12 +167,24 @@ var eventTemplate = {
                             }
                           ]
                            },
+                            {
+                                                                             $$_DataSet_$$: 'et_ophgeneric_assessment',
+                                                                             $$_ROW_$$: [
+                                                                               {
+                                                                                 $$_CRUD_$$: 'MERGE',
+                                                                                 id: '$$_et_ophgeneric_assessment[1]_$$',
+                                                                                 event_id: '$$_event[1].id_$$',
+                                                                                 eye_id:'null'
+                                                                               }
+                                                                             ]
+                                                                           },
                         {
-                          $$_DataSet_$$: 'et_ophgeneric_assessment',
+                          $$_DataSet_$$: 'ophgeneric_assessment_entry',
                           $$_ROW_$$: [
                             {
                               $$_CRUD_$$: 'MERGE',
-                              id: '$$_et_ophgeneric_assessment[1]_$$',
+                              id:'$$_ophgeneric_assessment_entry[1]_$$',
+                              element_id: '$$_et_ophgeneric_assessment[1].id_$$',
                               crt: 'null',
                               avg_thickness: 'null',
                               total_vol: 'null',
@@ -189,12 +201,12 @@ var eventTemplate = {
                               avg_rnfl: 'null',
                               cct: 'null',
                               cd_ratio: 'null',
-                              event_id: '$$_event[1].id_$$',
                               eye_id:'1'
                                                               },
                                                               {
                                                                  $$_CRUD_$$:'MERGE',
-                                                                 id:'$$_et_ophgeneric_assessment[2]_$$',
+                                                                 id:'$$_ophgeneric_assessment_entry[2]_$$',
+                                                                 element_id: '$$_et_ophgeneric_assessment[1].id_$$',
                                                                  crt:'null',
                                                                  avg_thickness:'null',
                                                                  total_vol:'null',
@@ -211,7 +223,6 @@ var eventTemplate = {
                                                                  avg_rnfl:'null',
                                                                  cct:'null',
                                                                  cd_ratio:'null',
-                                                                 event_id:'$$_event[1].id_$$',
                                                                  eye_id:'2'
                                                               },
 
