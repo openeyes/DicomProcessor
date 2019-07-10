@@ -1,21 +1,22 @@
 var eventData = JSON.parse(getTextIfNullReturnEmptyJson('event_data', null));
 var requestData = bindObject('REQUEST_DATA');
-var requestId = getCurrentRequestId();
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
 var eventSubtype = "OCT";
 var eventDisplayOrder = 2;
+requestData.patientId = 19372;
+
 
 eventData.$$_XID_Map_$$.forEach(function(data) {
     if (data.$$_XID_$$ == '$$_attachment_data[1]_$$') {
-        //data.id = attachmentPdf.getId().toString();
-        data.request_id = requestId;
+        data.id = attachmentPdf.getId().toString();
+        data.request_id = attachmentPdf.getRequestId().toString();
     }
     if (data.$$_XID_$$ == '$$_patient[1]_$$') {
         data.id = requestData.patientId;
     }
 
     if (data.$$_XID_$$ == '$$_event_date[1]_$$') {
-        data.date = convertReportDateToSqlTime(requestData.reportDate);
+        data.date =  convertStudyDateTimeToSqlTime(requestData.study_date, requestData.study_time);
     }
 
     if(data.$$_XID_$$ == '$$_event_subtype[1]_$$') {
@@ -30,12 +31,56 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
 eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
     var dataSet = data.$$_DataSet_$$;
     if (dataSet == "et_ophgeneric_assessment") {
+        if(requestData.eyeId !== 3) {
         var assessmentReportRow = data.$$_ROW_$$[0];
         assessmentReportRow.avg_thickness = requestData.averageThickness;
         assessmentReportRow.crt = requestData.crt;
         assessmentReportRow.total_vol = requestData.totalVolume;
+        assessmentReportRow.eye_id = requestData.eyeId;
+        data.$$_ROW_$$[1] = {};
+        } else {
+                var leftAssessmentReportRow = data.$$_ROW_$$[0];
+                leftAssessmentReportRow.avg_thickness = requestData.averageThickness;
+                leftAssessmentReportRow.crt = requestData.crt;
+                leftAssessmentReportRow.total_vol = requestData.totalVolume;
+                leftAssessmentReportRow.eye_id = 1;
+
+                var rightAssessmentReportRow =data.$$_ROW_$$[1];
+                rightAssessmentReportRow.avg_thickness = requestData.averageThickness;
+                rightAssessmentReportRow.crt = requestData.crt;
+                rightAssessmentReportRow.total_vol = requestData.totalVolume;
+                rightAssessmentReportRow.eye_id = 2;
+        }
 
     }
+
+     if (dataSet == "et_ophgeneric_device_information") {
+            var deviceInformationRow = data.$$_ROW_$$[0];
+            deviceInformationRow.manufacturer = requestData.manufacturer;
+            deviceInformationRow.manufacturer_model_name = requestData.manufacturer_model_name;
+            deviceInformationRow.modality = requestData.modality;
+            deviceInformationRow.series_description = requestData.series_description;
+            deviceInformationRow.laterality = requestData.laterality;
+            deviceInformationRow.image_laterality = requestData.image_laterality;
+            deviceInformationRow.study_description = requestData.study_description;
+            deviceInformationRow.document_title = requestData.document_title;
+            deviceInformationRow.acquisition_date_time = requestData.acquisition_date_time;
+            deviceInformationRow.study_date = requestData.study_date;
+            deviceInformationRow.study_time = requestData.study_time;
+            deviceInformationRow.content_date = requestData.content_date;
+            deviceInformationRow.content_time = requestData.content_time;
+            deviceInformationRow.station_name = requestData.station_name;
+            deviceInformationRow.operators_name = requestData.operators_name;
+            deviceInformationRow.software_version = requestData.software_version;
+            deviceInformationRow.study_instance_uid = requestData.study_instance_uid;
+            deviceInformationRow.series_instance_uid = requestData.series_instance_uid;
+            deviceInformationRow.study_id = requestData.study_id;
+            deviceInformationRow.series_number = requestData.series_number;
+            deviceInformationRow.instance_number = requestData.instance_number;
+            deviceInformationRow.modifying_system = requestData.modifying_system;
+            deviceInformationRow.operator_identification_sequence = requestData.operator_identification_sequence;
+            deviceInformationRow.sop_instance_uid = requestData.sop_instance_uid;
+        }
 });
 
 var eventData = createEvent(JSON.stringify(eventData));
@@ -45,5 +90,6 @@ putText(
     eventData,
     'NONE',
     null, 'application/json');
-addRoutine('link_oct_image_with_event');
-addRoutine('TIDY_OCT_XML');
+    addRoutine('link_attachment_with_event');
+//addRoutine('link_oct_image_with_event');
+//addRoutine('TIDY_OCT_XML');
