@@ -403,7 +403,7 @@ public class Query {
                 // if the value is still unknown in the global map (still null)
                 if (dataDictionarry.containsKey(XID)) {
                     if (dataDictionarry.get(XID) == null || dataDictionarry.get(XID).knownFields.get(id) == null) {
-                        throw new ValuesNotFoundException();
+                        throw new ValuesNotFoundException(XID);
                     }
                 }
             }
