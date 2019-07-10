@@ -31,6 +31,10 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
 eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
     var dataSet = data.$$_DataSet_$$;
     if (dataSet == "et_ophgeneric_assessment") {
+            var assessmentRow = data.$$_ROW_$$[0];
+            assessmentRow.eye_id = requestData.eyeId;
+    }
+    if (dataSet == "ophgeneric_assessment_entry") {
         if(requestData.eyeId !== 3) {
         var assessmentReportRow = data.$$_ROW_$$[0];
         assessmentReportRow.avg_thickness = requestData.averageThickness;
