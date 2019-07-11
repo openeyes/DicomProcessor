@@ -168,3 +168,4 @@ fabric.properties
 applog.txt
 *.iml
 /bin
+.env

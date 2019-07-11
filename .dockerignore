@@ -4,3 +4,5 @@ out
 .cache
 Dockerfile
 .dockerignore
+docker-compose.yml
+.env

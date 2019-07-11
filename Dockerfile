@@ -1,23 +1,48 @@
 ## Builds an OpenEyes DicomProcessor service instance.
 
-ARG OS_VERSION=3-alpine
+ARG MAVEN_TAG=3-alpine
 ARG BUILD_PROJROOT="/dicomprocessor"
+ARG TIMEZONE="Europe/London"
 
-FROM maven:$OS_VERSION
+FROM maven:$MAVEN_TAG AS builder
 
-ARG OS_VERSION
+ARG MAVEN_TAG
 ARG BUILD_PROJROOT
 ARG DEBIAN_FRONTEND=noninteractive
-ARG TIMEZONE="Europe/London"
+ARG TIMEZONE
 
 ## The folder that context files will be copied to
 ENV PROJROOT="$BUILD_PROJROOT"
+ENV TZ=${TIMEZONE}
+
+# set up folders
+COPY . ${PROJROOT}
+RUN cd $PROJROOT \
+    && mvn package
+
+
+ENTRYPOINT ["/init.sh"]
+
+FROM maven:$MAVEN_TAG
+
+ARG MAVEN_TAG
+ARG BUILD_PROJROOT
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TIMEZONE
+
+
+## API connection details.
+## This is a connection to the openeyes web service
+## Defaults to assuming web service will be running on the same docker host on port 80
+## But it is recommended to override this
+## It is STRONGLY recommended to use docker secrets for the API_PASSWORD
+ENV API_HOST="host.docker.internal"
+ENV API_PORT=80
+ENV API_USER=admin
+ENV API_PASSWORD=admin
 
 ## Used by some scripts to determine if they are runing in a container
 ENV DOCKER_CONTAINER="TRUE"
-
-ENV SSH_PRIVATE_KEY=""
-ENV TZ=$TIMEZONE
 
 ## Database connection credentials:
 ## It is STRONGLY recommended to change the password for production environments
@@ -32,30 +57,27 @@ ENV DATABASE_USER="openeyes"
 ENV PROCESSOR_QUEUE_NAME="dicom_queue"
 ENV PROCESSOR_SHUTDOWN_AFTER=0
 
+## The folder that context files will be copied to
+ENV PROJROOT="$BUILD_PROJROOT"
 
-# # Set timezone, add common packes, apt clean at the end to minimise layer size
-# RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
-#  && apt-get update && apt-get install --no-install-recommends -y \
-#     #git-core \
-#     #mariadb-client \
-#     maven \
-#     nano \
-#     #ssh-client \
-#     sudo \
-#   && apt-get autoremove -y \
-#   && rm -rf /var/lib/apt/lists/* \
-#   && apt-get clean -y \
-#   && rm -rf /var/www/html/* 
-#    #&& git config --global core.fileMode false
+# This option will retry a database connection for X minutes before failing if a connection has been failed to establish
+ENV RETRY_DATABASE_CONNECTION=2
 
-  # set up folders
-  COPY . ${PROJROOT}
-  RUN cd $PROJROOT \
-      && mvn package
+# Number of minutes delay when the engine should synchronize the specified scriptFileLocation with the routine_library table 
+ENV SYNCHRONIZE_ROUTINE_DELAY=99999
 
-  # Add the init script
-  RUN chmod a+rx ${PROJROOT}/.docker_build/* \
-    && mv ${PROJROOT}/.docker_build/wait /wait \
-    && mv ${PROJROOT}/.docker_build/init.sh /init.sh
+ENV TZ=${TIMEZONE}
 
-  ENTRYPOINT ["/init.sh"]
+ENV WAIT_HOSTS_TIMEOUT=1500
+ENV WAIT_SLEEP_INTERVAL=2
+
+# Copy compiled files
+COPY --from=builder ${PROJROOT}/target/ ${PROJROOT}
+COPY --from=builder ${PROJROOT}/src/main/resources/routineLibrary/ /routineLibrary
+
+# Add the init script
+COPY .docker_build/init.sh /init.sh
+COPY .docker_build/wait /wait
+RUN chmod a+rx /init.sh /wait
+
+ENTRYPOINT ["/init.sh"]
