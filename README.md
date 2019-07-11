@@ -1,4 +1,4 @@
-# DicomProcessor
+oc# DicomProcessor
 
 Java code for processing medical device files
 
@@ -113,3 +113,35 @@ Example of execution in windows:
 ## Logging
 
 Logs are saved in root directory logs folder with name applog.txt
+
+ker# DOCKER BUILD
+This project can be packaged as a docker container. Using the provided Dockerfile.
+
+A pre-packaged version is provided on dockerhub as appertaopeneyes/dicomprocessor
+
+## Building
+
+Builds are created using the [Dockerhub Maven base image](https://hub.docker.com/_/maven). All options for that image are available to be used in dicomprocessor.
+
+Additionally, the following build arguments are available:
+* `MAVEN_TAG` - The [maven base image](https://hub.docker.com/_/maven) tag to be used for the build.
+    * This is useful for ubilding with different JDK versions, etc
+
+## Running
+
+Use standard docker methods for running. A number of ENV options are provided for tuning the behaviour.
+
+Example: `docker run -e DATABASE_HOST=db appertaopeneyes/dicomprocessor`
+
+### Environment options:
+
+* `DATABASE_HOST` - Hostname (or IP address) of the main openeyes database server
+* `DATABASE_PORT` - Port number that the main openeyes database server is accessed on (default=3306)
+* `DATABASE_NAME` - Name of the openeyes database (default='openeyes')
+* `DATABASE_USER` - Username for accessing the main openeyes database
+* `DATABASE_PASS` - Password for accessing the main openeyes database
+* `PROCESSOR_QUEUE_NAME` - The queue name for this processor to use (default='dicom_queue'
+* `PROCESSOR_SHUTDOWN_AFTER` - If set, the processor will run for the specified number of seconds and then terminate. There is very little reason you'd want to use this! Default is to run indefinitely.
+
+### Docker Compose
+A sample docker-compose.yml file is provided in the project root.

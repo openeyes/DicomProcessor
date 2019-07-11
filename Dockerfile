@@ -1,11 +1,11 @@
 ## Builds an OpenEyes DicomProcessor service instance.
 
-ARG OS_VERSION=3-alpine
+ARG MAVEN_TAG=3-alpine
 ARG BUILD_PROJROOT="/dicomprocessor"
 
-FROM maven:$OS_VERSION
+FROM maven:$MAVEN_TAG
 
-ARG OS_VERSION
+ARG MAVEN_TAG
 ARG BUILD_PROJROOT
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TIMEZONE="Europe/London"
@@ -16,8 +16,8 @@ ENV PROJROOT="$BUILD_PROJROOT"
 ## Used by some scripts to determine if they are runing in a container
 ENV DOCKER_CONTAINER="TRUE"
 
-ENV SSH_PRIVATE_KEY=""
-ENV TZ=$TIMEZONE
+ENV WAIT_HOSTS_TIMEOUT=1500
+ENV WAIT_SLEEP_INTERVAL=2
 
 ## Database connection credentials:
 ## It is STRONGLY recommended to change the password for production environments
@@ -32,30 +32,14 @@ ENV DATABASE_USER="openeyes"
 ENV PROCESSOR_QUEUE_NAME="dicom_queue"
 ENV PROCESSOR_SHUTDOWN_AFTER=0
 
+# set up folders
+COPY . ${PROJROOT}
+RUN cd $PROJROOT \
+    && mvn package
 
-# # Set timezone, add common packes, apt clean at the end to minimise layer size
-# RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
-#  && apt-get update && apt-get install --no-install-recommends -y \
-#     #git-core \
-#     #mariadb-client \
-#     maven \
-#     nano \
-#     #ssh-client \
-#     sudo \
-#   && apt-get autoremove -y \
-#   && rm -rf /var/lib/apt/lists/* \
-#   && apt-get clean -y \
-#   && rm -rf /var/www/html/* 
-#    #&& git config --global core.fileMode false
+# Add the init script
+RUN chmod a+rx ${PROJROOT}/.docker_build/* \
+  && mv ${PROJROOT}/.docker_build/wait /wait \
+  && mv ${PROJROOT}/.docker_build/init.sh /init.sh
 
-  # set up folders
-  COPY . ${PROJROOT}
-  RUN cd $PROJROOT \
-      && mvn package
-
-  # Add the init script
-  RUN chmod a+rx ${PROJROOT}/.docker_build/* \
-    && mv ${PROJROOT}/.docker_build/wait /wait \
-    && mv ${PROJROOT}/.docker_build/init.sh /init.sh
-
-  ENTRYPOINT ["/init.sh"]
+ENTRYPOINT ["/init.sh"]
