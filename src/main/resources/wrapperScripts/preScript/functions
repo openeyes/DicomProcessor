@@ -1,0 +1,272 @@
+var bindedObjects = [];
+var json = "JSON";
+var blob = "BLOB";
+var xPath;
+
+var XmlNodeList = function(nodeList) {
+    this._nodeList = nodeList;
+    this.size = nodeList.getLength();
+}
+
+XmlNodeList.prototype.get = function(index) {
+    var node = this._nodeList.item(index);
+    var nodeType = node.getNodeType();
+    if (nodeType == 1) {
+        return new XmlElement(node);
+    } else if (nodeType == 2) {
+        return new XmlAttribute(node);
+    } else {
+        return new XmlNode(node);
+    }
+}
+
+var XmlNode = function(node) {
+    this._node = node;
+    this.nodeType = node.getNodeType();
+    this.nodeName = node.getNodeName();
+}
+
+XmlNode.prototype.getNodeValue = function() {
+    return this._node.getNodeValue();
+}
+
+XmlNode.prototype.getTextValue = function() {
+    return this._node.getNodeValue();
+}
+
+XmlNode.prototype.getNodeName = function() {
+    return this._node.getNodeName();
+}
+
+XmlNode.prototype.getChildNodes = function() {
+    return new XmlNodeList(this._node.getChildNodes());
+}
+
+XmlNode.prototype.getAttributes = function() {
+    return new XmlNodeList(this._node.getAttributes());
+}
+
+XmlNode.prototype.getNodeList = function(expression) {
+    return new XmlNodeList(xPath.compile(expression)
+    .evaluate(this._node,javax.xml.xpath.XPathConstants.NODESET));
+}
+
+XmlNode.prototype.getNode = function(expression) {
+    var nodeList = new XmlNodeList(xPath.compile(expression).evaluate(this._node,javax.xml.xpath.XPathConstants.NODESET));
+    if(nodeList.size === 1) {
+            return nodeList.get(0);
+        } else {
+            throw new Error("Maximum number of allowed results is 1. For expression " +
+            expression +
+            " A number of : " +
+            nodeList.size +
+            " has been returned");
+        }
+    }
+function concatEnclosures(matchArray) {
+  var concatenatedEnclosures = "";
+  for(var matchIndex = 1; matchIndex < matches.length; matchIndex++) {
+          concatenatedEnclosures += matches[matchIndex];
+  }
+  return concatenatedEnclosures;
+}
+
+// NODE SET SHOULD HAVE ONE , AND RETURN THE TEXT OF IT VALUE DEPENDING ON THE TYPE
+
+XmlNode.prototype.getText = function(expression, regex) {
+    var nodeList = new XmlNodeList(xPath.compile(expression).evaluate(this._node,javax.xml.xpath.XPathConstants.NODESET));
+    if(nodeList.size === 1){
+        var node = nodeList.get(0);
+        var textValue = node.getTextValue();
+        var matches = textValue.match(regex);
+        if(typeof matches.groups !== 'undefined' ) {
+            return concatEnclosures(Object.values(matches.groups));
+        }
+        if(matches.length > 1) {
+            return concatEnclosures(matches);
+        } else {
+            return matches[0];
+        }
+    } else {
+        throw new Error("Maximum number of allowed results is 1. For expression " +
+        expression +
+        " A number of : " +
+        nodeList.size +
+        " has been returned");
+    }
+}
+
+var XmlElement = function(node) {
+    XmlNode.call(this, node);
+}
+
+
+XmlElement.prototype = Object.create(XmlNode.prototype);
+XmlElement.prototype.constructor = XmlElement;
+
+XmlElement.prototype.getTextValue = function () {
+    var childNodes = this.getChildNodes();
+    if(childNodes.size == 1) {
+    return getChildNodes.get(0).getNodeValue();
+    } else {
+        throw new Error("Element has more than just a text node which is not allowed when extracting data.")
+    }
+}
+
+XmlElement.prototype.getElementsByTagName = function(name) {
+    return new XmlNodeList(this._node.getElementsByTagName(name));
+}
+
+XmlElement.prototype.getAttribute = function(attributeName) {
+    return this._node.getAttribute(attributeName);
+}
+
+XmlElement.prototype.getAttributeNode = function(name) {
+    return new XmlAttribute(this._node.getAttributeNode());
+}
+
+XmlElement.prototype.getTagName = function() {
+    return this._node.getTagName();
+}
+
+XmlAttribute = function(node) {
+    XmlNode.call(this, node);
+}
+
+XmlAttribute.prototype = Object.create(XmlNode.prototype);
+XmlAttribute.prototype.constructor = XmlAttribute;
+
+XmlAttribute.prototype.getValue = function() {
+    return this._node.getValue();
+}
+
+XmlAttribute.prototype.getName = function() {
+    return this._node.getName();
+}
+
+function isEmpty(obj) {
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+}
+
+function bindObject(attachmentMnemonic, attachmentType, bodySite,
+    mimeType, systemOnlyManaged, initFrom) {
+    var object = {};
+    object.attachmentMnemonic = attachmentMnemonic;
+    if (attachmentType == null) {
+        attachmentType = "NONE";
+    }
+    object.attachmentType = attachmentType;
+    if (mimeType == null) {
+        mimeType = 'application/json';
+    }
+    object.mimeType = mimeType;
+    if(typeof bodySite == 'undefined'){
+    bodySite = null;
+    }
+    object.bodySite = bodySite;
+    object.saveMethod = json;
+    object.item = JSON.parse(getTextIfNullReturnEmptyJson(attachmentMnemonic, bodySite));
+
+    if (isEmpty(object.item) && initFrom != null) {
+        object.item = JSON.parse(initFrom);
+    }
+
+    bindedObjects.push(object);
+    return object.item;
+}
+
+function bindXml(attachmentMnemonic, attachmentType, bodySite, mimeType, systemOnlyManaged, initFrom) {
+    var object = {};
+    object.attachmentMnemonic = attachmentMnemonic;
+    if (attachmentType == null) {
+        attachmentType = "NONE";
+    }
+    object.attachmentType = attachmentType;
+    if (mimeType == null) {
+        mimeType = 'application/json';
+    }
+    object.mimeType = mimeType;
+    object.bodySite = bodySite;
+    object.saveMethod = json;
+    object.item = getTextData(object.attachmentMnemonic, object.bodySite);
+
+    var xmlBytes = object.item.getBytes("UTF-8");
+    var factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+    var builder = factory.newDocumentBuilder();
+    var xmlInput = new java.io.ByteArrayInputStream(xmlBytes);
+    var document = builder.parse(xmlInput);
+    document.normalize();
+    xPath = Packages.javax.xml.xpath.XPathFactory.newInstance().newXPath();
+
+    return new XmlNode(document.getDocumentElement());
+}
+
+function getDicom(attachmentMnemonic, attachmentType, bodySite,
+    mimeType, systemOnlyManaged, initFrom) {
+    var object = {};
+    object.attachmentMnemonic = attachmentMnemonic;
+    object.attachmentType = attachmentType;
+    if(typeof bodySite == 'undefined'){
+        bodySite = null;
+        }
+    object.bodySite = bodySite;
+    object.item = getDicomParser(attachmentMnemonic, bodySite).getStudy();
+
+    return object.item;
+}
+
+function bindBinary(attachmentMnemonic, attachmentType, bodySite,
+    mimeType, systemOnlyManaged, initFrom) {
+    var binaryObject = {};
+    binaryObject.attachmentMnemonic = attachmentMnemonic;
+    binaryObject.bodySite = bodySite;
+    if (attachmentType == null) {
+        attachmentType = "NONE";
+    }
+    binaryObject.attachmentType = attachmentType;
+    binaryObject.saveMethod = blob;
+    if (mimeType == null) {
+        mimeType = 'application/pdf';
+    }
+    binaryObject.mimeType = mimeType;
+
+    var attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
+    if (attachmentData != null) {
+        binaryObject.blob = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite).getBlobData();
+    } else {
+        binaryObject.blob = null;
+    }
+    if (binaryObject.blob == null && initFrom != null) {
+        binaryObject.blob = initFrom;
+    }
+
+    bindedObjects.push(binaryObject);
+    return binaryObject.blob;
+}
+
+function convertStudyDateTimeToSqlTime(dateString, timeString) {
+    var time = timeString.substring(0, 6);
+    var year = dateString.substring(0, 4);
+    var month = dateString.substring(4, 6);
+    var day = dateString.substring(6, 8);
+    var hour = timeString.substring(0, 2);
+    var minute = timeString.substring(2, 4);
+    var seconds = timeString.substring(4, 6);
+    var date = new Date(year, month - 1, day, hour, minute, seconds);
+
+    return date.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+function convertReportDateToSqlTime(dateString) {
+    var date = new Date(dateString);
+    return date.toISOString().slice(0, 19).replace('T', ' ');
+}
+
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};

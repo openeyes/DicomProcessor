@@ -29,8 +29,8 @@ public class AttachmentData {
     private Blob mediumThumbnail;
     @Column(name = "thumbnail_large_blob", columnDefinition="mediumblob")
     private Blob largeThumbnail;
-    @Column(name = "json_data", columnDefinition = "LONGTEXT")
-    private String jsonData;
+    @Column(name = "text_data", columnDefinition = "LONGTEXT")
+    private String textData;
     @Column(name = "attachment_type")
     private String attachmentType;
     @Column(name = "body_site_snomed_type")
@@ -54,7 +54,7 @@ public class AttachmentData {
         private final String bodySiteSnomedType;
 
         private int systemOnlyManaged = 0;
-        private String jsonData = null;
+        private String textData = null;
         private Blob blobData = null;
 
         public Builder(int requestId, String mimeType,
@@ -72,11 +72,11 @@ public class AttachmentData {
             return this;
         }
 
-        public Builder jsonData(String value) {
+        public Builder textData(String value) {
             if (value.equals("")) {
-                jsonData = null;
+                textData = null;
             } else {
-                jsonData = value;
+                textData = value;
             }
             return this;
         }
@@ -94,7 +94,7 @@ public class AttachmentData {
     public AttachmentData(Builder builder) {
         requestId = builder.requestId;
         blobData = builder.blobData;
-        jsonData = builder.jsonData;
+        textData = builder.textData;
         attachmentType = builder.attachmentType;
         bodySiteSnomedType = builder.bodySiteSnomedType;
         mimeType = builder.mimeType;
@@ -102,8 +102,8 @@ public class AttachmentData {
         systemOnlyManaged = builder.systemOnlyManaged;
     }
 
-    public String getJsonData() {
-        return jsonData;
+    public String getTextData() {
+        return textData;
     }
 
     public String getAttachmentType() {
@@ -124,10 +124,6 @@ public class AttachmentData {
 
     public String getAttachmentMnemonic() {
         return attachmentMnemonic;
-    }
-
-    public String getJson() {
-        return jsonData;
     }
 
     public Blob getBlobData() {
@@ -166,11 +162,11 @@ public class AttachmentData {
         blobData = value;
     }
 
-    public void setJson(String value) {
+    public void setTextData(String value) {
         if (value.equals("")) {
-            jsonData = null;
+            textData = null;
         } else {
-            jsonData = value;
+            textData = value;
         }
     }
 }

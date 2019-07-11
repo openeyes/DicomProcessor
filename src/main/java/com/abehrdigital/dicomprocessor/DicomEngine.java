@@ -34,7 +34,6 @@ public class DicomEngine {
         init(args);
         RoutineLibrarySynchronizer routineLibrarySynchronizer = new RoutineLibrarySynchronizer(
                 new RoutineScriptAccessor(),
-                new DirectoryFileNamesReader(),
                 DaoFactory.createEngineInitialisationDaoManager(),
                 synchronizeRoutineLibraryDelay
         );
@@ -45,6 +44,7 @@ public class DicomEngine {
             Logger.getLogger(DicomEngine.class.getName()).log(Level.WARNING,
                     StackTraceUtil.getStackTraceAsString(synchronizeException)
             );
+            System.exit(1);
         }
 
         RequestQueueExecutor requestQueueExecutor = new RequestQueueExecutor(
@@ -92,6 +92,7 @@ public class DicomEngine {
         }
         initialisePatientSearchApi();
         initialiseClocks();
+        RoutineScriptWrapperFunctions.init();
     }
 
     private static void initialiseParametersFromCommandLineArguments(String[] args) {
@@ -151,8 +152,10 @@ public class DicomEngine {
         ExceptionInInitializerError lastException = new ExceptionInInitializerError("Failed connecting to the database");
         long shutdownRetryDatabaseConnectionClock = System.currentTimeMillis() * 60 * 1000 * RETRY_DATABASE_CONNECTION_FOR_MINUTES;
         boolean connectionAcquired = false;
-        while (System.currentTimeMillis() < shutdownRetryDatabaseConnectionClock && !connectionAcquired) {
+        boolean triedAtleastOnce = false;
+        while (!triedAtleastOnce || (System.currentTimeMillis() < shutdownRetryDatabaseConnectionClock && !connectionAcquired)) {
             try {
+                triedAtleastOnce = true;
                 connectionAcquired = HibernateUtil.buildSessionFactory(hibernateConfig);
             } catch (ExceptionInInitializerError exception) {
                 lastException = exception;

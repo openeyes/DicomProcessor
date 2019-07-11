@@ -10,16 +10,13 @@ import java.util.List;
 
 public class RoutineLibrarySynchronizer {
     private RoutineScriptAccessor scriptAccessor;
-    private DirectoryFileNamesReader fileNamesReader;
     private EngineInitialisationDaoManager daoManager;
     private Long lastTimeWhenRoutineLibraryWasPopulated;
     private long cooldownForNextCheckInMiliseconds;
 
     public RoutineLibrarySynchronizer(RoutineScriptAccessor scriptAccessor,
-                                      DirectoryFileNamesReader fileNamesReader,
                                       EngineInitialisationDaoManager initialisationDaoManager, long delayInMs) {
         this.scriptAccessor = scriptAccessor;
-        this.fileNamesReader = fileNamesReader;
         this.daoManager = initialisationDaoManager;
         this.cooldownForNextCheckInMiliseconds = delayInMs;
         lastTimeWhenRoutineLibraryWasPopulated = null;
@@ -28,7 +25,7 @@ public class RoutineLibrarySynchronizer {
     public void sync() throws IOException {
         if(lastTimeWhenRoutineLibraryWasPopulated == null ||
                 System.currentTimeMillis() >= lastTimeWhenRoutineLibraryWasPopulated + cooldownForNextCheckInMiliseconds) {
-            List<String> fileNames = fileNamesReader.read(DicomEngine.SCRIPT_FILE_LOCATION);
+            List<String> fileNames = DirectoryFileNamesReader.read(DicomEngine.SCRIPT_FILE_LOCATION);
             for (String fileName : fileNames) {
                 if (daoManager.getRoutineLibraryDao().get(fileName) == null) {
                     createAndSaveNewRoutineLibrary(fileName);

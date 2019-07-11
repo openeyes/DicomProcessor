@@ -3,6 +3,8 @@ var requestData = bindObject('REQUEST_DATA');
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
 var eventSubtype = "OCT";
 var eventDisplayOrder = 2;
+// HARD CODED ID
+requestData.patientId = 19372;
 
 eventData.$$_XID_Map_$$.forEach(function(data) {
     if (data.$$_XID_$$ == '$$_attachment_data[1]_$$') {

@@ -10,13 +10,20 @@ import com.abehrdigital.dicomprocessor.models.EventAttachmentItem;
 import com.abehrdigital.dicomprocessor.models.RequestRoutine;
 import com.abehrdigital.dicomprocessor.models.RoutineLibrary;
 import com.abehrdigital.dicomprocessor.utils.AttachmentDataThumbnailAdder;
+import com.abehrdigital.dicomprocessor.utils.DirectoryFileNamesReader;
 import com.abehrdigital.dicomprocessor.utils.PatientSearchApi;
-import com.abehrdigital.dicomprocessor.utils.RoutineScriptAccessor;
+import org.apache.commons.io.IOUtils;
 import org.hibernate.HibernateException;
 
-import java.io.FileNotFoundException;
+import javax.sql.rowset.serial.SerialBlob;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Blob;
+import java.sql.SQLException;
 import java.util.List;
 
 public class RoutineScriptService {
@@ -25,23 +32,20 @@ public class RoutineScriptService {
             daoManager;
     private int requestId;
     private String requestQueueName;
-    private RoutineScriptAccessor scriptAccessor;
 
     public RoutineScriptService(ScriptEngineDaoManager daoManager,
                                 int requestId,
-                                String requestQueueName,
-                                RoutineScriptAccessor scriptAccessor) {
+                                String requestQueueName) {
         this.daoManager = daoManager;
         this.requestId = requestId;
         this.requestQueueName = requestQueueName;
-        this.scriptAccessor = scriptAccessor;
     }
 
-    public String getJsonIfNullReturnEmptyJson(String attachmentMnemonic, String bodySite) throws Exception {
+    public String getTextIfNullReturnEmptyJson(String attachmentMnemonic, String bodySite) throws Exception {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
 
-        if (attachmentData != null && attachmentData.getJson() != null) {
-            return attachmentData.getJson();
+        if (attachmentData != null && attachmentData.getTextData() != null) {
+            return attachmentData.getTextData();
         } else {
             return EMPTY_JSON_STRING;
         }
@@ -54,7 +58,12 @@ public class RoutineScriptService {
                     " body site: " + bodySite + " for Request : " + requestId);
         }
 
-        return new DicomParser(attachmentData.getBlobData());
+        return new DicomParser(attachmentData.getBlobData(), new Study());
+    }
+
+    public String getTextData(String attachmentMnemonic, String bodySite) throws Exception {
+        AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
+        return attachmentData.getTextData();
     }
 
     public AttachmentData getAttachmentDataByAttachmentMnemonicAndBodySite(String attachmentMnemonic, String bodySite)
@@ -71,7 +80,7 @@ public class RoutineScriptService {
                 .getByAttachmentMnemonicAndBodySite(attachmentMnemonic, null, requestId);
     }
 
-    public void putJson(
+    public void putText(
             String attachmentMnemonic,
             String json,
             String attachmentType,
@@ -80,14 +89,14 @@ public class RoutineScriptService {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
 
         if (attachmentData != null) {
-            attachmentData.setJson(json);
+            attachmentData.setTextData(json);
             daoManager.getAttachmentDataDao().save(attachmentData);
         } else {
             attachmentData = new AttachmentData.Builder(
                     requestId, mimeType,
                     attachmentMnemonic, attachmentType,
                     bodySite)
-                    .jsonData(json)
+                    .textData(json)
                     .build();
             daoManager.getAttachmentDataDao().save(attachmentData);
         }
@@ -106,7 +115,7 @@ public class RoutineScriptService {
                         .build();
                 daoManager.getRequestRoutineDao().saveWithNewExecutionSequence(requestRoutine);
             } else {
-                throw new Exception("Routine name: " + routineName +" doesn't exist in routine_library");
+                throw new Exception("Routine name: " + routineName + " doesn't exist in routine_library");
             }
         }
     }
@@ -149,16 +158,16 @@ public class RoutineScriptService {
 
     public String getPatientId(String hospitalNumber) throws Exception {
         String patientId;
-        try{
+        try {
             patientId = PatientSearchApi.searchPatient(hospitalNumber);
         } catch (Exception exception) {
-            throw new Exception("Patient was not found with Hospital number: " + hospitalNumber , exception);
+            throw new Exception("Patient was not found with Hospital number: " + hospitalNumber, exception);
         }
         return patientId;
     }
 
-    public AttachmentData getEventDataByMedicalReportStudyInstanceUID(String attachmentMnemonic, String studyInstanceUID) {
-        Integer requestId = daoManager.getGenericMedicalReportDao().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
+    public AttachmentData getEventDataByDeviceInformationStudyInstanceUID(String attachmentMnemonic, String studyInstanceUID) {
+        Integer requestId = daoManager.getGenericDeviceInformationDao().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
         if (requestId != -1) {
             return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic, requestId);
         } else {
@@ -168,12 +177,12 @@ public class RoutineScriptService {
 
     public void deleteEventAttachmentByAttachmentId(int attachmentId) {
         List<EventAttachmentItem> eventAttachmentItems = daoManager.getEventAttachmentItemDao().getByAttachmentDataId(attachmentId);
-        for(EventAttachmentItem eventAttachmentItem : eventAttachmentItems){
+        for (EventAttachmentItem eventAttachmentItem : eventAttachmentItems) {
             int eventAttachmentGroupSize = daoManager
                     .getEventAttachmentItemDao()
                     .getByEventAttachmentGroupId(eventAttachmentItem.getEventAttachmentGroupId())
                     .size();
-            if(eventAttachmentGroupSize > 1) {
+            if (eventAttachmentGroupSize > 1) {
                 daoManager.getEventAttachmentItemDao().delete(eventAttachmentItem);
             }
         }
@@ -186,7 +195,35 @@ public class RoutineScriptService {
         return dataAPI.magic("1", eventData, daoManager.getConnection());
     }
 
-    public boolean eventIsDeleted(int eventId){
+    public boolean eventIsDeleted(int eventId) {
         return daoManager.getEventDao().getNotDeleted(eventId).isEmpty();
+    }
+
+    public List<String> searchFiles(String directory, String regex) throws IOException {
+        return DirectoryFileNamesReader.read(directory, regex);
+    }
+
+    public Blob getFileAsBlob(String directory, String fileName) throws IOException, SQLException {
+        File file = new File(directory + "\\"+ fileName);
+        FileInputStream fileInputStream = new FileInputStream(file);
+        return new SerialBlob(IOUtils.toByteArray(fileInputStream));
+    }
+
+    public int getCurrentRequestId(){
+        return requestId;
+    }
+
+    public boolean moveFile(String directoryFrom, String fileName, String directoryTo) throws IOException {
+       return moveFileWithRename(directoryFrom,fileName,directoryTo,fileName);
+    }
+
+    public boolean moveFileWithRename(String directoryFrom, String fileName, String directoryTo, String newFileName) throws IOException {
+        newFileName = newFileName.replaceAll("/", "-");
+        Path movedPath = Files.move(
+                Paths.get(directoryFrom + "\\"+ fileName),
+                Paths.get(directoryTo + "\\"+ newFileName.replaceAll("/", "-"))
+        );
+
+        return movedPath != null;
     }
 }

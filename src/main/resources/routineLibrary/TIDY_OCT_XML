@@ -1,0 +1,12 @@
+var requestData = bindObject('REQUEST_DATA');
+var reportFileArray = searchFiles(env.TOPCON_PENDING_DIR, regex);
+var regex = requestData.file_name.replace(".xml" , "") + ".*\.jpg";
+var reportFileArray = searchFiles(env.TOPCON_PENDING_DIR, regex);
+if(reportFileArray.size() != 1) {
+    throw new Error("Incorrect amount of file names have been returned for " + reportFileArray +" Regex:" + regex +
+    " Returned: " +  reportFileArray.size() + " Expected: 1");
+}
+
+ moveFileWithRename(env.TOPCON_PENDING_DIR, reportFileArray.get(0),"C:\\www\\mirthFiles\\complete",
+ requestData.patientId +"_" + requestData.dob + "_" + requestData.gender + "_" +
+  requestData.reportDate + "_(" + requestData.firstName + "_" + requestData.lastName + ")_" + requestData.file_name + ".jpg");

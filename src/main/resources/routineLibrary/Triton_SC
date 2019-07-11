@@ -1,4 +1,4 @@
-addRoutine('GENERIC_EXTRACT_PDF');
+addRoutine('GENERIC_EXTRACT_IMAGE');
 addRoutine('GENERIC_EVENT_DEVICE_INFORMATION_AUGMENT');
 addRoutine('GENERIC_PAS_API');
-addRoutine('create_event');
+addRoutine('create_image_event');

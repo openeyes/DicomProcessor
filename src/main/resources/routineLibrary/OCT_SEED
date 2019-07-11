@@ -12,7 +12,7 @@ requestData.laterality = dicomHeader['200060'];
 requestData.image_laterality = dicomHeader['200062'];
 requestData.study_description = dicomHeader['420010'];
 requestData.document_title = dicomHeader['81030'];
-requestData.software_version = dicomHeader['2C31c'];
+requestData.software_version = dicomHeader['2c31c'];
 requestData.document_title = dicomHeader['420010'];
 requestData.acquisition_date_time = dicomHeader['8002a'];
 requestData.study_date = dicomHeader['80020'];
@@ -25,6 +25,7 @@ requestData.hosNum = dicomHeader['100020'];
 requestData.name = dicomHeader['‭100010‬'];
 requestData.gender = dicomHeader['100040'];
 requestData.dateOfBirth = dicomHeader['‭100030‬'];
+requestData.patient_id = dicomHeader['100020'];
 requestData.study_instance_uid = dicomHeader['20000d'];
 requestData.series_instance_uid = dicomHeader['20000e'];
 requestData.study_id = dicomHeader['‭200010‬'];
@@ -38,4 +39,4 @@ requestData.sop_instance_uid = dicomHeader['‭80018‬'];
 //REQUESTDATA.EVENT_SUB_TYPE = FUNCTION TO GET EVENT SUB TYPE ( REQUESTDATA.MODALITY)
 
 //Calling manufacturer device handler
-addRoutine(requestData.manufacturer.replace(/ /g, "_"));
+addRoutine(requestData.manufacturer_model_name.replace(/ /g, "_"));

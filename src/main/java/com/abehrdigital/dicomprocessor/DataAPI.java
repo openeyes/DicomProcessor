@@ -135,15 +135,15 @@ public class DataAPI {
     /**
      * Open and parse a JSON file and return a list of Query objects
      *
-     * @param jsonData name of the json to be parsed
+     * @param textData name of the json to be parsed
      * @return a list of Query objects, containing parsed information from the json
      * @throws IOException file not found
      * @throws ParseException parser exception
      */
-    private ArrayList<ArrayList<Query>> parseJson(String jsonData) throws Exception {
+    private ArrayList<ArrayList<Query>> parseJson(String textData) throws Exception {
         ArrayList<ArrayList<Query>> saveSets = new ArrayList<>();
         JSONParser jsonParser = new JSONParser();
-        JSONObject json = (JSONObject) jsonParser.parse(jsonData);
+        JSONObject json = (JSONObject) jsonParser.parse(textData);
 
 
         //System.out.println("==1: ");
@@ -208,7 +208,9 @@ public class DataAPI {
                 // parse all JSON objects in the array
                 for (Object jsonContent : (JSONArray) rowContent) {
                     // add Query object resulted to the array result
-                    saveSet.add(parseJsonQuery((JSONObject) jsonContent, dataSet));
+                        if(!jsonContent.toString().equals("{}")) {
+                            saveSet.add(parseJsonQuery((JSONObject) jsonContent, dataSet));
+                        }
                 }
             // or a JSON object
             } else if (rowContent instanceof JSONObject) {
@@ -398,15 +400,15 @@ public class DataAPI {
     /**
      * Apply all sql queries after parsing the json string
      * @param userId String id of user who makes the changes
-     * @param jsonData String json to be parsed
+     * @param textData String json to be parsed
      * @throws Exception Nothing to parse; Could not open a new session!; Could not get current date time!
      */
-    String magic(String userId, String jsonData, Session session) throws Exception, EmptyKnownFieldsException,
+    String magic(String userId, String textData, Session session) throws Exception, EmptyKnownFieldsException,
             ValuesNotFoundException, InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
         DataAPI.printDebugBanner(250, "Magic starts here");
         // TODO: needs renaming
         // TODO: use "user_id" for insert/merge operations
-        if (jsonData.isEmpty()) {
+        if (textData.isEmpty()) {
             throw new Exception("Nothing to parse");
         }
 
@@ -414,7 +416,7 @@ public class DataAPI {
         init(userId, session);
 
         // parse and execute the sql queries from the json string
-        applyQueries(parseJson(jsonData));
+        applyQueries(parseJson(textData));
 
         // DEBUG
         DataAPI.printMap("Final", this.dataDictionary);
@@ -496,10 +498,10 @@ public class DataAPI {
 
         DataAPI dataAPI = new DataAPI(HibernateUtil.getSessionFactory().openSession());
         dataAPI.session.beginTransaction();
-        String jsonData = dataAPI.getEventTemplate();
-        String modifiedJsonData = dataAPI.magic("1", jsonData, dataAPI.session);
-        //System.out.println(jsonData);
-        //System.out.println(modifiedJsonData);
+        String textData = dataAPI.getEventTemplate();
+        String modifiedTextData = dataAPI.magic("1", textData, dataAPI.session);
+        //System.out.println(textData);
+        //System.out.println(modifiedTextData);
 
        /* DataAPI.session =  HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();

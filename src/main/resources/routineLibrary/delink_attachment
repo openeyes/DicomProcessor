@@ -1,5 +1,5 @@
-var requestData = bindObject('REQUEST_DATA', null);
+var requestData = bindObject('REQUEST_DATA');
 
-   if(requestData != null && requestData.attachmentDataItemToDelete != null){
-       deleteEventAttachmentByAttachmentId(requestData.attachmentDataItemToDelete);
-   }
+if (requestData != null && requestData.attachmentDataItemToDelete != null) {
+    deleteEventAttachmentByAttachmentId(requestData.attachmentDataItemToDelete);
+}
