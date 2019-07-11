@@ -96,30 +96,18 @@ if ! /wait = 1; then
   exit; 
 fi
 
-# # Test to see if database exists - if not we will quit
-# # NOTE: It is recommended to add a WAIT_HOSTS for the web server to be active first, as this will ensure the database is built
-# echo Testing Database: host=${DATABASE_HOST:-"localhost"} user=${DATABSE_USER:-"openeyes"} name=${DATABASE_NAME:-"openeyes"}...
+switches="-sf /routineLibrary/ -rq ${PROCESSOR_QUEUE_NAME} -sy ${SYNCHRONIZE_ROUTINE_DELAY} -rq ${RETRY_DATABASE_CONNECTION}"
 
-# # NOTE: The $? on the end of the next line is very important - it converts the output to a 1 or 0
-# db_pre_exist=$( ! mysql -A --host=${DATABASE_HOST:-'localhost'} -u $DATABASE_USER "$dbpassword" -e "use ${DATABASE_NAME:-'openeyes'};" 2>/dev/null)$?
-
-# [ "$db_pre_exist" = "1" ] && echo "...database ${DATABASE_NAME:-'openeyes'} found." || { echo "...could not find database ${DATABASE_NAME:-'openeyes'}. Quitting..."; exit 1; }
-
-
-switches="-sf $PROJROOT/src/main/resources/routineLibrary/ -rq dicom_queue -sy 99999"
 
 # If a shutdown after (minutes) has been specified, then pass this to the processor. It will then run for x minutes before automatically shutting down
 [ $PROCESSOR_SHUTDOWN_AFTER -gt 0 ] && switches="$switches -sa $PROCESSOR_SHUTDOWN_AFTER" || :
 
-# Start apache
+# Start processor
 echo "Starting opeyes DicomProcessor process..."
 echo ""
 echo "*********************************************"
 echo "**       -= END OF STARTUP SCRIPT =-       **"
 echo "*********************************************"
-# Send output of openeyeyes application log to stdout - for viewing with docker logs
-# touch $PROJROOT/protected/runtime/application.log
-# chmod 664 $PROJROOT/protected/runtime/application.log
-# tail -n0 $PROJROOT/protected/runtime/application.log -F | awk '/^==> / {a=substr($0, 5, length-8); next} {print a"App Log:"$0}' &
 
-$PROJROOT/target/appassembler/bin/dicomEngine $switches
+
+$PROJROOT/appassembler/bin/dicomEngine $switches

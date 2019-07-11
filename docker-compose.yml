@@ -44,7 +44,6 @@ services:
     tty: true
     volumes:
       - "oe-web:/var/www/openeyes"
-      - "oe-db:/var/lib/mysql"
     depends_on:
       - db
 
@@ -55,7 +54,8 @@ services:
       TZ: 'Europe/London'
     ports:
       - "3306:3306"
-
+    volumes:
+      - "oe-db:/var/lib/mysql"
 volumes:
   oe-web:
   oe-db:
