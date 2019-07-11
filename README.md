@@ -1,4 +1,4 @@
-oc# DicomProcessor
+# DicomProcessor
 
 Java code for processing medical device files
 
