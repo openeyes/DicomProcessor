@@ -1,4 +1,4 @@
-# DicomProcessor
+# Payload Processor
 
 Java code for processing medical device files
 
