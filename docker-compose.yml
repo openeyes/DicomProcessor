@@ -4,7 +4,7 @@ version: '3.4'
 services:
 
   dicom:
-    image: appertaopeneyes/dicomprocessor:latest
+    image: appertaopeneyes/payloadprocessor:latest
     environment:
       TZ: 'Europe/London'
       DATABASE_HOST: "db"
