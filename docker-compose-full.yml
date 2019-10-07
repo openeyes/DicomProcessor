@@ -1,0 +1,68 @@
+
+version: '3.4'
+
+services:
+
+  dicom:
+    image: appertaopeneyes/payloadprocessor:latest
+    environment:
+      TZ: 'Europe/London'
+      DATABASE_HOST: "db"
+      DATABASE_USER: "${DATABASE_USER:-openeyes}"
+      DATABASE_PASS: "${DATABASE_PASS:-openeyes}"
+      WAIT_HOSTS: "web:80"
+      WAIT_HOSTS_TIMEOUT: 3000
+
+    secrets:
+      - source: SSH_PRIVATE_KEY
+    stdin_open: true
+    tty: true
+    depends_on:
+      - db
+      - web
+
+
+  web:
+    image: appertaopeneyes/web:latest
+    environment:
+      TZ: 'Europe/London'
+      UID: '1'
+      GID: '1'
+      OE_MODE: 'DEV'
+      GIT_USER: "${GIT_USER}"
+      DATABASE_HOST: "db"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-password}"
+      DATABASE_USER: "${DATABASE_USER:-openeyes}"
+      DATABASE_PASS: "${DATABASE_PASS:-openeyes}"
+      LOCAL_DB: "FALSE"
+      BUILD_BRANCH: "dicom/test"
+    secrets:
+      - source: SSH_PRIVATE_KEY
+    ports:
+      - "80:80"
+    stdin_open: true
+    tty: true
+    volumes:
+      - "oe-web:/var/www/openeyes"
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:10.1
+    environment:
+      MYSQL_ROOT_PASSWORD: "password"
+      TZ: 'Europe/London'
+    ports:
+      - "3306:3306"
+    volumes:
+      - "oe-db:/var/lib/mysql"
+volumes:
+  oe-web:
+  oe-db:
+
+secrets:
+  SSH_PRIVATE_KEY:
+    file: ~/.ssh/id_rsa
+  SSH_AUTHORIZED_KEYS:
+    file: ~/.ssh/id_rsa.pub
+
