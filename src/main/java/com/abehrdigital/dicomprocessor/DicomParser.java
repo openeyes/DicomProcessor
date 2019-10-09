@@ -17,11 +17,12 @@ public class DicomParser {
     private DicomInputStream dicomInputStream;
     private Attributes attributes;
     private byte[] attachmentBytes;
-    private static final int MAXIMUM_SIMPLE_ELEMENT_BYTE_LENGTH = 1000000;
+    private static final int MAXIMUM_SIMPLE_ELEMENT_BYTE_LENGTH = 1000;
 
     public DicomParser(Blob dicomBlob, Study study) throws Exception {
         this.dicomBlob = dicomBlob;
         this.study = study;
+        this.attachmentBytes = new byte[1];
         run();
     }
 
@@ -31,6 +32,7 @@ public class DicomParser {
     }
 
     private Map<String, String> simpleElements() {
+        String attachmentTagKey;
         Map<String, String> elements = new HashMap<>();
         for (int tag : attributes.tags()) {
             byte[] valueAsByte;
@@ -40,13 +42,18 @@ public class DicomParser {
                 //TODO: handle cases where value is a sequence
                 continue;
             }
-            if (valueAsByte.length < MAXIMUM_SIMPLE_ELEMENT_BYTE_LENGTH) {
+
+            if(valueAsByte.length > attachmentBytes.length) {
+                attachmentBytes = valueAsByte;
+                attachmentTagKey = Integer.toHexString(tag);
+            }
+
                 String value = new String(valueAsByte, Charset.forName("UTF-8"));
                 elements.put(Integer.toHexString(tag), value.trim());
-            } else {
-                attachmentBytes = valueAsByte;
-            }
         }
+
+
+        elements.remove(attachmentTagKey);
         return elements;
     }
 
