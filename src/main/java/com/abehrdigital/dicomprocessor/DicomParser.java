@@ -32,7 +32,7 @@ public class DicomParser {
     }
 
     private Map<String, String> simpleElements() {
-        String attachmentTagKey;
+        String attachmentTagKey = "";
         Map<String, String> elements = new HashMap<>();
         for (int tag : attributes.tags()) {
             byte[] valueAsByte;
