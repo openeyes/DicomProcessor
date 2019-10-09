@@ -17,7 +17,7 @@ public class DicomParser {
     private DicomInputStream dicomInputStream;
     private Attributes attributes;
     private byte[] attachmentBytes;
-    private static final int MAXIMUM_SIMPLE_ELEMENT_BYTE_LENGTH = 1000;
+    private static final int MAXIMUM_SIMPLE_ELEMENT_BYTE_LENGTH = 1000000;
 
     public DicomParser(Blob dicomBlob, Study study) throws Exception {
         this.dicomBlob = dicomBlob;
