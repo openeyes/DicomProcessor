@@ -2,7 +2,9 @@ package com.abehrdigital.dicomprocessor;
 
 
 import org.dcm4che3.data.Attributes;
+import org.dcm4che3.data.Tag;
 import org.dcm4che3.io.DicomInputStream;
+import org.dcm4che3.util.TagUtils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -17,7 +19,7 @@ public class DicomParser {
     private DicomInputStream dicomInputStream;
     private Attributes attributes;
     private byte[] attachmentBytes;
-    private static final int MAXIMUM_SIMPLE_ELEMENT_BYTE_LENGTH = 10000;
+    private static final int MAXIMUM_SIMPLE_ELEMENT_BYTE_LENGTH = 1000;
 
     public DicomParser(Blob dicomBlob, Study study) throws Exception {
         this.dicomBlob = dicomBlob;
@@ -33,18 +35,22 @@ public class DicomParser {
     private Map<String, String> simpleElements() {
         Map<String, String> elements = new HashMap<>();
         for (int tag : attributes.tags()) {
-            byte[] valueAsByte;
-            try {
-                valueAsByte = (byte[]) attributes.getValue(tag); //casted because getValue() returns Object
-            } catch (ClassCastException ex) {
-                //TODO: handle cases where value is a sequence
-                continue;
-            }
-            if (valueAsByte.length < MAXIMUM_SIMPLE_ELEMENT_BYTE_LENGTH) {
-                String value = new String(valueAsByte, Charset.forName("UTF-8"));
-                elements.put(Integer.toHexString(tag), value.trim());
+
+            if (Tag.EncapsulatedDocument != TagUtils.normalizeRepeatingGroup(tag)) {
+                byte[] valueAsByte;
+                try {
+                    valueAsByte = (byte[]) attributes.getValue(tag); //casted because getValue() returns Object
+                } catch (ClassCastException ex) {
+                    //TODO: handle cases where value is a sequence
+                    continue;
+                }
+
+                if (valueAsByte.length < MAXIMUM_SIMPLE_ELEMENT_BYTE_LENGTH) {
+                    String value = new String(valueAsByte, Charset.forName("UTF-8"));
+                    elements.put(Integer.toHexString(tag), value.trim());
+                }
             } else {
-                attachmentBytes = valueAsByte;
+                attachmentBytes = (byte[]) attributes.getValue(tag);
             }
         }
         return elements;
