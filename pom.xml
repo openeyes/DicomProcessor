@@ -40,6 +40,15 @@
     </properties>
     <repositories>
         <repository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>http://repo1.maven.org/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>dcm4che-tool-common</id>
             <url>http://www.dcm4che.org/maven2/</url>
         </repository>
@@ -50,11 +59,6 @@
         <repository>
             <id>JBoss repository</id>
             <url>http://repository.jboss.org/nexus/content/groups/public/</url>
-        </repository>
-        <repository>
-            <id>central-repo</id>
-            <name>Central Repository</name>
-            <url>http://repo1.maven.org/maven2</url>
         </repository>
     </repositories>
     <dependencies>
