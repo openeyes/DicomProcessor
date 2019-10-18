@@ -51,7 +51,11 @@
             <id>JBoss repository</id>
             <url>http://repository.jboss.org/nexus/content/groups/public/</url>
         </repository>
-
+        <repository>
+            <id>central-repo</id>
+            <name>Central Repository</name>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
     </repositories>
     <dependencies>
         <dependency>
@@ -107,8 +111,6 @@
             <version>8.0.13</version>
         </dependency>
 
-
-        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
@@ -213,5 +215,4 @@
 
     </dependencies>
 </project>
-<!-- https://mvnrepository.com/artifact/javax.servlet/servlet-api -->
 
