@@ -12,7 +12,6 @@ public class ImageTextExtractor {
 
     public ImageTextExtractor(){
         imageReader = new Tesseract();
-        imageReader.setDatapath(imageReaderDataPath);
     }
 
 
