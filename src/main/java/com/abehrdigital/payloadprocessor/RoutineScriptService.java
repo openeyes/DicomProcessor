@@ -11,6 +11,7 @@ import com.abehrdigital.payloadprocessor.models.RequestRoutine;
 import com.abehrdigital.payloadprocessor.models.RoutineLibrary;
 import com.abehrdigital.payloadprocessor.utils.AttachmentDataThumbnailAdder;
 import com.abehrdigital.payloadprocessor.utils.DirectoryFileNamesReader;
+import com.abehrdigital.payloadprocessor.utils.ImageTextExtractor;
 import com.abehrdigital.payloadprocessor.utils.PatientSearchApi;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
@@ -231,5 +232,13 @@ public class RoutineScriptService {
         );
 
         return movedPath != null;
+    }
+
+    public String readTextFromImage(AttachmentData attachmentData, int x , int y, int width , int height) throws SQLException, IOException, TesseractException {
+        ImageTextExtractor imageTextExtractor = new ImageTextExtractor();
+        Rectangle rectangle = new Rectangle(x,y,width,height);
+        InputStream blobBinaryStream = attachmentData.getBlobData().getBinaryStream();
+        BufferedImage image = ImageIO.read(blobBinaryStream);
+        return imageTextExtractor.read(image, rectangle);
     }
 }
