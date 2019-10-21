@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
 
 public class ImageTextExtractor {
     private Tesseract imageReader;
-    private static final String imageReaderDataPath ="C:\\tessdata\\";
+    private static final String imageReaderDataPath ="src/main/resources/tessdata/";
 
     public ImageTextExtractor(){
         imageReader = new Tesseract();
