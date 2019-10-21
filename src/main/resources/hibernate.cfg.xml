@@ -30,13 +30,13 @@
         <property name="hbm2ddl.auto">validate</property>
         <property name="hibernate.connection.autocommit">false</property>
         <!--Names the annotated entity class-->
-        <mapping class="com.abehrdigital.dicomprocessor.models.Request"></mapping>
-        <mapping class="com.abehrdigital.dicomprocessor.models.RequestRoutine"></mapping>
-        <mapping class="com.abehrdigital.dicomprocessor.models.RequestRoutineExecution"></mapping>
-        <mapping class="com.abehrdigital.dicomprocessor.models.RoutineLibrary"></mapping>
-        <mapping class="com.abehrdigital.dicomprocessor.models.AttachmentData"></mapping>
-        <mapping class="com.abehrdigital.dicomprocessor.models.RequestQueue"></mapping>
-        <mapping class="com.abehrdigital.dicomprocessor.models.RequestQueueLock"></mapping>
-        <mapping class="com.abehrdigital.dicomprocessor.models.EventAttachmentItem"></mapping>
+        <mapping class="com.abehrdigital.payloadprocessor.models.Request"></mapping>
+        <mapping class="com.abehrdigital.payloadprocessor.models.RequestRoutine"></mapping>
+        <mapping class="com.abehrdigital.payloadprocessor.models.RequestRoutineExecution"></mapping>
+        <mapping class="com.abehrdigital.payloadprocessor.models.RoutineLibrary"></mapping>
+        <mapping class="com.abehrdigital.payloadprocessor.models.AttachmentData"></mapping>
+        <mapping class="com.abehrdigital.payloadprocessor.models.RequestQueue"></mapping>
+        <mapping class="com.abehrdigital.payloadprocessor.models.RequestQueueLock"></mapping>
+        <mapping class="com.abehrdigital.payloadprocessor.models.EventAttachmentItem"></mapping>
     </session-factory>
 </hibernate-configuration>

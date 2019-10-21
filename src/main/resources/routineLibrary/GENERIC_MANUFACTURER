@@ -1,0 +1,2 @@
+var requestData = bindObject('REQUEST_DATA');
+addRoutine('GENERIC_MANUFACTURER_' + requestData.modality);

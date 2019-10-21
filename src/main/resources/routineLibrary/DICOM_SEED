@@ -38,4 +38,8 @@ requestData.sop_instance_uid = dicomHeader['‭80018‬'];
 //REQUESTDATA.EVENT_SUB_TYPE = FUNCTION TO GET EVENT SUB TYPE ( REQUESTDATA.MODALITY)
 
 //Calling manufacturer device handler
-addRoutine(requestData.manufacturer.replace(/ /g, "_"));
+if(typeof requestData.manufacturer != "undefined") {
+    addRoutine(requestData.manufacturer.replace(/ /g, "_"));
+} else {
+    addRoutine("GENERIC_MANUFACTURER")
+}
