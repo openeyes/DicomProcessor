@@ -1,4 +1,5 @@
 addRoutine('GENERIC_EXTRACT_IMAGE');
+addRoutine('GENERIC_EXTRACT_REPORT_TYPE_FROM_IMAGE');
 addRoutine('GENERIC_EVENT_ASSESSMENT_AUGMENT');
 addRoutine('GENERIC_PAS_API');
 addRoutine('create_assessment_event');
