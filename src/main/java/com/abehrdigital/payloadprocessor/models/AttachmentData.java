@@ -169,4 +169,8 @@ public class AttachmentData {
             textData = value;
         }
     }
+
+    public void setAttachmentType(String attachmentType) {
+        this.attachmentType = attachmentType;
+    }
 }
