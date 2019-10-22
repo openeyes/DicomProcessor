@@ -31,6 +31,7 @@ ARG BUILD_PROJROOT
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TIMEZONE
 
+RUN apk add --update tesseract-ocr-dev
 
 ## API connection details.
 ## This is a connection to the openeyes web service
@@ -75,6 +76,7 @@ ENV WAIT_SLEEP_INTERVAL=2
 # Copy compiled files
 COPY --from=builder ${PROJROOT}/target/ ${PROJROOT}
 COPY --from=builder ${PROJROOT}/src/main/resources/routineLibrary/ /routineLibrary
+COPY --from=builder ${PROJROOT}/src/main/resources/tessdata/ /tessdata
 
 # Add the init script
 COPY .docker_build/init.sh /init.sh
