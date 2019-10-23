@@ -1,6 +1,6 @@
 ## Builds an OpenEyes DicomProcessor service instance.
 
-ARG MAVEN_TAG=3-alpine
+ARG MAVEN_TAG=3.6-ibmjava-alpine
 ARG BUILD_PROJROOT="/dicomprocessor"
 ARG TIMEZONE="Europe/London"
 
