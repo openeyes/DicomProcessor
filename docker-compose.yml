@@ -6,6 +6,7 @@ services:
   dicom:
     build:
       context: ./
+    container_name: payload_processor
     environment:
       TZ: 'Europe/London'
       DATABASE_HOST: "host.docker.internal"

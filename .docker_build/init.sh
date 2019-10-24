@@ -33,7 +33,7 @@ DATABASE_NAME= $DATABASE_NAME
 
 "
 export DEBIAN_FRONTEND=noninteractive
-
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib:/usr/glibc-compat/lib:/usr/local/lib:/lib
 echo "Setting Timezone to ${TZ:-'Europe/London'}"
 # Set system timezone
 grep -q "$TZ" /etc/timezone >/dev/null

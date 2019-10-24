@@ -31,6 +31,8 @@ public class DicomEngine {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        System.load("/usr/lib/lept");
+        System.loadLibrary("tesseract");
         init(args);
         RoutineLibrarySynchronizer routineLibrarySynchronizer = new RoutineLibrarySynchronizer(
                 new RoutineScriptAccessor(),
