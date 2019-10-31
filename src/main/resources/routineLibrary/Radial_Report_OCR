@@ -1,0 +1,5 @@
+var requestData = bindObject('REQUEST_DATA');
+var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
+var assessmentData = bindObject('ASSESSMENT_DATA');
+assessmentData.avg_thickness = readTextFromImage(attachmentPdf, 1100 , 450 ,1200 , 420);
+assessmentData.green_thing = readTextFromImage(attachmentPdf, 1020 , 400 ,1057 , 370);

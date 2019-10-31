@@ -3,3 +3,5 @@ var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf'
 requestData.report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 65);
 
 attachmentPdf.setAttachmentType(requestData.report_type);
+
+addRoutine('GENERIC_EVENT_ASSESSMENT_OCR');

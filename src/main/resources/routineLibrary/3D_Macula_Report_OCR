@@ -1,0 +1,3 @@
+var requestData = bindObject('REQUEST_DATA');
+var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
+requestData.report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 65);

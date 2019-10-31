@@ -201,7 +201,8 @@ var eventTemplate = {
                               avg_rnfl: 'null',
                               cct: 'null',
                               cd_ratio: 'null',
-                              eye_id:'1'
+                              eye_id:'1',
+                              abac_json: 'null'
                                                               },
                                                               {
                                                                  $$_CRUD_$$:'MERGE',
@@ -223,7 +224,9 @@ var eventTemplate = {
                                                                  avg_rnfl:'null',
                                                                  cct:'null',
                                                                  cd_ratio:'null',
-                                                                 eye_id:'2'
+                                                                 eye_id:'2',
+                                                                 abac_json: 'null'
+
                                                               },
 
                           ]

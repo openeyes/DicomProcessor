@@ -1,0 +1,3 @@
+var requestData = bindObject('REQUEST_DATA');
+
+addRoutine(requestData.report_type.replace(/ /g, "_").replace("/", "_") + "_OCR");
