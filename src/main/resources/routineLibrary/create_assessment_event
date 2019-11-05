@@ -4,6 +4,8 @@ var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf'
 var eventSubtype = requestData.report_type;
 var eventDisplayOrder = 2;
 requestData.patientId = 19372;
+var assessmentData = bindObject('ASSESSMENT_DATA');
+var abac_json = bindObject('ABAC_JSON');
 
 eventData.$$_XID_Map_$$.forEach(function(data) {
     if (data.$$_XID_$$ == '$$_attachment_data[1]_$$') {
@@ -32,14 +34,17 @@ eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
     if (dataSet == "et_ophgeneric_assessment") {
             var assessmentRow = data.$$_ROW_$$[0];
             assessmentRow.eye_id = requestData.eyeId;
+
     }
     if (dataSet == "ophgeneric_assessment_entry") {
         if(requestData.eyeId !== 3) {
         var assessmentReportRow = data.$$_ROW_$$[0];
-        assessmentReportRow.avg_thickness = requestData.averageThickness;
-        assessmentReportRow.crt = requestData.crt;
-        assessmentReportRow.total_vol = requestData.totalVolume;
+        for ( assessmentDataKey in assessmentData) {
+            assessmentReportRow[assessmentDataKey] = assessmentData[assessmentDataKey];
+              abac_json[assessmentDataKey] = "RO";
+        }
         assessmentReportRow.eye_id = requestData.eyeId;
+        assessmentReportRow.abac_json = abac_json;
         data.$$_ROW_$$[1] = {};
         } else {
                 var leftAssessmentReportRow = data.$$_ROW_$$[0];
