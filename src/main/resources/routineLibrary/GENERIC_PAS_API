@@ -1,2 +1,1 @@
 var requestData = bindObject('REQUEST_DATA');
-requestData.patientId = 19766;
