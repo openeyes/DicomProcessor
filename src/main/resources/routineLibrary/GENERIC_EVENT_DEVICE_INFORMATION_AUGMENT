@@ -95,7 +95,6 @@ var eventTemplate = {
                             automated_source: 'null',
                             parent_id: 'null',
                             sub_type: 'null',
-                            firm_id: '$$_firm[1].id_$$'
                           }
                         },
                         {
