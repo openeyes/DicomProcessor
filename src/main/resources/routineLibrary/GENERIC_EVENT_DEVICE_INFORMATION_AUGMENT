@@ -59,52 +59,12 @@ var eventTemplate = {
                           ]
                         },
                         {
-                          $$_DataSet_$$: 'subspecialty',
-                          $$_ROW_$$: [
-                            {
-                              $$_CRUD_$$: 'RETRIEVE',
-                              id: '$$_subspecialty[1]_$$'
-                            }
-                          ]
-                        },
-                        {
-                          $$_DataSet_$$: 'service',
-                          $$_ROW_$$: [
-                            {
-                              $$_CRUD_$$: 'RETRIEVE',
-                              id: '$$_service[1]_$$'
-                            }
-                          ]
-                        },
-                        {
-                          $$_DataSet_$$: 'service_subspecialty_assignment',
-                          $$_ROW_$$: [
-                            {
-                              $$_CRUD_$$: 'RETRIEVE',
-                              id: '$$_service_subspecialty_assignment[1]_$$',
-                              service_id: '$$_service[1].id_$$',
-                              subspecialty_id: '$$_subspecialty[1].id_$$'
-                            }
-                          ]
-                        },
-                        {
-                          $$_DataSet_$$: 'firm',
-                          $$_ROW_$$: [
-                            {
-                              $$_CRUD_$$: 'RETRIEVE',
-                              id: '$$_firm[1]_$$',
-                              service_subspecialty_assignment_id: '$$_service_subspecialty_assignment[1].id_$$'
-                            }
-                          ]
-                        },
-                        {
                           $$_DataSet_$$: 'episode',
                           $$_ROW_$$: [
                             {
                               $$_CRUD_$$: 'RETRIEVE',
                               id: '$$_episode[1]_$$',
                               patient_id: '$$_patient[1].id_$$',
-                              firm_id: '$$_firm[1].id_$$',
                               $$_QUERIES_$$: [
                                 {
                                   $$_PARAMETERS_$$: [

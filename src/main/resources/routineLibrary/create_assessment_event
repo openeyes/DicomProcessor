@@ -3,7 +3,7 @@ var requestData = bindObject('REQUEST_DATA');
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
 var eventSubtype = requestData.report_type;
 var eventDisplayOrder = 2;
-requestData.patientId = 19372;
+
 var assessmentData = bindObject('ASSESSMENT_DATA');
 var abac_json = bindObject('ABAC_JSON');
 
