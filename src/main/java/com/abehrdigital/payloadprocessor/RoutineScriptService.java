@@ -206,6 +206,10 @@ public class RoutineScriptService {
         return daoManager.getEventDao().getNotDeleted(eventId).isEmpty();
     }
 
+    public boolean patientHasEpisodes(int patientId) {
+        return !daoManager.getEpisodeDao().getByPatientId(patientId).isEmpty();
+    }
+
     public List<String> searchFiles(String directory, String regex) throws IOException {
         return DirectoryFileNamesReader.read(directory, regex);
     }
