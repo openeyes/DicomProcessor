@@ -10,6 +10,7 @@ import com.abehrdigital.payloadprocessor.exceptions.RequestQueueMissingException
 import com.abehrdigital.payloadprocessor.models.ApiConfig;
 import com.abehrdigital.payloadprocessor.utils.*;
 import org.apache.commons.cli.*;
+import org.apache.commons.lang3.SystemUtils;
 import org.hibernate.cfg.Configuration;
 
 import java.util.concurrent.TimeUnit;
@@ -31,8 +32,10 @@ public class DicomEngine {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        System.load("/usr/lib/lept");
-        System.loadLibrary("tesseract");
+        if(!SystemUtils.IS_OS_WINDOWS) {
+            System.load("/usr/lib/lept");
+            System.loadLibrary("tesseract");
+        }
         init(args);
         RoutineLibrarySynchronizer routineLibrarySynchronizer = new RoutineLibrarySynchronizer(
                 new RoutineScriptAccessor(),
