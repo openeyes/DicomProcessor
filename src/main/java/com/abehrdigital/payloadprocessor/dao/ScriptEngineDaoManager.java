@@ -10,6 +10,7 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     private GenericDeviceInformationDao genericDeviceInformationDao;
     private EventAttachmentItemDao eventAttachmentItemDao;
     private EventDao eventDao;
+    private EpisodeDao episodeDao;
 
     public ScriptEngineDaoManager() {
     }
@@ -75,5 +76,12 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
             this.eventDao = new EventDao(getConnection());
         }
         return this.eventDao;
+    }
+
+    public EpisodeDao getEpisodeDao() {
+        if(this.episodeDao == null) {
+            this.episodeDao = new EpisodeDao(getConnection());
+        }
+        return this.episodeDao;
     }
 }
