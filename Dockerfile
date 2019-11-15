@@ -83,4 +83,5 @@ COPY .docker_build/init.sh /init.sh
 COPY .docker_build/wait /wait
 RUN chmod a+rx /init.sh /wait
 
+VOLUME ["/tmp"]
 ENTRYPOINT ["/init.sh"]
