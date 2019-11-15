@@ -1,0 +1,3 @@
+var requestData = bindObject('REQUEST_DATA');
+var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
+attachmentPdf.setAttachmentType(requestData.report_type);
