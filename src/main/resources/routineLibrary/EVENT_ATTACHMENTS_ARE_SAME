@@ -1,0 +1,4 @@
+ var requestData = bindObject('REQUEST_DATA');
+ var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
+
+ requestData.duplicateRequest = attachmentsContentAreEqual(attachmentPdf, requestData.previousAttachmentDataId);
