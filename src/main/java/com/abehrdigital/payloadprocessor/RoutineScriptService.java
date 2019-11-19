@@ -15,6 +15,7 @@ import com.abehrdigital.payloadprocessor.utils.ImageTextExtractor;
 import com.abehrdigital.payloadprocessor.utils.PatientSearchApi;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.HibernateException;
 
@@ -31,6 +32,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Blob;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 public class RoutineScriptService {
@@ -244,5 +246,17 @@ public class RoutineScriptService {
         InputStream blobBinaryStream = attachmentData.getBlobData().getBinaryStream();
         BufferedImage image = ImageIO.read(blobBinaryStream);
         return imageTextExtractor.read(image, rectangle);
+    }
+
+    public boolean attachmentsContentAreEqual(AttachmentData attachmentData, int attachmentDataIdToCompare) throws SQLException {
+        Blob firstBlob = attachmentData.getBlobData();
+        Blob secondBlob =  daoManager.getAttachmentDataDao().get(attachmentDataIdToCompare).getBlobData();
+        int firstBlobLength = (int)firstBlob.length();
+        int secondBlobLength = (int)secondBlob.length();
+
+        byte[] bytes = firstBlob.getBytes(1, firstBlobLength);
+        byte[] bytes2 = secondBlob.getBytes(1,secondBlobLength);
+
+        return Arrays.equals(bytes,bytes2);
     }
 }
