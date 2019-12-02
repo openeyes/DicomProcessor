@@ -686,20 +686,15 @@ public class Query {
         }
     }
 
-    static int insertIfNotExistsAttachmentGroup(Session session, int event_id, String elementTypeClassName)
+    static int insertIfNotExistsAttachmentGroup(Session session, int event_id, String elementTypeClassName, String eventClassName)
             throws InvalidNumberOfRowsAffectedException {
-        NativeQuery sqlQuery = session.createSQLQuery("SELECT id from element_type where class_name = :elementTypeClassName")
-                .setParameter("elementTypeClassName", elementTypeClassName);
-
-        // get the id of the element_type of given class
-        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(sqlQuery, ONE_ROW);
-        if (aliasToValueMapList.size() != 1) {
+        int elementTypeId = getElementType(session,elementTypeClassName,eventClassName);
+        if (elementTypeId == 1) {
             System.err.println("Element_type could not be found!");
             return -1;
         }
-        int elementTypeId = Integer.parseInt(aliasToValueMapList.get(0).get("id").toString());
 
-        aliasToValueMapList = executeSelect(
+        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(
             session.createSQLQuery("SELECT id from event_attachment_group where event_id = :event_id and element_type_id = :elementTypeId")
                 .setParameter("event_id", event_id)
                 .setParameter("elementTypeId", elementTypeId),
@@ -711,13 +706,46 @@ public class Query {
         }
 
         // does not exist, insert
+        insertAttachmentGroup(session, event_id, elementTypeId);
+
+        // get the newly inserted ID
+        return getNewlyInsertedId(session);
+    }
+
+    static int insertNewAttachmentGroup(Session session, int event_id, String elementTypeClassName, String eventClassName) throws InvalidNumberOfRowsAffectedException {
+        int elementTypeId = getElementType(session,elementTypeClassName,eventClassName);
+        if (elementTypeId == 1) {
+            System.err.println("Element_type could not be found!");
+            return -1;
+        }
+
+        insertAttachmentGroup(session, event_id, elementTypeId);
+
+        // get the newly inserted ID
+        return getNewlyInsertedId(session);
+    }
+
+    private static void insertAttachmentGroup(Session session, int event_id, int elementTypeId) throws InvalidNumberOfRowsAffectedException {
         executeInsertUpdate(
             session.createSQLQuery("INSERT INTO event_attachment_group (event_id, element_type_id) VALUES ( :event_id , :elementTypeId );")
             .setParameter("event_id", event_id)
             .setParameter("elementTypeId", elementTypeId));
+    }
 
-        // get the newly inserted ID
-        return getNewlyInsertedId(session);
+    private static int getElementType(Session session, String elementTypeClassName, String eventClassName) throws InvalidNumberOfRowsAffectedException {
+        NativeQuery sqlQuery = session.createSQLQuery("SELECT t.id from element_type t " +
+                "JOIN event_type et ON et.id = t.event_type_id  where t.class_name = :elementTypeClassName AND et.class_name = :eventClassName")
+                .setParameter("elementTypeClassName", elementTypeClassName)
+                .setParameter("eventClassName", eventClassName);
+
+        // get the id of the element_type of given class
+        List<HashMap<String, Object>> aliasToValueMapList = executeSelect(sqlQuery, ONE_ROW);
+        if (aliasToValueMapList.size() != 1) {
+            System.err.println("Element_type could not be found!");
+            return -1;
+        }
+
+        return Integer.parseInt(aliasToValueMapList.get(0).get("id").toString());
     }
 
     private static void prettyPrintQueryResultObject(List<HashMap<String, Object>> aliasToValueMapList) {
