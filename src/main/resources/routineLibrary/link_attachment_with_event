@@ -1,7 +1,7 @@
 var eventData = bindObject('event_data');
 var requestData = bindObject('REQUEST_DATA');
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
-var eventID;
+var eventID = requestData.eventId;
 
 
 eventData.$$_XID_Map_$$.forEach(function(data) {
