@@ -1,0 +1,24 @@
+var eventData = JSON.parse(getTextIfNullReturnEmptyJson('event_data', null));
+var requestData = bindObject('REQUEST_DATA');
+var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
+
+requestData.biometryId = getBiometryEventId("1.2.276.0.75.2.1.10.0.1.150731171549375.1120642.1009604");
+requestData.eventId = requestData.biometryId;
+
+eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
+    var dataSet = data.$$_DataSet_$$;
+
+    if (dataSet == "et_ophgeneric_attachment") {
+        var attachmentRow = data.$$_ROW_$$[0];
+        attachmentRow.event_id = requestData.biometryId;
+    }
+});
+
+var eventData = createEvent(JSON.stringify(eventData));
+
+putText(
+    'event_data',
+    eventData,
+    'NONE',
+    null, 'application/json');
+addRoutine('link_biometry_attachment_with_event');
