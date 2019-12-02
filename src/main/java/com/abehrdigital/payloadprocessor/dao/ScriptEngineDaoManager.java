@@ -11,6 +11,7 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     private EventAttachmentItemDao eventAttachmentItemDao;
     private EventDao eventDao;
     private EpisodeDao episodeDao;
+    private BiometryImportedEventsDao biometryImportedEventsDao;
 
     public ScriptEngineDaoManager() {
     }
@@ -83,5 +84,13 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
             this.episodeDao = new EpisodeDao(getConnection());
         }
         return this.episodeDao;
+    }
+
+    public BiometryImportedEventsDao getBiometryImportedEventsDao(){
+        if(this.biometryImportedEventsDao == null) {
+            this.biometryImportedEventsDao = new BiometryImportedEventsDao(getConnection());
+        }
+
+        return this.biometryImportedEventsDao;
     }
 }
