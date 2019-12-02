@@ -1,5 +1,6 @@
 package com.abehrdigital.payloadprocessor;
 
+import com.abehrdigital.payloadprocessor.dao.BiometryImportedEventsDao;
 import com.abehrdigital.payloadprocessor.dao.ScriptEngineDaoManager;
 import com.abehrdigital.payloadprocessor.exceptions.EmptyKnownFieldsException;
 import com.abehrdigital.payloadprocessor.exceptions.InvalidNumberOfRowsAffectedException;
@@ -161,8 +162,24 @@ public class RoutineScriptService {
 
     public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName)
             throws InvalidNumberOfRowsAffectedException {
+        linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName, "OphGeneric");
+    }
+
+    public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName, String eventClassName)
+            throws InvalidNumberOfRowsAffectedException {
         DataAPI dataAPI = new DataAPI(daoManager.getConnection());
-        dataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName);
+        dataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName, eventClassName);
+    }
+
+    public void linkAttachmentDataWithEventNewGroup(AttachmentData attachmentData, int eventId, String elementTypeClassName)
+            throws InvalidNumberOfRowsAffectedException {
+        linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, "OphGeneric");
+    }
+
+    public void linkAttachmentDataWithEventNewGroup(AttachmentData attachmentData, int eventId, String elementTypeClassName, String eventClassName)
+            throws InvalidNumberOfRowsAffectedException {
+        DataAPI dataAPI = new DataAPI(daoManager.getConnection());
+        dataAPI.linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, eventClassName);
     }
 
     public String getPatientId(String hospitalNumber) throws Exception {
