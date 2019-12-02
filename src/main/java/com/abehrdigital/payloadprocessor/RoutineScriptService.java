@@ -276,4 +276,15 @@ public class RoutineScriptService {
 
         return Arrays.equals(bytes,bytes2);
     }
+
+    public int getBiometryEventId(String studyId) throws Exception {
+        BiometryImportedEventsDao biometryImportedEventsDao = daoManager.getBiometryImportedEventsDao();
+        int eventId = biometryImportedEventsDao.getEventIdByStudyId(studyId);
+
+        if (requestId != -1) {
+            return eventId;
+        } else {
+            throw new Exception("Biometry cannot be found with that study ID (" + studyId + ")");
+        }
+    }
 }
