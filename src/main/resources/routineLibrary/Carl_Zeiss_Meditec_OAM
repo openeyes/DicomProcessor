@@ -1,4 +1,8 @@
+var requestData = bindObject('REQUEST_DATA');
 addRoutine('GENERIC_EXTRACT_PDF');
-addRoutine('GENERIC_EVENT_DEVICE_INFORMATION_AUGMENT');
+addRoutine('BIOMETRY_MEDIA_ATTACHMENT_AUGMENT');
 addRoutine('GENERIC_PAS_API');
-addRoutine('create_event');
+addRoutine('BIOMETRY_MEDIA_ATTACHMENT_CREATE');
+requestData.report_type = "Biometry Report";
+requestData.event_subtype = "Biometry Report";
+addRoutine('GENERIC_SET_ATTACHMENT_TYPE');
