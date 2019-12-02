@@ -514,9 +514,19 @@ public class DataAPI {
     }
 
     void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId,
-                                     String elementTypeClassName) throws InvalidNumberOfRowsAffectedException {
+                                     String elementTypeClassName, String eventClassName) throws InvalidNumberOfRowsAffectedException {
+        // insert a new record for the event_attachment_group if there isn't already one in the table for the givven event_id
+        int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(this.session, eventId, elementTypeClassName, eventClassName);
+
+        // insert a new record for the event_attachment_item table to link together the attachment_data with the attachment_group
+        Query.insertIfNotExistAttachmentItem(this.session, eventAttachmentGroupID, attachmentData.getId());
+    }
+
+
+
+    void linkAttachmentDataWithEventNewGroup(AttachmentData attachmentData, int eventId, String elementTypeClassName, String eventClassName) throws InvalidNumberOfRowsAffectedException {
             // insert a new record for the event_attachment_group if there isn't already one in the table for the givven event_id
-            int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(this.session, eventId, elementTypeClassName);
+            int eventAttachmentGroupID = Query.insertNewAttachmentGroup(this.session, eventId, elementTypeClassName, eventClassName);
 
             // insert a new record for the event_attachment_item table to link together the attachment_data with the attachment_group
             Query.insertIfNotExistAttachmentItem(this.session, eventAttachmentGroupID, attachmentData.getId());
