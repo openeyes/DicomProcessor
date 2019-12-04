@@ -1,16 +1,14 @@
 package com.abehrdigital.payloadprocessor;
 
+import com.abehrdigital.payloadprocessor.utils.DicomBlobUtils;
 import com.abehrdigital.payloadprocessor.utils.PDFUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.dcm4che3.data.Sequence;
 
-import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageInputStream;
+import org.dcm4che3.data.Sequence;
 import javax.sql.rowset.serial.SerialBlob;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
+
 import java.io.IOException;
 import java.sql.Blob;
 import java.sql.SQLException;
@@ -22,7 +20,7 @@ public class Study {
     private byte[] attachmentBytes;
     private byte[] imageBytes;
     private Blob dicomBlob;
-    private static final String imageFormat = "png";
+
     private Map<String, String> nonSequenceDicomElements;
     private Map<Integer, Sequence> sequenceDicomElements;
 
@@ -44,12 +42,11 @@ public class Study {
     }
 
     public SerialBlob getImageAsBlob() throws SQLException, IOException {
-        ImageInputStream inputStream = javax.imageio.ImageIO.createImageInputStream(dicomBlob.getBinaryStream());
-        BufferedImage image = ImageIO.read(inputStream);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ImageIO.write(image, imageFormat, byteArrayOutputStream);
-        byte[] imageBytes = byteArrayOutputStream.toByteArray();
-        return new SerialBlob(imageBytes);
+        return DicomBlobUtils.convertDicomBlobToSingleImage(dicomBlob);
+    }
+
+    public SerialBlob getImagesAsPdfBlob() throws SQLException, IOException {
+        return DicomBlobUtils.convertDicomImagesToPdf(dicomBlob);
     }
 
     public void setDicomBlob(Blob dicomBlob) {
