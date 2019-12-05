@@ -1,15 +1,13 @@
 package com.abehrdigital.payloadprocessor;
 
 import com.abehrdigital.payloadprocessor.dao.BiometryImportedEventsDao;
+import com.abehrdigital.payloadprocessor.dao.RequestDetailsDao;
 import com.abehrdigital.payloadprocessor.dao.ScriptEngineDaoManager;
 import com.abehrdigital.payloadprocessor.exceptions.EmptyKnownFieldsException;
 import com.abehrdigital.payloadprocessor.exceptions.InvalidNumberOfRowsAffectedException;
 import com.abehrdigital.payloadprocessor.exceptions.NoSearchedFieldsProvidedException;
 import com.abehrdigital.payloadprocessor.exceptions.ValuesNotFoundException;
-import com.abehrdigital.payloadprocessor.models.AttachmentData;
-import com.abehrdigital.payloadprocessor.models.EventAttachmentItem;
-import com.abehrdigital.payloadprocessor.models.RequestRoutine;
-import com.abehrdigital.payloadprocessor.models.RoutineLibrary;
+import com.abehrdigital.payloadprocessor.models.*;
 import com.abehrdigital.payloadprocessor.utils.AttachmentDataThumbnailAdder;
 import com.abehrdigital.payloadprocessor.utils.DirectoryFileNamesReader;
 import com.abehrdigital.payloadprocessor.utils.ImageTextExtractor;
@@ -19,6 +17,9 @@ import net.sourceforge.tess4j.TesseractException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.HibernateException;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.imageio.ImageIO;
 import javax.sql.rowset.serial.SerialBlob;
@@ -34,6 +35,7 @@ import java.nio.file.Paths;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 public class RoutineScriptService {
@@ -234,32 +236,32 @@ public class RoutineScriptService {
     }
 
     public Blob getFileAsBlob(String directory, String fileName) throws IOException, SQLException {
-        File file = new File(directory + "\\"+ fileName);
+        File file = new File(directory + "\\" + fileName);
         FileInputStream fileInputStream = new FileInputStream(file);
         return new SerialBlob(IOUtils.toByteArray(fileInputStream));
     }
 
-    public int getCurrentRequestId(){
+    public int getCurrentRequestId() {
         return requestId;
     }
 
     public boolean moveFile(String directoryFrom, String fileName, String directoryTo) throws IOException {
-       return moveFileWithRename(directoryFrom,fileName,directoryTo,fileName);
+        return moveFileWithRename(directoryFrom, fileName, directoryTo, fileName);
     }
 
     public boolean moveFileWithRename(String directoryFrom, String fileName, String directoryTo, String newFileName) throws IOException {
         newFileName = newFileName.replaceAll("/", "-");
         Path movedPath = Files.move(
-                Paths.get(directoryFrom + "\\"+ fileName),
-                Paths.get(directoryTo + "\\"+ newFileName.replaceAll("/", "-"))
+                Paths.get(directoryFrom + "\\" + fileName),
+                Paths.get(directoryTo + "\\" + newFileName.replaceAll("/", "-"))
         );
 
         return movedPath != null;
     }
 
-    public String readTextFromImage(AttachmentData attachmentData, int x , int y, int width , int height) throws SQLException, IOException, TesseractException {
+    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height) throws SQLException, IOException, TesseractException {
         ImageTextExtractor imageTextExtractor = new ImageTextExtractor();
-        Rectangle rectangle = new Rectangle(x,y,width,height);
+        Rectangle rectangle = new Rectangle(x, y, width, height);
         InputStream blobBinaryStream = attachmentData.getBlobData().getBinaryStream();
         BufferedImage image = ImageIO.read(blobBinaryStream);
         return imageTextExtractor.read(image, rectangle);
@@ -267,14 +269,14 @@ public class RoutineScriptService {
 
     public boolean attachmentsContentAreEqual(AttachmentData attachmentData, int attachmentDataIdToCompare) throws SQLException {
         Blob firstBlob = attachmentData.getBlobData();
-        Blob secondBlob =  daoManager.getAttachmentDataDao().get(attachmentDataIdToCompare).getBlobData();
-        int firstBlobLength = (int)firstBlob.length();
-        int secondBlobLength = (int)secondBlob.length();
+        Blob secondBlob = daoManager.getAttachmentDataDao().get(attachmentDataIdToCompare).getBlobData();
+        int firstBlobLength = (int) firstBlob.length();
+        int secondBlobLength = (int) secondBlob.length();
 
         byte[] bytes = firstBlob.getBytes(1, firstBlobLength);
-        byte[] bytes2 = secondBlob.getBytes(1,secondBlobLength);
+        byte[] bytes2 = secondBlob.getBytes(1, secondBlobLength);
 
-        return Arrays.equals(bytes,bytes2);
+        return Arrays.equals(bytes, bytes2);
     }
 
     public int getBiometryEventId(String studyId) throws Exception {
@@ -285,6 +287,25 @@ public class RoutineScriptService {
             return eventId;
         } else {
             throw new Exception("Biometry cannot be found with that study ID (" + studyId + ")");
+        }
+    }
+
+    public void updateRequestDetails(String requestData) throws ParseException {
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) jsonParser.parse(requestData);
+        RequestDetailsDao requestDetailsDao = daoManager.getRequestDetailsDao();
+        for (Object keyString : jsonObject.keySet()) {
+            String key = String.valueOf(keyString);
+            String value = String.valueOf(jsonObject.get(key));
+            RequestDetails requestDetails = requestDetailsDao.getByName(key, requestId);
+            if (requestDetails != null) {
+                requestDetails.setValue(value);
+            } else {
+                requestDetails = new RequestDetails(requestId, key, value);
+            }
+
+            requestDetailsDao.save(requestDetails);
+
         }
     }
 }
