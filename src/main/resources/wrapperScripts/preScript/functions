@@ -2,6 +2,26 @@ var bindedObjects = [];
 var json = "JSON";
 var blob = "BLOB";
 var xPath;
+var requestDataForShredding;
+
+function clone(obj) {
+var copy;
+
+// Handle Array
+    if (obj instanceof Array) {
+        copy = [];
+        for (var i = 0, len = obj.length; i < len; i++) {
+            copy[i] = clone(obj[i]);
+        }
+        return copy;
+    }
+    if (obj instanceof Object) return obj;
+        copy = {};
+    for (var attr in obj) {
+                if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+            }
+            return copy;
+}
 
 var XmlNodeList = function(nodeList) {
     this._nodeList = nodeList;
@@ -154,6 +174,8 @@ function isEmpty(obj) {
 
 function bindObject(attachmentMnemonic, attachmentType, bodySite,
     mimeType, systemOnlyManaged, initFrom) {
+
+
     var object = {};
     object.attachmentMnemonic = attachmentMnemonic;
     if (attachmentType == null) {
@@ -170,6 +192,10 @@ function bindObject(attachmentMnemonic, attachmentType, bodySite,
     object.bodySite = bodySite;
     object.saveMethod = json;
     object.item = JSON.parse(getTextIfNullReturnEmptyJson(attachmentMnemonic, bodySite));
+
+     if(attachmentMnemonic == "REQUEST_DATA") {
+        requestDataForShredding = JSON.parse(JSON.stringify(object.item));
+     }
 
     if (isEmpty(object.item) && initFrom != null) {
         object.item = JSON.parse(initFrom);

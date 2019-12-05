@@ -1,4 +1,9 @@
+var updatedRequestData;
+
 bindedObjects.forEach(function(object){
+        if(object.attachmentMnemonic == "REQUEST_DATA") {
+            updatedRequestData = object.item;
+        }
         if(object.saveMethod == json){
                        putText(
                                 object.attachmentMnemonic,
@@ -14,3 +19,8 @@ bindedObjects.forEach(function(object){
                              object.mimeType);
         }
                        });
+
+
+if(JSON.stringify(updatedRequestData) === JSON.stringify(requestDataForShredding)) {
+    updateRequestDetails(JSON.stringify(updatedRequestData));
+}
