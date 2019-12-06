@@ -11,6 +11,8 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     private EventAttachmentItemDao eventAttachmentItemDao;
     private EventDao eventDao;
     private EpisodeDao episodeDao;
+    private BiometryImportedEventsDao biometryImportedEventsDao;
+    private RequestDetailsDao requestDetailsDao;
 
     public ScriptEngineDaoManager() {
     }
@@ -57,31 +59,46 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
         return this.patientDao;
     }
 
-    public GenericDeviceInformationDao getGenericDeviceInformationDao(){
-        if(this.genericDeviceInformationDao == null) {
+    public GenericDeviceInformationDao getGenericDeviceInformationDao() {
+        if (this.genericDeviceInformationDao == null) {
             this.genericDeviceInformationDao = new GenericDeviceInformationDao(getConnection());
         }
         return this.genericDeviceInformationDao;
     }
 
-    public EventAttachmentItemDao getEventAttachmentItemDao(){
-        if(this.eventAttachmentItemDao == null) {
+    public EventAttachmentItemDao getEventAttachmentItemDao() {
+        if (this.eventAttachmentItemDao == null) {
             this.eventAttachmentItemDao = new EventAttachmentItemDao(getConnection());
-    }
+        }
         return this.eventAttachmentItemDao;
     }
 
     public EventDao getEventDao() {
-        if(this.eventDao == null) {
+        if (this.eventDao == null) {
             this.eventDao = new EventDao(getConnection());
         }
         return this.eventDao;
     }
 
     public EpisodeDao getEpisodeDao() {
-        if(this.episodeDao == null) {
+        if (this.episodeDao == null) {
             this.episodeDao = new EpisodeDao(getConnection());
         }
         return this.episodeDao;
+    }
+
+    public BiometryImportedEventsDao getBiometryImportedEventsDao() {
+        if (this.biometryImportedEventsDao == null) {
+            this.biometryImportedEventsDao = new BiometryImportedEventsDao(getConnection());
+        }
+
+        return this.biometryImportedEventsDao;
+    }
+
+    public RequestDetailsDao getRequestDetailsDao() {
+        if (this.requestDetailsDao == null) {
+            this.requestDetailsDao = new RequestDetailsDao(getConnection());
+        }
+        return this.requestDetailsDao;
     }
 }

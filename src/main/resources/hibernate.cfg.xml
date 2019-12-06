@@ -38,5 +38,6 @@
         <mapping class="com.abehrdigital.payloadprocessor.models.RequestQueue"></mapping>
         <mapping class="com.abehrdigital.payloadprocessor.models.RequestQueueLock"></mapping>
         <mapping class="com.abehrdigital.payloadprocessor.models.EventAttachmentItem"></mapping>
+        <mapping class="com.abehrdigital.payloadprocessor.models.RequestDetails"></mapping>
     </session-factory>
 </hibernate-configuration>

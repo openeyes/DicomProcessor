@@ -1,18 +1,4 @@
 <settings>
     <proxies>
-        <proxy>
-            <id>example-proxy</id>
-            <active>true</active>
-            <protocol>http</protocol>
-            <host>proxy.ad.ekhuft.nhs.uk</host>
-            <port>8080</port>
-        </proxy>
-        <proxy>
-            <id>example-proxy1</id>
-            <active>true</active>
-            <protocol>https</protocol>
-            <host>proxy.ad.ekhuft.nhs.uk</host>
-            <port>8080</port>
-        </proxy>
     </proxies>
 </settings>

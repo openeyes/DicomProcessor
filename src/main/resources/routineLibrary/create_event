@@ -2,6 +2,11 @@ var eventData = JSON.parse(getTextIfNullReturnEmptyJson('event_data', null));
 var requestData = bindObject('REQUEST_DATA');
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
 var eventSubtype = "OCT";
+
+if(typeof requestData.event_subtype != "undefined") {
+   eventSubtype = requestData.event_subtype;
+}
+
 var eventDisplayOrder = 2;
 
 eventData.$$_XID_Map_$$.forEach(function(data) {

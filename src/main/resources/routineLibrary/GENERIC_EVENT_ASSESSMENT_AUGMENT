@@ -498,7 +498,7 @@ var eventTemplate = {
                     // If there is set that event data instead of the template and find the attachment data id to delete from the previous
                     // event
                     var previousEventId = -1;
-                    var attachmentDataItemToDelete;
+                    var previousAttachmentDataId;
                     if (requestData.study_instance_uid != null) {
                         var attachmentData = getEventDataByDeviceInformationStudyInstanceUID('event_data', requestData.study_instance_uid.toString());
                         if (attachmentData != null) {
@@ -509,7 +509,7 @@ var eventTemplate = {
                                         previousEventId = data.id;
                                     }
                                     if (data.$$_XID_$$ == '$$_attachment_data[1]_$$') {
-                                        attachmentDataItemToDelete = data.id;
+                                        previousAttachmentDataId = data.id;
                                     }
                                 });
                             }
@@ -518,7 +518,9 @@ var eventTemplate = {
                     if (previousEventId != -1) {
                         if (!eventIsDeleted(previousEventId)) {
                             eventTemplate = previousEventData;
-                            requestData.attachmentDataItemToDelete = attachmentDataItemToDelete;
+                            requestData.previousAttachmentDataId = previousAttachmentDataId;
+
+                            addRoutine('EVENT_ATTACHMENTS_ARE_SAME');
                         }
                     }
 
