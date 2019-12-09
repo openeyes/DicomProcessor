@@ -5,7 +5,8 @@ var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf'
 requestData.biometryId = getBiometryEventId("1.2.276.0.75.2.1.10.0.1.150731171549375.1120642.1009604");
 
 requestData.isDuplicateAttachmentForEvent = isDuplicateAttachmentForEvent(requestData.biometryId , attachmentPdf.getHashCode());
-if(!requestData.isDuplicateBiometryAttachment) {
+
+if(!requestData.isDuplicateAttachmentForEvent || typeof requestData.isDuplicateAttachmentForEvent == "undefined") {
 requestData.eventId = requestData.biometryId;
 
 eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
