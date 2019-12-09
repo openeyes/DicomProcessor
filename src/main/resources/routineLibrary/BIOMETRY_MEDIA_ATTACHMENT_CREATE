@@ -26,4 +26,6 @@ putText(
     'NONE',
     null, 'application/json');
 addRoutine('link_biometry_attachment_with_event');
+} else {
+    addRoutine('event_not_updated_duplicate_attachment');
 }
