@@ -88,4 +88,10 @@ public class DicomBlobUtils {
         ImageIO.write(image, imageFormat, byteArrayOutputStream);
         return byteArrayOutputStream.toByteArray();
     }
+
+    public static int getHashCode(Blob blob) throws SQLException {
+        int blobLength = (int) blob.length();
+        byte[] blobAsBytes = blob.getBytes(1, blobLength);
+        return java.util.Arrays.hashCode(blobAsBytes);
+    }
 }

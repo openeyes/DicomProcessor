@@ -8,6 +8,7 @@ package com.abehrdigital.payloadprocessor.dao;
 import com.abehrdigital.payloadprocessor.models.AttachmentData;
 import com.abehrdigital.payloadprocessor.utils.QueryResultUtils;
 import org.hibernate.Session;
+import org.hibernate.query.NativeQuery;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -64,5 +65,19 @@ public class AttachmentDataDao implements BaseDao<AttachmentData, Integer> {
         criteriaQuery.where(predicates.toArray(new Predicate[0]));
 
         return (AttachmentData) QueryResultUtils.getFirstResultOrNull(session.createQuery(criteriaQuery));
+    }
+
+    public boolean attachmentAlreadyExistsWithThisHashCodeAndEventId(int eventId , int hashCode) throws Exception {
+
+        NativeQuery query = session.createSQLQuery("" +
+                "SELECT DISTINCT t.id FROM attachment_data t " +
+                "RIGHT JOIN `event_attachment_item` eti ON eti.`attachment_data_id` = t.id " +
+                "RIGHT JOIN event_attachment_group eag ON eag.`event_id` = :event_id " +
+                "WHERE t.hash_code = :hash_code ")
+                .setParameter("event_id", eventId)
+                .setParameter("hash_code", hashCode);
+
+        List results = query.list();
+        return !results.isEmpty();
     }
 }

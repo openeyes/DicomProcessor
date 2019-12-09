@@ -8,13 +8,8 @@ import com.abehrdigital.payloadprocessor.exceptions.InvalidNumberOfRowsAffectedE
 import com.abehrdigital.payloadprocessor.exceptions.NoSearchedFieldsProvidedException;
 import com.abehrdigital.payloadprocessor.exceptions.ValuesNotFoundException;
 import com.abehrdigital.payloadprocessor.models.*;
-import com.abehrdigital.payloadprocessor.utils.AttachmentDataThumbnailAdder;
-import com.abehrdigital.payloadprocessor.utils.DirectoryFileNamesReader;
-import com.abehrdigital.payloadprocessor.utils.ImageTextExtractor;
-import com.abehrdigital.payloadprocessor.utils.PatientSearchApi;
-import net.sourceforge.tess4j.Tesseract;
+import com.abehrdigital.payloadprocessor.utils.*;
 import net.sourceforge.tess4j.TesseractException;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.HibernateException;
 import org.json.simple.JSONObject;
@@ -34,8 +29,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Blob;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 public class RoutineScriptService {
@@ -145,14 +138,19 @@ public class RoutineScriptService {
             String mimeType
     ) throws Exception {
         AttachmentData attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
+        int blobHashCode = DicomBlobUtils.getHashCode(pdfBlob);
+
         if (attachmentData != null) {
             attachmentData.setBlobData(pdfBlob);
             daoManager.getAttachmentDataDao().save(attachmentData);
+            attachmentData.setHashCode(blobHashCode);
         } else {
             attachmentData = new AttachmentData.Builder(
                     requestId, mimeType, attachmentMnemonic,
                     attachmentType, bodySite)
-                    .blobData(pdfBlob).build();
+                    .blobData(pdfBlob)
+                    .hashCode(blobHashCode)
+                    .build();
             daoManager.getAttachmentDataDao().save(attachmentData);
         }
     }
@@ -268,15 +266,11 @@ public class RoutineScriptService {
     }
 
     public boolean attachmentsContentAreEqual(AttachmentData attachmentData, int attachmentDataIdToCompare) throws SQLException {
-        Blob firstBlob = attachmentData.getBlobData();
-        Blob secondBlob = daoManager.getAttachmentDataDao().get(attachmentDataIdToCompare).getBlobData();
-        int firstBlobLength = (int) firstBlob.length();
-        int secondBlobLength = (int) secondBlob.length();
+        int firstHashCode = attachmentData.getHashCode();
+        AttachmentData attachmentData1 = daoManager.getAttachmentDataDao().get(attachmentDataIdToCompare);
+        int secondHashCode = attachmentData1.getHashCode();
 
-        byte[] bytes = firstBlob.getBytes(1, firstBlobLength);
-        byte[] bytes2 = secondBlob.getBytes(1, secondBlobLength);
-
-        return Arrays.equals(bytes, bytes2);
+        return firstHashCode == secondHashCode;
     }
 
     public int getBiometryEventId(String studyId) throws Exception {
@@ -307,5 +301,10 @@ public class RoutineScriptService {
             requestDetailsDao.save(requestDetails);
 
         }
+    }
+
+    public boolean isDuplicateAttachmentForEvent(int eventId, int hashCode) throws Exception {
+
+        return daoManager.getAttachmentDataDao().attachmentAlreadyExistsWithThisHashCodeAndEventId(eventId, hashCode);
     }
 }

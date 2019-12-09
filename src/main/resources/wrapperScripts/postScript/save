@@ -21,6 +21,6 @@ bindedObjects.forEach(function(object){
                        });
 
 
-if(JSON.stringify(updatedRequestData) === JSON.stringify(requestDataForShredding)) {
+if(typeof requestDataForShredding != "undefined" && JSON.stringify(updatedRequestData) === JSON.stringify(requestDataForShredding)) {
     updateRequestDetails(JSON.stringify(updatedRequestData));
 }
