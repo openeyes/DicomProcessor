@@ -41,6 +41,8 @@ public class AttachmentData {
     private String attachmentMnemonic;
     @Column(name = "system_only_managed")
     private int systemOnlyManaged;
+    @Column(name = "hash_code", columnDefinition = "BIGINT")
+    private Integer hashCode;
 
     public AttachmentData() {
     }
@@ -53,9 +55,11 @@ public class AttachmentData {
         private final String attachmentType;
         private final String bodySiteSnomedType;
 
+
         private int systemOnlyManaged = 0;
         private String textData = null;
         private Blob blobData = null;
+        private Integer hashCode = null;
 
         public Builder(int requestId, String mimeType,
                        String attachmentMnemonic, String attachmentType,
@@ -86,6 +90,11 @@ public class AttachmentData {
             return this;
         }
 
+        public Builder hashCode(int value) {
+            hashCode = value;
+            return this;
+        }
+
         public AttachmentData build() {
             return new AttachmentData(this);
         }
@@ -100,6 +109,7 @@ public class AttachmentData {
         mimeType = builder.mimeType;
         attachmentMnemonic = builder.attachmentMnemonic;
         systemOnlyManaged = builder.systemOnlyManaged;
+        hashCode = builder.hashCode;
     }
 
     public String getTextData() {
@@ -172,5 +182,13 @@ public class AttachmentData {
 
     public void setAttachmentType(String attachmentType) {
         this.attachmentType = attachmentType;
+    }
+
+    public int getHashCode() {
+        return hashCode;
+    }
+
+    public void setHashCode(int hashCode) {
+        this.hashCode = hashCode;
     }
 }
