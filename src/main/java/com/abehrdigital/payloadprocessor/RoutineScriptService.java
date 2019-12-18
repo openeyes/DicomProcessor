@@ -173,13 +173,13 @@ public class RoutineScriptService {
 
     public void linkAttachmentDataWithEventNewGroup(AttachmentData attachmentData, int eventId, String elementTypeClassName)
             throws InvalidNumberOfRowsAffectedException {
-        linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, "OphGeneric");
+        linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, "OphGeneric", null);
     }
 
-    public void linkAttachmentDataWithEventNewGroup(AttachmentData attachmentData, int eventId, String elementTypeClassName, String eventClassName)
+    public void linkAttachmentDataWithEventNewGroup(AttachmentData attachmentData, int eventId, String elementTypeClassName, String eventClassName, String eventViewDocumentSet)
             throws InvalidNumberOfRowsAffectedException {
         DataAPI dataAPI = new DataAPI(daoManager.getConnection());
-        dataAPI.linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, eventClassName);
+        dataAPI.linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, eventClassName, eventViewDocumentSet);
     }
 
     public String getPatientId(String hospitalNumber) throws Exception {
