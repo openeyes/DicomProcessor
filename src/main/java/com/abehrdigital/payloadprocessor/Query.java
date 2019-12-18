@@ -639,7 +639,7 @@ public class Query {
         return Integer.parseInt(aliasToValueMapList.get(0).get("LAST_INSERT_ID()").toString());
     }
 
-    static void insertIfNotExistAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id)
+    static void insertIfNotExistAttachmentItem(Session session, int eventAttachmentGroupID, int attachment_data_id, String eventDocumentViewSet)
             throws InvalidNumberOfRowsAffectedException {
         List<HashMap<String, Object>> aliasToValueMapList = executeSelect(
                 session.createSQLQuery("SELECT id from event_attachment_item where attachment_data_id = :attachment_data_id and event_attachment_group_id = :eventAttachmentGroupID")
@@ -649,9 +649,10 @@ public class Query {
         if (aliasToValueMapList.size() == NO_ROWS) {
             executeInsertUpdate(
                     session.createSQLQuery("INSERT INTO event_attachment_item (attachment_data_id, event_attachment_group_id," +
-                            " system_only_managed) VALUES ( :attachment_data_id , :eventAttachmentGroupID, 1);")
+                            " system_only_managed, event_document_view_set) VALUES ( :attachment_data_id , :eventAttachmentGroupID, 1 , :eventDocumentViewSet);")
                             .setParameter("attachment_data_id", attachment_data_id)
-                            .setParameter("eventAttachmentGroupID", eventAttachmentGroupID));
+                            .setParameter("eventAttachmentGroupID", eventAttachmentGroupID)
+                            .setParameter("eventDocumentViewSet", eventDocumentViewSet));
         }
     }
 
