@@ -277,7 +277,7 @@ public class RoutineScriptService {
         BiometryImportedEventsDao biometryImportedEventsDao = daoManager.getBiometryImportedEventsDao();
         int eventId = biometryImportedEventsDao.getEventIdByStudyId(studyId);
 
-        if (requestId != -1) {
+        if (eventId != -1) {
             return eventId;
         } else {
             throw new Exception("Biometry cannot be found with that study ID (" + studyId + ")");
