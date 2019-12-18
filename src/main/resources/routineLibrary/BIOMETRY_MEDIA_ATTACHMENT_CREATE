@@ -2,7 +2,11 @@ var eventData = JSON.parse(getTextIfNullReturnEmptyJson('event_data', null));
 var requestData = bindObject('REQUEST_DATA');
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
 
-requestData.biometryId = getBiometryEventId("1.2.276.0.75.2.1.10.0.1.150731171549375.1120642.1009604");
+if(typeof requestData.study_instance_uid != "undefined") {
+    requestData.biometryId = getBiometryEventId(requestData.study_instance_uid);
+} else {
+    throw new Error("Study instance UID is required to get biometry ID");
+}
 
 requestData.isDuplicateAttachmentForEvent = isDuplicateAttachmentForEvent(requestData.biometryId , attachmentPdf.getHashCode());
 
