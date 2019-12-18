@@ -14,7 +14,7 @@ var attachmentId = attachmentPdf.getId();
 if (requestData.attachmentDataItemToDelete == attachmentId) {
     requestData.attachmentDataItemToDelete = null;
 } else {
-    linkAttachmentDataWithEventNewGroup(attachmentPdf, eventID, 'OEModule\\OphGeneric\\models\\Attachment', 'OphInBiometry');
+    linkAttachmentDataWithEventNewGroup(attachmentPdf, eventID, 'OEModule\\OphGeneric\\models\\Attachment', 'OphInBiometry', ' ');
 }
 createAndSetThumbnailsOnAttachmentData(attachmentPdf);
 addRoutine('delink_attachment');
