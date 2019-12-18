@@ -519,17 +519,21 @@ public class DataAPI {
         int eventAttachmentGroupID = Query.insertIfNotExistsAttachmentGroup(this.session, eventId, elementTypeClassName, eventClassName);
 
         // insert a new record for the event_attachment_item table to link together the attachment_data with the attachment_group
-        Query.insertIfNotExistAttachmentItem(this.session, eventAttachmentGroupID, attachmentData.getId());
+        Query.insertIfNotExistAttachmentItem(this.session, eventAttachmentGroupID, attachmentData.getId(), null);
     }
 
 
 
     void linkAttachmentDataWithEventNewGroup(AttachmentData attachmentData, int eventId, String elementTypeClassName, String eventClassName) throws InvalidNumberOfRowsAffectedException {
-            // insert a new record for the event_attachment_group if there isn't already one in the table for the givven event_id
-            int eventAttachmentGroupID = Query.insertNewAttachmentGroup(this.session, eventId, elementTypeClassName, eventClassName);
+        linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, eventClassName, null);
+    }
 
-            // insert a new record for the event_attachment_item table to link together the attachment_data with the attachment_group
-            Query.insertIfNotExistAttachmentItem(this.session, eventAttachmentGroupID, attachmentData.getId());
+    void linkAttachmentDataWithEventNewGroup(AttachmentData attachmentData, int eventId, String elementTypeClassName, String eventClassName, String eventDocumentViewSet) throws InvalidNumberOfRowsAffectedException {
+        // insert a new record for the event_attachment_group if there isn't already one in the table for the givven event_id
+        int eventAttachmentGroupID = Query.insertNewAttachmentGroup(this.session, eventId, elementTypeClassName, eventClassName);
+
+        // insert a new record for the event_attachment_item table to link together the attachment_data with the attachment_group
+        Query.insertIfNotExistAttachmentItem(this.session, eventAttachmentGroupID, attachmentData.getId(), eventDocumentViewSet);
     }
 
     static void printDebugBanner(int length, String message) {
