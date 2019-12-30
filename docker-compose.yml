@@ -4,8 +4,7 @@ version: '3.4'
 services:
 
   dicom:
-    build:
-      context: ./
+    image: justulka/payload_processor:latest
     container_name: payload_processor
     environment:
       TZ: 'Europe/London'
