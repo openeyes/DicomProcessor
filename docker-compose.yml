@@ -1,17 +1,16 @@
-
 version: '3.4'
 
 services:
 
   dicom:
-    image: justulka/payload_processor:latest
+    build:
+      context: ./
     container_name: payload_processor
     environment:
       TZ: 'Europe/London'
       DATABASE_HOST: "host.docker.internal"
       DATABASE_USER: "${DATABASE_USER:-openeyes}"
       DATABASE_PASS: "${DATABASE_PASS:-openeyes}"
-      
+
     stdin_open: true
     tty: true
-
