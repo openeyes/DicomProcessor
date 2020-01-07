@@ -1,3 +1,2 @@
 var requestData = bindObject('REQUEST_DATA');
-//requestData.patientId = getPatientId(requestData.hosNum.toString());
-requestData.patientId = 17895;
+requestData.patientId = getPatientId(requestData.hosNum.toString());
