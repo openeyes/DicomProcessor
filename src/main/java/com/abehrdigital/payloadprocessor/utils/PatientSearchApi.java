@@ -56,8 +56,16 @@ public class PatientSearchApi {
     private static String getPatientIdFromJson(String jsonPatientData) throws Exception {
         int ONE_PATIENT_RESULT = 1;
         JSONParser parser = new JSONParser();
-        Object parsedJson = parser.parse(jsonPatientData);
-        JSONArray jsonArray = (JSONArray) parsedJson;
+        Object parsedJson;
+        JSONArray jsonArray;
+
+        try {
+            parsedJson = parser.parse(jsonPatientData);
+            jsonArray = (JSONArray) parsedJson;
+        } catch (Exception exception) {
+            throw new Exception("Parsing failed for String" + jsonPatientData);
+        }
+
         if (jsonArray.size() == ONE_PATIENT_RESULT) {
             Iterator jsonArrayIterator = jsonArray.iterator();
             while (jsonArrayIterator.hasNext()) {
