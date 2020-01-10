@@ -7,20 +7,34 @@ import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Iterator;
 
 
@@ -47,6 +61,8 @@ public class PatientSearchApi {
      */
     public static String searchPatient(String hospitalNumber) throws Exception {
         String jsonPatientData = read(hospitalNumber);
+
+
         if (jsonPatientData.equals(EMPTY_JSON_RESPONSE)) {
             throw new Exception("Empty JSON RESPONSE");
         }
@@ -59,12 +75,9 @@ public class PatientSearchApi {
         Object parsedJson;
         JSONArray jsonArray;
 
-        try {
-            parsedJson = parser.parse(jsonPatientData);
-            jsonArray = (JSONArray) parsedJson;
-        } catch (Exception exception) {
-            throw new Exception("Parsing failed for String" + jsonPatientData);
-        }
+        parsedJson = parser.parse(jsonPatientData);
+        jsonArray = (JSONArray) parsedJson;
+
 
         if (jsonArray.size() == ONE_PATIENT_RESULT) {
             Iterator jsonArrayIterator = jsonArray.iterator();
@@ -87,10 +100,35 @@ public class PatientSearchApi {
      * @throws ConnectException
      */
     public static String read(String term)
-            throws ConnectException, AuthenticationException, UnsupportedEncodingException {
+            throws Exception {
+        // Create a trust manager that does not validate certificate chains
+        TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        }};
+        // Install the all-trusting trust manager
+        final SSLContext sc = SSLContext.getInstance("SSL");
+        sc.init(null, trustAllCerts, new java.security.SecureRandom());
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        // Create all-trusting host name verifier
+        HostnameVerifier allHostsValid = new HostnameVerifier() {
+            public boolean verify(String hostname, SSLSession session) {
+                return true;
+            }
+        };
+
+        // Install the all-trusting host verifier
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 
         String result = "";
-        String strURL = "http://" + host + ":" + port + "/api/v1/patient/search?term=" + URLEncoder.encode(term, java.nio.charset.StandardCharsets.UTF_8.toString());
+        String strURL = "https://" + host + "/api/v1/patient/search?term=" + URLEncoder.encode(term, java.nio.charset.StandardCharsets.UTF_8.toString());
 
         HttpGet get = new HttpGet(strURL);
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
@@ -101,8 +139,18 @@ public class PatientSearchApi {
 
         try {
             get.addHeader("Content-type", "text/xml");
-            HttpClientBuilder builder = HttpClientBuilder.create();
-            CloseableHttpClient httpclient = builder.build();
+            SSLConnectionSocketFactory scsf = new SSLConnectionSocketFactory(
+                    SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(),
+                    NoopHostnameVerifier.INSTANCE);
+            SSLContextBuilder builder = new SSLContextBuilder();
+            builder.loadTrustMaterial(null, new TrustStrategy() {
+                public boolean isTrusted(final X509Certificate[] chain, String authType) throws CertificateException {
+                    return true;
+                }
+            });
+            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build(), NoopHostnameVerifier.INSTANCE);
+
+            CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 
             CloseableHttpResponse httpResponse = httpclient.execute(get);
 
@@ -118,10 +166,13 @@ public class PatientSearchApi {
             throw e;
         } catch (IOException e) {
             e.printStackTrace();
+            throw e;
         } finally {
             get.releaseConnection();
         }
+
         return result;
     }
+
 
 }
