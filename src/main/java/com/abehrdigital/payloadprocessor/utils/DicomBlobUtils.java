@@ -23,13 +23,17 @@ public class DicomBlobUtils {
 
     private static final String imageFormat = "png";
 
-    public static SerialBlob convertDicomImagesToPdf(Blob blob) throws SQLException, IOException {
+    public static SerialBlob convertDicomImagesToPdf(Blob blob) throws Exception {
         ImageReader reader = getImageReaderFromBlob(blob);
         PDDocument document = new PDDocument();
         addImagesToDocument(document, reader);
         byte[] pdfBytes = convertOpenPdfDocumentToByteArray(document);
 
-        return new SerialBlob(pdfBytes);
+        if(pdfBytes.length > 0) {
+            return new SerialBlob(pdfBytes);
+        } else {
+            throw new Exception("No media was extracted from the blob");
+        }
     }
 
     private static ImageReader getImageReaderFromBlob(Blob blob) throws IOException, SQLException {
@@ -75,7 +79,11 @@ public class DicomBlobUtils {
     public static SerialBlob convertDicomBlobToSingleImage(Blob blob) throws SQLException, IOException {
         BufferedImage image = getFirstImage(blob);
         byte[] imageBytes = convertBufferedImageToByteArray(image);
-        return new SerialBlob(imageBytes);
+        if(imageBytes.length > 0 ) {
+            return new SerialBlob(imageBytes);
+        } else {
+            throw new IOException("Image cannot be extracted");
+        }
     }
 
     private static BufferedImage getFirstImage(Blob blob) throws IOException, SQLException {
