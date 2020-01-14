@@ -30,10 +30,19 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
         session.save(entity);
     }
 
-    public void saveWithNewExecutionSequence(RequestRoutine entity) {
-        int executeSequence = getNextExecutionSequence(entity.getRequestId());
+    public void saveWithNewExecutionSequence(RequestRoutine entity, boolean isPriority) {
+        int executeSequence;
+        if(isPriority) {
+            executeSequence = 1;
+        } else {
+            executeSequence = getNextExecutionSequence(entity.getRequestId());
+        }
         entity.setExecuteSequence(executeSequence);
         save(entity);
+    }
+
+    public void saveWithNewExecutionSequence(RequestRoutine entity) {
+        saveWithNewExecutionSequence(entity, false);
     }
 
     private int getNextExecutionSequence(int requestId) {
