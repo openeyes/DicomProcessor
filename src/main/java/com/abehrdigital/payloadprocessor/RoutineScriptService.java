@@ -108,6 +108,10 @@ public class RoutineScriptService {
     }
 
     public void addRoutine(String routineName) throws Exception {
+        addRoutine(routineName, false);
+    }
+
+    public void addRoutine(String routineName, Boolean isPriority) throws Exception {
         RequestRoutine requestRoutine = daoManager.getRequestRoutineDao().findByRoutineNameAndRequestId(requestId, routineName);
         if (requestRoutine != null) {
             daoManager.getRequestRoutineDao().resetAndSave(requestRoutine);
@@ -118,11 +122,15 @@ public class RoutineScriptService {
                         routineName,
                         requestQueueName)
                         .build();
-                daoManager.getRequestRoutineDao().saveWithNewExecutionSequence(requestRoutine);
+                daoManager.getRequestRoutineDao().saveWithNewExecutionSequence(requestRoutine, isPriority);
             } else {
                 throw new Exception("Routine name: " + routineName + " doesn't exist in routine_library");
             }
         }
+    }
+
+    public void addPriorityRoutine(String routineName) throws Exception {
+        addRoutine(routineName, true);
     }
 
     private boolean routineInLibraryExists(String routineName) throws HibernateException, IOException {
