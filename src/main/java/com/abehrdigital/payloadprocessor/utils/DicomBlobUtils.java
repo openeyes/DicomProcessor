@@ -29,11 +29,7 @@ public class DicomBlobUtils {
         addImagesToDocument(document, reader);
         byte[] pdfBytes = convertOpenPdfDocumentToByteArray(document);
 
-        if(pdfBytes.length > 0) {
-            return new SerialBlob(pdfBytes);
-        } else {
-            throw new Exception("No media was extracted from the blob");
-        }
+        return new SerialBlob(pdfBytes);
     }
 
     private static ImageReader getImageReaderFromBlob(Blob blob) throws IOException, SQLException {
@@ -61,6 +57,11 @@ public class DicomBlobUtils {
 
     private static void addImagesToDocument(PDDocument document, ImageReader reader) throws IOException {
         int pages = reader.getNumImages(true);
+
+        if(pages < 1) {
+            throw new IOException("No images have been found");
+        }
+
         for (int pageIndex = 0; pageIndex < pages; pageIndex++) {
             BufferedImage bufferedImage = reader.read(pageIndex);
 
