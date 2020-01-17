@@ -315,4 +315,21 @@ public class RoutineScriptService {
 
         return daoManager.getAttachmentDataDao().attachmentAlreadyExistsWithThisHashCodeAndEventId(eventId, hashCode);
     }
+
+    public void deleteRequestBlobData() throws Exception {
+        AttachmentData requestBlob = getAttachmentDataByAttachmentMnemonicAndBodySite("REQUEST_BLOB", null);
+        requestBlob.setBlobData(null);
+        daoManager.getAttachmentDataDao().save(requestBlob);
+    }
+
+    public void voidAllNewRoutines(String currentRoutine) throws Exception {
+        List<RequestRoutine> notCompletedRequestRoutines = daoManager.getRequestRoutineDao().findNotCompletedByRequestId(requestId);
+
+        for (RequestRoutine routine : notCompletedRequestRoutines) {
+            if (!routine.getRoutineName().equals(currentRoutine)) {
+                routine.setStatus(Status.VOID);
+                daoManager.getRequestRoutineDao().save(routine);
+            }
+        }
+    }
 }
