@@ -112,4 +112,24 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
         requestRoutine.reset();
         update(requestRoutine);
     }
+
+    public List<RequestRoutine> findNotCompletedByRequestId(int requestId) {
+        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+        CriteriaQuery<RequestRoutine> criteriaQuery = criteriaBuilder.createQuery(RequestRoutine.class);
+        Root<RequestRoutine> root = criteriaQuery.from(RequestRoutine.class);
+
+        CriteriaBuilder.In<Status> inClause = criteriaBuilder.in(root.get("status"));
+        inClause.value(Status.NEW);
+        inClause.value(Status.RETRY);
+
+        criteriaQuery.where(
+                criteriaBuilder.and(
+                        criteriaBuilder.equal(root.get("requestId"), requestId)
+                ),
+                inClause
+        );
+
+        return session.createQuery(criteriaQuery).getResultList();
+
+    }
 }
