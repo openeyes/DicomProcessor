@@ -45,7 +45,7 @@ public class Study {
         return DicomBlobUtils.convertDicomBlobToSingleImage(dicomBlob);
     }
 
-    public SerialBlob getImagesAsPdfBlob() throws SQLException, IOException {
+    public SerialBlob getImagesAsPdfBlob() throws Exception {
         return DicomBlobUtils.convertDicomImagesToPdf(dicomBlob);
     }
 
@@ -80,5 +80,19 @@ public class Study {
             output += entry.getKey().toString() + " " + entry.getValue() + "\n";
         }
         return output;
+    }
+
+    public Boolean attachmentsCanBeExtracted() {
+        if(attachmentBytes != null) {
+            return true;
+        } else {
+            try {
+                DicomBlobUtils.convertDicomBlobToSingleImage(dicomBlob);
+                return true;
+
+            } catch (Exception exception) {
+                return false;
+            }
+        }
     }
 }

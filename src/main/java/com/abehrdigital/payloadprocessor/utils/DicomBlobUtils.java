@@ -23,7 +23,7 @@ public class DicomBlobUtils {
 
     private static final String imageFormat = "png";
 
-    public static SerialBlob convertDicomImagesToPdf(Blob blob) throws SQLException, IOException {
+    public static SerialBlob convertDicomImagesToPdf(Blob blob) throws Exception {
         ImageReader reader = getImageReaderFromBlob(blob);
         PDDocument document = new PDDocument();
         addImagesToDocument(document, reader);
@@ -57,6 +57,11 @@ public class DicomBlobUtils {
 
     private static void addImagesToDocument(PDDocument document, ImageReader reader) throws IOException {
         int pages = reader.getNumImages(true);
+
+        if(pages < 1) {
+            throw new IOException("No images have been found");
+        }
+
         for (int pageIndex = 0; pageIndex < pages; pageIndex++) {
             BufferedImage bufferedImage = reader.read(pageIndex);
 
@@ -75,7 +80,11 @@ public class DicomBlobUtils {
     public static SerialBlob convertDicomBlobToSingleImage(Blob blob) throws SQLException, IOException {
         BufferedImage image = getFirstImage(blob);
         byte[] imageBytes = convertBufferedImageToByteArray(image);
-        return new SerialBlob(imageBytes);
+        if(imageBytes.length > 0 ) {
+            return new SerialBlob(imageBytes);
+        } else {
+            throw new IOException("Image cannot be extracted");
+        }
     }
 
     private static BufferedImage getFirstImage(Blob blob) throws IOException, SQLException {

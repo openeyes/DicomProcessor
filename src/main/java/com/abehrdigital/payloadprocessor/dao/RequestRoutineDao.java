@@ -30,10 +30,19 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
         session.save(entity);
     }
 
-    public void saveWithNewExecutionSequence(RequestRoutine entity) {
-        int executeSequence = getNextExecutionSequence(entity.getRequestId());
+    public void saveWithNewExecutionSequence(RequestRoutine entity, boolean isPriority) {
+        int executeSequence;
+        if(isPriority) {
+            executeSequence = 1;
+        } else {
+            executeSequence = getNextExecutionSequence(entity.getRequestId());
+        }
         entity.setExecuteSequence(executeSequence);
         save(entity);
+    }
+
+    public void saveWithNewExecutionSequence(RequestRoutine entity) {
+        saveWithNewExecutionSequence(entity, false);
     }
 
     private int getNextExecutionSequence(int requestId) {
@@ -102,5 +111,25 @@ public class RequestRoutineDao implements BaseDao<RequestRoutine, Integer> {
     public void resetAndSave(RequestRoutine requestRoutine) {
         requestRoutine.reset();
         update(requestRoutine);
+    }
+
+    public List<RequestRoutine> findNotCompletedByRequestId(int requestId) {
+        CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+        CriteriaQuery<RequestRoutine> criteriaQuery = criteriaBuilder.createQuery(RequestRoutine.class);
+        Root<RequestRoutine> root = criteriaQuery.from(RequestRoutine.class);
+
+        CriteriaBuilder.In<Status> inClause = criteriaBuilder.in(root.get("status"));
+        inClause.value(Status.NEW);
+        inClause.value(Status.RETRY);
+
+        criteriaQuery.where(
+                criteriaBuilder.and(
+                        criteriaBuilder.equal(root.get("requestId"), requestId)
+                ),
+                inClause
+        );
+
+        return session.createQuery(criteriaQuery).getResultList();
+
     }
 }

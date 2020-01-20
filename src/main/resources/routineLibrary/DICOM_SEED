@@ -33,6 +33,7 @@ requestData.instance_number = dicomHeader['‭200013‬'];
 requestData.modifying_system = dicomHeader['‭4000563‬'];
 requestData.operator_identification_sequence = dicomHeader['‭81072‬'];
 requestData.sop_instance_uid = dicomHeader['‭80018‬'];
+requestData.file_description = dicomHeader['22011000'];
 
 //REQUESTdATA.ATTACHMENT TYEP =- FUNCTION TO GET ATTACHMENT TYPE PK ( REQUESTDATA.MODALITY)
 //REQUESTDATA.EVENT_SUB_TYPE = FUNCTION TO GET EVENT SUB TYPE ( REQUESTDATA.MODALITY)

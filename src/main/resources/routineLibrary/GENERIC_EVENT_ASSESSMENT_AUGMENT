@@ -1,4 +1,7 @@
  var requestData = bindObject('REQUEST_DATA');
+
+var defaultSubspecialty = 'General Ophthalmology';
+var defaultService = 'Eye Casualty Service';
 if (!requestData.patientId || patientHasEpisodes(requestData.patientId)) {
 var eventTemplate = {
                       _OE_System: 'ABEHR Jason Local v3.0',
@@ -23,12 +26,12 @@ var eventTemplate = {
                         {
                           $$_XID_$$: '$$_subspecialty[1]_$$',
                           $$_DataSet_$$: 'subspecialty',
-                          name: 'General Ophthalmology'
+                          name: defaultSubspecialty
                         },
                         {
                           $$_XID_$$: '$$_service[1]_$$',
                           $$_DataSet_$$: 'service',
-                          name: 'Eye Casualty Service'
+                          name: defaultService
                         },
                         {
                          $$_XID_$$: '$$_event_date[1]_$$',
@@ -253,12 +256,12 @@ var eventTemplate = {
                                                            {
                                                              $$_XID_$$: '$$_subspecialty[1]_$$',
                                                              $$_DataSet_$$: 'subspecialty',
-                                                             name: 'General Ophthalmology'
+                                                             name: defaultSubspecialty
                                                            },
                                                            {
                                                              $$_XID_$$: '$$_service[1]_$$',
                                                              $$_DataSet_$$: 'service',
-                                                             name: 'Eye Casualty Service'
+                                                             name: defaultService
                                                            },
                                                            {
                                                             $$_XID_$$: '$$_event_date[1]_$$',

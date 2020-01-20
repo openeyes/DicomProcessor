@@ -1,374 +1,374 @@
 var requestData = bindObject('REQUEST_DATA');
 var previousEventData = null;
 
-if (!requestData.patientId || patientHasEpisodes(requestData.patientId)) {
-var eventTemplate =
-{
-   "_OE_System":"ABEHR Jason Local v3.0",
-   "_Version":"v0.1",
-   "$$_XID_Map_$$":[
-      {
-         "$$_XID_$$":"$$_patient[1]_$$",
-         "$$_DataSet_$$":"patient",
-         "id":"xxx"
-      },
-      {
-         "$$_XID_$$":"$$_attachment_data[1]_$$",
-         "$$_DataSet_$$":"attachment_data",
-         "id":"xxx",
-         "request_id":"xxx"
-      },
-      {
-         "$$_XID_$$":"$$_user[1]_$$",
-         "$$_DataSet_$$":"user",
-         "id":"1"
-      },
-      {
-         "$$_XID_$$":"$$_subspecialty[1]_$$",
-         "$$_DataSet_$$":"subspecialty",
-         "name":"General Ophthalmology"
-      },
-      {
-         "$$_XID_$$":"$$_service[1]_$$",
-         "$$_DataSet_$$":"service",
-         "name":"Eye Casualty Service"
-      },
-      {
-         "$$_XID_$$":"$$_event_date[1]_$$",
-         "$$_DataSet_$$":"event",
-         "date":"xxx"
-      },
-      {
-         "$$_XID_$$":"$$_event_subtype[1]_$$",
-         "$$_DataSet_$$":"event_subtype",
-         "event_subtype":"xxx"
-      },
-      {
-         "$$_XID_$$":"$$_event_subtype[2]_$$",
-         "$$_DataSet_$$":"event_subtype",
-         "display_order":"1"
-      }
-   ],
-   "$$_SaveSet[1]_$$":[
-      {
-         "$$_DataSet_$$":"event_type",
-         "$$_ROW_$$":[
-            {
-               "$$_CRUD_$$":"RETRIEVE",
-               "id":"$$_event_type[1]_$$",
-               "class_name":"OphGeneric"
-            }
-         ]
-      },
-      {
-         "$$_DataSet_$$":"episode",
-         "$$_ROW_$$":[
-            {
-               "$$_CRUD_$$":"RETRIEVE",
-               "id":"$$_episode[1]_$$",
-               "patient_id":"$$_patient[1].id_$$",
-               "$$_QUERIES_$$":[
-                  {
-                     "$$_PARAMETERS_$$":[
-                        "$$_patient[1].id_$$"
-                     ],
-                     "$$_SQL_$$":"(SELECT ep.id FROM openeyes.`episode` ep JOIN openeyes.`event` ev ON ev.`episode_id` = ep.`id`WHERE ep.`patient_id` = $$_patient[1].id_$$ ORDER BY ev.`event_date` DESC LIMIT 1) UNION ALL (SELECT ep.id FROM openeyes.`episode` ep WHERE ep.`patient_id` = $$_patient[1].id_$$ AND NOT EXISTS ( SELECT NULL FROM openeyes.`episode` ep2 JOIN openeyes.`event` ev2 ON ev2.`episode_id` = ep2.`id` WHERE ep2.`patient_id` = $$_patient[1].id_$$) ORDER BY ep.`created_date` DESC LIMIT 1);"
-                  }
-               ]
-            }
-         ]
-      },
-      {
-         "$$_DataSet_$$":"event",
-         "$$_ROW_$$":{
-            "$$_CRUD_$$":"MERGE",
-            "id":"$$_event[1]_$$",
-            "episode_id":"$$_episode[1].id_$$",
-            "created_user_id":"$$_user[1].id_$$",
-            "event_type_id":"$$_event_type[1].id_$$",
-            "last_modified_user_id":"$$_user[1].id_$$",
-            "created_date":"$$_SysDateTime_$$",
-            "event_date":"$$_event_date[1].date_$$",
-            "info":"Draft",
-            "deleted":"0",
-            "delete_reason":"null",
-            "delete_pending":"0",
-            "is_automated":"null",
-            "automated_source":"null",
-            "parent_id":"null",
-            "sub_type":"null"
-         }
-      },
-      {
-         "$$_DataSet_$$":"et_ophgeneric_attachment",
-         "$$_ROW_$$":[
-            {
-               "$$_CRUD_$$":"MERGE",
-               "id":"$$_et_ophgeneric_attachment[1]_$$",
-               "event_id":"$$_event[1].id_$$"
-            }
-         ]
-      },
-      {
-         "$$_DataSet_$$":"et_ophgeneric_comments",
-         "$$_ROW_$$":[
-            {
-               "$$_CRUD_$$":"MERGE",
-               "id":"$$_et_ophgeneric_comments[1]_$$",
-               "event_id":"$$_event[1].id_$$"
-            }
-         ]
-      },
-      {
-         "$$_DataSet_$$":"event_subtype_item",
-         "$$_ROW_$$":[
-            {
-               "$$_CRUD_$$":"MERGE",
-               "id":"$$_event_subtype_item[1]_$$",
-               "event_id":"$$_event[1].id_$$",
-               "event_subtype":"$$_event_subtype[1].event_subtype_$$",
-               "display_order":"$$_event_subtype[2].display_order_$$"
-            }
-         ]
-      },
-      {
-         "$$_DataSet_$$":"et_ophgeneric_device_information",
-         "$$_ROW_$$":[
-            {
-               "$$_CRUD_$$":"MERGE",
-               "id":"$$_et_ophgeneric_device_information[1]_$$",
-               "manufacturer":"null",
-               "manufacturer_model_name":"null",
-               "modality":"null",
-               "series_description":"null",
-               "laterality":"null",
-               "image_laterality":"null",
-               "study_description":"null",
-               "document_title":"null",
-               "acquisition_date_time":"null",
-               "study_date":"null",
-               "study_time":"null",
-               "content_date":"null",
-               "content_time":"null",
-               "station_name":"null",
-               "operators_name":"null",
-               "software_version":"null",
-               "study_instance_uid":"null",
-               "series_instance_uid":"null",
-               "study_id":"null",
-               "series_number":"null",
-               "instance_number":"null",
-               "sop_instance_uid":"null",
-               "modifying_system":"null",
-               "operator_identification_sequence":"null",
-               "event_id":"$$_event[1].id_$$",
-               "last_request_id":"$$_attachment_data[1].request_id_$$"
-            }
-         ]
-      }
-   ]
-}
+var defaultSubspecialty = 'General Ophthalmology';
+var defaultService = 'Eye Casualty Service';
 
-                    } else {
-                    eventTemplate =
-                   {
-                      "_OE_System":"ABEHR Jason Local v3.0",
-                      "_Version":"v0.1",
-                      "$$_XID_Map_$$":[
-                         {
-                            "$$_XID_$$":"$$_patient[1]_$$",
-                            "$$_DataSet_$$":"patient",
-                            "id":"xxx"
+if (!requestData.patientId || patientHasEpisodes(requestData.patientId)) {
+var eventTemplate = {
+                      _OE_System: 'ABEHR Jason Local v3.0',
+                      _Version: 'v0.1',
+                      $$_XID_Map_$$: [
+                        {
+                          $$_XID_$$: '$$_patient[1]_$$',
+                          $$_DataSet_$$: 'patient',
+                          id: 'xxx'
+                        },
+                        {
+                          $$_XID_$$: '$$_attachment_data[1]_$$',
+                          $$_DataSet_$$: 'attachment_data',
+                          id: 'xxx',
+                          request_id: 'xxx'
+                        },
+                        {
+                          $$_XID_$$: '$$_user[1]_$$',
+                          $$_DataSet_$$: 'user',
+                          id: '1'
+                        },
+                                       {
+                                                                                                                                                                              $$_XID_$$: '$$_subspecialty[1]_$$',
+                                                                                                                                                                              $$_DataSet_$$: 'subspecialty',
+                                                                                                                                                                            name: defaultSubspecialty
+                                                                                                                                                },
+                                                                                                                                                {
+                                                                                                                                                  $$_XID_$$: '$$_service[1]_$$',
+                                                                                                                                                  $$_DataSet_$$: 'service',
+                                                                                                                                                  name: defaultService
+                                                                                                                                                },
+                        {
+                         $$_XID_$$: '$$_event_date[1]_$$',
+                         $$_DataSet_$$: 'event',
+                         date: 'xxx'
+                        },
+                        {
+                         $$_XID_$$: '$$_event_subtype[1]_$$',
+                         $$_DataSet_$$: 'event_subtype',
+                         event_subtype: 'xxx',
+                        },
+                        {
+                          $$_XID_$$: '$$_event_subtype[2]_$$',
+                          $$_DataSet_$$: 'event_subtype',
+                          display_order: '1',
                          },
-                         {
-                            "$$_XID_$$":"$$_attachment_data[1]_$$",
-                            "$$_DataSet_$$":"attachment_data",
-                            "id":"xxx",
-                            "request_id":"xxx"
-                         },
-                         {
-                            "$$_XID_$$":"$$_user[1]_$$",
-                            "$$_DataSet_$$":"user",
-                            "id":"1"
-                         },
-                         {
-                            "$$_XID_$$":"$$_subspecialty[1]_$$",
-                            "$$_DataSet_$$":"subspecialty",
-                            "name":"General Ophthalmology"
-                         },
-                         {
-                            "$$_XID_$$":"$$_service[1]_$$",
-                            "$$_DataSet_$$":"service",
-                            "name":"Eye Casualty Service"
-                         },
-                         {
-                            "$$_XID_$$":"$$_event_date[1]_$$",
-                            "$$_DataSet_$$":"event",
-                            "date":"xxx"
-                         },
-                         {
-                            "$$_XID_$$":"$$_event_subtype[1]_$$",
-                            "$$_DataSet_$$":"event_subtype",
-                            "event_subtype":"xxx"
-                         },
-                         {
-                            "$$_XID_$$":"$$_event_subtype[2]_$$",
-                            "$$_DataSet_$$":"event_subtype",
-                            "display_order":"1"
-                         }
                       ],
-                      "$$_SaveSet[1]_$$":[
-                         {
-                            "$$_DataSet_$$":"event_type",
-                            "$$_ROW_$$":[
-                               {
-                                  "$$_CRUD_$$":"RETRIEVE",
-                                  "id":"$$_event_type[1]_$$",
-                                  "class_name":"OphGeneric"
-                               }
-                            ]
-                         },
-                         {
-                            "$$_DataSet_$$":"subspecialty",
-                            "$$_ROW_$$":[
-                               {
-                                  "$$_CRUD_$$":"RETRIEVE",
-                                  "id":"$$_subspecialty[1]_$$"
-                               }
-                            ]
-                         },
-                         {
-                            "$$_DataSet_$$":"service",
-                            "$$_ROW_$$":[
-                               {
-                                  "$$_CRUD_$$":"RETRIEVE",
-                                  "id":"$$_service[1]_$$"
-                               }
-                            ]
-                         },
-                         {
-                            "$$_DataSet_$$":"service_subspecialty_assignment",
-                            "$$_ROW_$$":[
-                               {
-                                  "$$_CRUD_$$":"RETRIEVE",
-                                  "id":"$$_service_subspecialty_assignment[1]_$$",
-                                  "service_id":"$$_service[1].id_$$",
-                                  "subspecialty_id":"$$_subspecialty[1].id_$$"
-                               }
-                            ]
-                         },
-                         {
-                            "$$_DataSet_$$":"firm",
-                            "$$_ROW_$$":[
-                               {
-                                  "$$_CRUD_$$":"RETRIEVE",
-                                  "id":"$$_firm[1]_$$",
-                                  "service_subspecialty_assignment_id":"$$_service_subspecialty_assignment[1].id_$$"
-                               }
-                            ]
-                         },
-                         {
-                            "$$_DataSet_$$":"episode",
-                            "$$_ROW_$$":[
-                               {
-                                  "$$_CRUD_$$":"MERGE",
-                                  "id":"$$_episode[1]_$$",
-                                  "patient_id":"$$_patient[1].id_$$",
-                                  "firm_id":"$$_firm[1].id_$$"
-                               }
-                            ]
-                         },
-                         {
-                            "$$_DataSet_$$":"event",
-                            "$$_ROW_$$":{
-                               "$$_CRUD_$$":"MERGE",
-                               "id":"$$_event[1]_$$",
-                               "episode_id":"$$_episode[1].id_$$",
-                               "created_user_id":"$$_user[1].id_$$",
-                               "event_type_id":"$$_event_type[1].id_$$",
-                               "last_modified_user_id":"$$_user[1].id_$$",
-                               "created_date":"$$_SysDateTime_$$",
-                               "event_date":"$$_event_date[1].date_$$",
-                               "info":"Draft",
-                               "deleted":"0",
-                               "delete_reason":"null",
-                               "delete_pending":"0",
-                               "is_automated":"null",
-                               "automated_source":"null",
-                               "parent_id":"null",
-                               "sub_type":"null"
+                      '$$_SaveSet[1]_$$': [
+                        {
+                          $$_DataSet_$$: 'event_type',
+                          $$_ROW_$$: [
+                            {
+                              $$_CRUD_$$: 'RETRIEVE',
+                              id: '$$_event_type[1]_$$',
+                              class_name: 'OphGeneric'
                             }
-                         },
-                         {
-                            "$$_DataSet_$$":"et_ophgeneric_attachment",
-                            "$$_ROW_$$":[
-                               {
-                                  "$$_CRUD_$$":"MERGE",
-                                  "id":"$$_et_ophgeneric_attachment[1]_$$",
-                                  "event_id":"$$_event[1].id_$$"
-                               }
-                            ]
-                         },
-                         {
-                            "$$_DataSet_$$":"et_ophgeneric_comments",
-                            "$$_ROW_$$":[
-                               {
-                                  "$$_CRUD_$$":"MERGE",
-                                  "id":"$$_et_ophgeneric_comments[1]_$$",
-                                  "event_id":"$$_event[1].id_$$"
-                               }
-                            ]
-                         },
-                         {
-                            "$$_DataSet_$$":"event_subtype_item",
-                            "$$_ROW_$$":[
-                               {
-                                  "$$_CRUD_$$":"MERGE",
-                                  "id":"$$_event_subtype_item[1]_$$",
-                                  "event_id":"$$_event[1].id_$$",
-                                  "event_subtype":"$$_event_subtype[1].event_subtype_$$",
-                                  "display_order":"$$_event_subtype[2].display_order_$$"
-                               }
-                            ]
-                         },
-                         {
-                            "$$_DataSet_$$":"et_ophgeneric_device_information",
-                            "$$_ROW_$$":[
-                               {
-                                  "$$_CRUD_$$":"MERGE",
-                                  "id":"$$_et_ophgeneric_device_information[1]_$$",
-                                  "manufacturer":"null",
-                                  "manufacturer_model_name":"null",
-                                  "modality":"null",
-                                  "series_description":"null",
-                                  "laterality":"null",
-                                  "image_laterality":"null",
-                                  "study_description":"null",
-                                  "document_title":"null",
-                                  "acquisition_date_time":"null",
-                                  "study_date":"null",
-                                  "study_time":"null",
-                                  "content_date":"null",
-                                  "content_time":"null",
-                                  "station_name":"null",
-                                  "operators_name":"null",
-                                  "software_version":"null",
-                                  "study_instance_uid":"null",
-                                  "series_instance_uid":"null",
-                                  "study_id":"null",
-                                  "series_number":"null",
-                                  "instance_number":"null",
-                                  "sop_instance_uid":"null",
-                                  "modifying_system":"null",
-                                  "operator_identification_sequence":"null",
-                                  "event_id":"$$_event[1].id_$$",
-                                  "last_request_id":"$$_attachment_data[1].request_id_$$"
-                               }
-                            ]
-                         }
+                          ]
+                        },
+                        {
+                          $$_DataSet_$$: 'episode',
+                          $$_ROW_$$: [
+                            {
+                              $$_CRUD_$$: 'RETRIEVE',
+                              id: '$$_episode[1]_$$',
+                              patient_id: '$$_patient[1].id_$$',
+                              $$_QUERIES_$$: [
+                                {
+                                  $$_PARAMETERS_$$: [
+                                    '$$_patient[1].id_$$'
+                                  ],
+                                  $$_SQL_$$: '(SELECT ep.id FROM openeyes.`episode` ep JOIN openeyes.`event` ev ON ev.`episode_id` = ep.`id`WHERE ep.`patient_id` = $$_patient[1].id_$$ ORDER BY ev.`event_date` DESC LIMIT 1) UNION ALL (SELECT ep.id FROM openeyes.`episode` ep WHERE ep.`patient_id` = $$_patient[1].id_$$ AND NOT EXISTS ( SELECT NULL FROM openeyes.`episode` ep2 JOIN openeyes.`event` ev2 ON ev2.`episode_id` = ep2.`id` WHERE ep2.`patient_id` = $$_patient[1].id_$$) ORDER BY ep.`created_date` DESC LIMIT 1);'
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          $$_DataSet_$$: 'event',
+                          $$_ROW_$$: {
+                            $$_CRUD_$$: 'MERGE',
+                            id: '$$_event[1]_$$',
+                            episode_id: '$$_episode[1].id_$$',
+                            created_user_id: '$$_user[1].id_$$',
+                            event_type_id: '$$_event_type[1].id_$$',
+                            last_modified_user_id: '$$_user[1].id_$$',
+                            created_date: '$$_SysDateTime_$$',
+                            event_date: '$$_event_date[1].date_$$',
+                            info: 'Draft',
+                            deleted: '0',
+                            delete_reason: 'null',
+                            delete_pending: '0',
+                            is_automated: 'null',
+                            automated_source: 'null',
+                            parent_id: 'null',
+                            sub_type: 'null',
+                          }
+                        },
+                        {
+                          $$_DataSet_$$: 'et_ophgeneric_attachment',
+                          $$_ROW_$$: [
+                            {
+                              $$_CRUD_$$: 'MERGE',
+                              id: '$$_et_ophgeneric_attachment[1]_$$',
+                              event_id: '$$_event[1].id_$$'
+                            }
+                          ]
+                        },
+                        {
+                          $$_DataSet_$$: 'et_ophgeneric_comments',
+                          $$_ROW_$$: [
+                            {
+                              $$_CRUD_$$: 'MERGE',
+                              id: '$$_et_ophgeneric_comments[1]_$$',
+                              event_id: '$$_event[1].id_$$'
+                            }
+                          ]
+                        },
+                        {
+                          $$_DataSet_$$: 'event_subtype_item',
+                          $$_ROW_$$: [
+                            {
+                              $$_CRUD_$$: 'MERGE',
+                              id: '$$_event_subtype_item[1]_$$',
+                              event_id: '$$_event[1].id_$$',
+                              event_subtype: '$$_event_subtype[1].event_subtype_$$',
+                              display_order: '$$_event_subtype[2].display_order_$$',
+                            }
+                          ]
+                           },
+                        {
+                          $$_DataSet_$$: 'et_ophgeneric_device_information',
+                          $$_ROW_$$: [
+                            {
+                              $$_CRUD_$$: 'MERGE',
+                              id: '$$_et_ophgeneric_device_information[1]_$$',
+                              manufacturer: 'null',
+                              manufacturer_model_name: 'null',
+                              modality: 'null',
+                              series_description: 'null',
+                              laterality: 'null',
+                              image_laterality: 'null',
+                              study_description: 'null',
+                              document_title: 'null',
+                              acquisition_date_time: 'null',
+                              study_date: 'null',
+                              study_time: 'null',
+                              content_date: 'null',
+                              content_time: 'null',
+                              station_name: 'null',
+                              operators_name: 'null',
+                              software_version: 'null',
+                              study_instance_uid: 'null',
+                              series_instance_uid: 'null',
+                              study_id: 'null',
+                              series_number: 'null',
+                              instance_number: 'null',
+                              sop_instance_uid: 'null',
+                              modifying_system: 'null',
+                              operator_identification_sequence: 'null',
+                              event_id: '$$_event[1].id_$$',
+                              last_request_id: '$$_attachment_data[1].request_id_$$'
+                            }
+                          ]
+                        }
                       ]
-                   }
-                }
+                    }
+                    } else {
+                    eventTemplate = {
+                                       "_OE_System":"ABEHR Jason Local v3.0",
+                                       "_Version":"v0.1",
+                                       "$$_XID_Map_$$":[
+                                          {
+                                             "$$_XID_$$":"$$_patient[1]_$$",
+                                             "$$_DataSet_$$":"patient",
+                                             "id":"xxx"
+                                          },
+                                          {
+                                             "$$_XID_$$":"$$_attachment_data[1]_$$",
+                                             "$$_DataSet_$$":"attachment_data",
+                                             "id":"xxx",
+                                             "request_id":"xxx"
+                                          },
+                                          {
+                                             "$$_XID_$$":"$$_user[1]_$$",
+                                             "$$_DataSet_$$":"user",
+                                             "id":"1"
+                                          },
+                                          {
+                                             "$$_XID_$$":"$$_subspecialty[1]_$$",
+                                             "$$_DataSet_$$":"subspecialty",
+                                             "name": defaultSubspecialty
+                                          },
+                                          {
+                                             "$$_XID_$$":"$$_service[1]_$$",
+                                             "$$_DataSet_$$":"service",
+                                             "name": defaultService
+                                          },
+                                          {
+                                             "$$_XID_$$":"$$_event_date[1]_$$",
+                                             "$$_DataSet_$$":"event",
+                                             "date":"xxx"
+                                          },
+                                          {
+                                             "$$_XID_$$":"$$_event_subtype[1]_$$",
+                                             "$$_DataSet_$$":"event_subtype",
+                                             "event_subtype":"xxx"
+                                          },
+                                          {
+                                             "$$_XID_$$":"$$_event_subtype[2]_$$",
+                                             "$$_DataSet_$$":"event_subtype",
+                                             "display_order":"1"
+                                          }
+                                       ],
+                                       "$$_SaveSet[1]_$$":[
+                                          {
+                                             "$$_DataSet_$$":"event_type",
+                                             "$$_ROW_$$":[
+                                                {
+                                                   "$$_CRUD_$$":"RETRIEVE",
+                                                   "id":"$$_event_type[1]_$$",
+                                                   "class_name":"OphGeneric"
+                                                }
+                                             ]
+                                          },
+                                          {
+                                             "$$_DataSet_$$":"subspecialty",
+                                             "$$_ROW_$$":[
+                                                {
+                                                   "$$_CRUD_$$":"RETRIEVE",
+                                                   "id":"$$_subspecialty[1]_$$"
+                                                }
+                                             ]
+                                          },
+                                          {
+                                             "$$_DataSet_$$":"service",
+                                             "$$_ROW_$$":[
+                                                {
+                                                   "$$_CRUD_$$":"RETRIEVE",
+                                                   "id":"$$_service[1]_$$"
+                                                }
+                                             ]
+                                          },
+                                          {
+                                             "$$_DataSet_$$":"service_subspecialty_assignment",
+                                             "$$_ROW_$$":[
+                                                {
+                                                   "$$_CRUD_$$":"RETRIEVE",
+                                                   "id":"$$_service_subspecialty_assignment[1]_$$",
+                                                   "service_id":"$$_service[1].id_$$",
+                                                   "subspecialty_id":"$$_subspecialty[1].id_$$"
+                                                }
+                                             ]
+                                          },
+                                          {
+                                             "$$_DataSet_$$":"firm",
+                                             "$$_ROW_$$":[
+                                                {
+                                                   "$$_CRUD_$$":"RETRIEVE",
+                                                   "id":"$$_firm[1]_$$",
+                                                   "service_subspecialty_assignment_id":"$$_service_subspecialty_assignment[1].id_$$"
+                                                }
+                                             ]
+                                          },
+                                          {
+                                             "$$_DataSet_$$":"episode",
+                                             "$$_ROW_$$":[
+                                                {
+                                                   "$$_CRUD_$$":"MERGE",
+                                                   "id":"$$_episode[1]_$$",
+                                                   "patient_id":"$$_patient[1].id_$$",
+                                                   "firm_id":"$$_firm[1].id_$$"
+                                                }
+                                             ]
+                                          },
+                                          {
+                                             "$$_DataSet_$$":"event",
+                                             "$$_ROW_$$":{
+                                                "$$_CRUD_$$":"MERGE",
+                                                "id":"$$_event[1]_$$",
+                                                "episode_id":"$$_episode[1].id_$$",
+                                                "created_user_id":"$$_user[1].id_$$",
+                                                "event_type_id":"$$_event_type[1].id_$$",
+                                                "last_modified_user_id":"$$_user[1].id_$$",
+                                                "created_date":"$$_SysDateTime_$$",
+                                                "event_date":"$$_event_date[1].date_$$",
+                                                "info":"Draft",
+                                                "deleted":"0",
+                                                "delete_reason":"null",
+                                                "delete_pending":"0",
+                                                "is_automated":"null",
+                                                "automated_source":"null",
+                                                "parent_id":"null",
+                                                "sub_type":"null"
+                                             }
+                                          },
+                                          {
+                                             "$$_DataSet_$$":"et_ophgeneric_attachment",
+                                             "$$_ROW_$$":[
+                                                {
+                                                   "$$_CRUD_$$":"MERGE",
+                                                   "id":"$$_et_ophgeneric_attachment[1]_$$",
+                                                   "event_id":"$$_event[1].id_$$"
+                                                }
+                                             ]
+                                          },
+                                          {
+                                             "$$_DataSet_$$":"et_ophgeneric_comments",
+                                             "$$_ROW_$$":[
+                                                {
+                                                   "$$_CRUD_$$":"MERGE",
+                                                   "id":"$$_et_ophgeneric_comments[1]_$$",
+                                                   "event_id":"$$_event[1].id_$$"
+                                                }
+                                             ]
+                                          },
+                                          {
+                                             "$$_DataSet_$$":"event_subtype_item",
+                                             "$$_ROW_$$":[
+                                                {
+                                                   "$$_CRUD_$$":"MERGE",
+                                                   "id":"$$_event_subtype_item[1]_$$",
+                                                   "event_id":"$$_event[1].id_$$",
+                                                   "event_subtype":"$$_event_subtype[1].event_subtype_$$",
+                                                   "display_order":"$$_event_subtype[2].display_order_$$"
+                                                }
+                                             ]
+                                          },
+                                          {
+                                             "$$_DataSet_$$":"et_ophgeneric_device_information",
+                                             "$$_ROW_$$":[
+                                                {
+                                                   "$$_CRUD_$$":"MERGE",
+                                                   "id":"$$_et_ophgeneric_device_information[1]_$$",
+                                                   "manufacturer":"null",
+                                                   "manufacturer_model_name":"null",
+                                                   "modality":"null",
+                                                   "series_description":"null",
+                                                   "laterality":"null",
+                                                   "image_laterality":"null",
+                                                   "study_description":"null",
+                                                   "document_title":"null",
+                                                   "acquisition_date_time":"null",
+                                                   "study_date":"null",
+                                                   "study_time":"null",
+                                                   "content_date":"null",
+                                                   "content_time":"null",
+                                                   "station_name":"null",
+                                                   "operators_name":"null",
+                                                   "software_version":"null",
+                                                   "study_instance_uid":"null",
+                                                   "series_instance_uid":"null",
+                                                   "study_id":"null",
+                                                   "series_number":"null",
+                                                   "instance_number":"null",
+                                                   "sop_instance_uid":"null",
+                                                   "modifying_system":"null",
+                                                   "operator_identification_sequence":"null",
+                                                   "event_id":"$$_event[1].id_$$",
+                                                   "last_request_id":"$$_attachment_data[1].request_id_$$"
+                                                }
+                                             ]
+                                          }
+                                       ]
+                                    }
+                    }
 
 
 //Check if the unique identifier is there and if there is check if there was an event already with that id
