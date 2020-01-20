@@ -1,7 +1,7 @@
  var requestData = bindObject('REQUEST_DATA');
 
-var defaultSubspecialty = 'General Ophthalmology';
-var defaultService = 'Eye Casualty Service';
+var defaultSubspecialty ='External';
+var defaultService = 'Ophthalmology Service';
 if (!requestData.patientId || patientHasEpisodes(requestData.patientId)) {
 var eventTemplate = {
                       _OE_System: 'ABEHR Jason Local v3.0',

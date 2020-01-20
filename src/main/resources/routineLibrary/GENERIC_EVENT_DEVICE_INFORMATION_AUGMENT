@@ -1,8 +1,8 @@
 var requestData = bindObject('REQUEST_DATA');
 var previousEventData = null;
 
-var defaultSubspecialty = 'General Ophthalmology';
-var defaultService = 'Eye Casualty Service';
+var defaultSubspecialty ='External';
+var defaultService = 'Ophthalmology Service';
 
 if (!requestData.patientId || patientHasEpisodes(requestData.patientId)) {
 var eventTemplate = {
