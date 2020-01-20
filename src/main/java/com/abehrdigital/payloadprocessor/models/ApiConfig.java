@@ -5,12 +5,14 @@ public class ApiConfig {
     private String port;
     private String username;
     private String password;
+    private Boolean doHttps;
 
-    public ApiConfig(String host, String port, String username, String password) {
+    public ApiConfig(String host, String port, String username, String password, Boolean doHttps) {
         this.host = host;
         this.port = port;
         this.username = username;
         this.password = password;
+        this.doHttps = doHttps;
     }
 
     public String getHost() {
@@ -27,5 +29,9 @@ public class ApiConfig {
 
     public String getPassword() {
         return password;
+    }
+
+    public Boolean getDoHttps() {
+        return doHttps;
     }
 }

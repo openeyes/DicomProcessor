@@ -12,6 +12,7 @@ services:
       DATABASE_HOST: "host.docker.internal"
       DATABASE_USER: "${DATABASE_USER:-openeyes}"
       DATABASE_PASS: "${DATABASE_PASS:-openeyes}"
+      API_DO_HTTPS: "FALSE"
       
     stdin_open: true
     tty: true
