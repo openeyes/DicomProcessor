@@ -51,10 +51,13 @@ API_USER
 ```
 API_PASSWORD
 ```
+
+List of Optional environment variables:
 ```
 API_DO_HTTPS 
 ```
 defaults to 'FALSE', if the API call has to be with HTTPS protocol value needs to be "TRUE"
+
 ## Required command line arguments
 
 ### shutdownAfterMinutes
