@@ -51,6 +51,12 @@ API_USER
 ```
 API_PASSWORD
 ```
+
+List of Optional environment variables:
+```
+API_DO_HTTPS 
+```
+
 ## Required command line arguments
 
 ### shutdownAfterMinutes
@@ -142,6 +148,8 @@ Example: `docker run -e DATABASE_HOST=db appertaopeneyes/dicomprocessor`
 * `API_PORT` - Port number to connect to on the API_HOST (default 80)
 * `API_USER` - The username for the API access (this should be created as a user account in openeyes)
 * `API_PASSWORD` - The password for the API access user (this should be created as a user account in openeyes)
+* `API_DO_HTTPS` - defaults to 'FALSE', if the API call has to be with HTTPS protocol value needs to be "TRUE"
+
 
 * `DATABASE_HOST` - Hostname (or IP address) of the main openeyes database server
 * `DATABASE_PORT` - Port number that the main openeyes database server is accessed on (default=3306)

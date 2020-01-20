@@ -42,7 +42,7 @@
         <repository>
             <id>central</id>
             <name>Central Repository</name>
-            <url>http://repo1.maven.org/maven2</url>
+            <url>https://repo.maven.apache.org/maven2</url>
             <layout>default</layout>
             <snapshots>
                 <enabled>false</enabled>
@@ -235,9 +235,6 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.9</version>
         </dependency>
-
-
-
     </dependencies>
 </project>
 

@@ -7,6 +7,7 @@ public class PatientSearchApiConfiguration {
     private static String port = "80";
     private static String username = "admin";
     private static String password = "admin";
+    private static Boolean do_https = false;
     private static ApiConfig apiConfig = null;
 
     public static void init() {
@@ -27,7 +28,11 @@ public class PatientSearchApiConfiguration {
         if (environmentVariableValue != null) {
             password = environmentVariableValue;
         }
-        apiConfig = new ApiConfig(host, port, username, password);
+        environmentVariableValue = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("API_DO_HTTPS");
+        if (environmentVariableValue != null) {
+            do_https = environmentVariableValue.toLowerCase().equals("true");
+        }
+        apiConfig = new ApiConfig(host, port, username, password, do_https);
     }
 
 
