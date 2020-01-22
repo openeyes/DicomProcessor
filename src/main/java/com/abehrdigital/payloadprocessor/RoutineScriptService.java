@@ -8,10 +8,12 @@ import com.abehrdigital.payloadprocessor.exceptions.InvalidNumberOfRowsAffectedE
 import com.abehrdigital.payloadprocessor.exceptions.NoSearchedFieldsProvidedException;
 import com.abehrdigital.payloadprocessor.exceptions.ValuesNotFoundException;
 import com.abehrdigital.payloadprocessor.models.*;
+import com.abehrdigital.payloadprocessor.models.Event;
 import com.abehrdigital.payloadprocessor.utils.*;
 import net.sourceforge.tess4j.TesseractException;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.HibernateException;
+import org.hibernate.LockMode;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -29,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Blob;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 public class RoutineScriptService {
@@ -169,25 +172,62 @@ public class RoutineScriptService {
     }
 
     public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName)
-            throws InvalidNumberOfRowsAffectedException {
+            throws InvalidNumberOfRowsAffectedException, Exception {
         linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName, "OphGeneric");
     }
 
     public void linkAttachmentDataWithEvent(AttachmentData attachmentData, int eventId, String elementTypeClassName, String eventClassName)
-            throws InvalidNumberOfRowsAffectedException {
-        DataAPI dataAPI = new DataAPI(daoManager.getConnection());
-        dataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName, eventClassName);
+            throws InvalidNumberOfRowsAffectedException, Exception {
+        lockEventRow(eventId);
+
+        if (!isAttachmentAlreadyAttached(eventId, attachmentData)) {
+            DataAPI dataAPI = new DataAPI(daoManager.getConnection());
+            dataAPI.linkAttachmentDataWithEvent(attachmentData, eventId, elementTypeClassName, eventClassName);
+        }
+
     }
 
     public void linkAttachmentDataWithEventNewGroup(AttachmentData attachmentData, int eventId, String elementTypeClassName)
-            throws InvalidNumberOfRowsAffectedException {
+            throws InvalidNumberOfRowsAffectedException, Exception {
         linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, "OphGeneric", null);
     }
 
     public void linkAttachmentDataWithEventNewGroup(AttachmentData attachmentData, int eventId, String elementTypeClassName, String eventClassName, String eventViewDocumentSet)
-            throws InvalidNumberOfRowsAffectedException {
-        DataAPI dataAPI = new DataAPI(daoManager.getConnection());
-        dataAPI.linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, eventClassName, eventViewDocumentSet);
+            throws InvalidNumberOfRowsAffectedException, Exception {
+        lockEventRow(eventId);
+
+        if (!isAttachmentAlreadyAttached(eventId, attachmentData)) {
+                DataAPI dataAPI = new DataAPI(daoManager.getConnection());
+                dataAPI.linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, eventClassName, eventViewDocumentSet);
+            }
+    }
+
+    private void lockEventRow(int eventId) throws Exception {
+        Event event = daoManager.getEventDao().getWithLock(eventId, LockMode.UPGRADE_NOWAIT);
+        if (event == null) {
+            throw new Exception("Event ID " + eventId + " : Could not get row lock");
+        }
+    }
+
+    private boolean isAttachmentAlreadyAttached(int eventId, AttachmentData attachmentData) throws SQLException {
+        boolean attachmentIsAlreadyAttached = false;
+        List<AttachmentData> attachmentsWithSameHashCode =
+                daoManager
+                        .getAttachmentDataDao()
+                        .getAttachmentsByEventIdAndHashcode(eventId, attachmentData.getHashCode());
+        byte[] currentAttachmentDataBlobBytes = DicomBlobUtils.convertBlobToByteArray(attachmentData.getBlobData());
+        for (AttachmentData attachmentDataWithSameHashcode :
+                attachmentsWithSameHashCode) {
+            byte[] attachmentBlobAsBytesWithSameHashcode = DicomBlobUtils
+                    .convertBlobToByteArray(
+                            attachmentDataWithSameHashcode.getBlobData()
+                    );
+            if (Arrays.equals(currentAttachmentDataBlobBytes, attachmentBlobAsBytesWithSameHashcode)) {
+                attachmentIsAlreadyAttached = true;
+            }
+        }
+
+        return attachmentIsAlreadyAttached;
     }
 
     public String getPatientId(String hospitalNumber) throws Exception {

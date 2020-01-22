@@ -3,21 +3,17 @@ var requestData = bindObject('REQUEST_DATA');
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
 var eventID = requestData.eventId;
 
-if(!requestData.duplicateRequest || typeof requestData.duplicateRequest == "undefined") {
-
 
 eventData.$$_XID_Map_$$.forEach(function(data) {
     if (data.$$_XID_$$ == '$$_event[1]_$$') {
-        eventID = data.id;
+        requestData.eventId = data.id;
     }
 });
 var attachmentId = attachmentPdf.getId();
 if (requestData.attachmentDataItemToDelete == attachmentId) {
     requestData.attachmentDataItemToDelete = null;
 } else {
-    linkAttachmentDataWithEvent(attachmentPdf, eventID, 'OEModule\\OphGeneric\\models\\Attachment');
+    linkAttachmentDataWithEvent(attachmentPdf, requestData.eventId, 'OEModule\\OphGeneric\\models\\Attachment');
 }
 createAndSetThumbnailsOnAttachmentData(attachmentPdf);
 addRoutine('delink_attachment');
-
-}

@@ -1,11 +1,14 @@
 package com.abehrdigital.payloadprocessor.dao;
 
+import com.abehrdigital.payloadprocessor.models.Event;
+import org.hibernate.LockMode;
+import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 
 import java.util.List;
 
-public class EventDao {
+public class EventDao implements BaseDao<Event, Integer> {
     private Session session;
     public EventDao(Session session) {
         this.session = session;
@@ -21,5 +24,32 @@ public class EventDao {
                 .setParameter("eventId", eventId)
                 .setParameter("deleted" , EVENT_NOT_DELETED);
         return query.getResultList();
+    }
+
+    @Override
+    public Event get(Integer id) {
+        return session.get(Event.class, id);
+    }
+
+    @Override
+    public void save(Event entity) {
+        session.save(entity);
+    }
+
+    @Override
+    public void update(Event entity) {
+        session.update(entity);
+    }
+
+    @Override
+    public void delete(Event entity) {
+        session.delete(entity);
+    }
+
+    public Event getWithLock(Integer id, LockMode lockMode) {
+        return session.get(
+                Event.class, id,
+                new LockOptions(lockMode)
+        );
     }
 }

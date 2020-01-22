@@ -15,7 +15,7 @@ ARG TIMEZONE
 ENV PROJROOT="$BUILD_PROJROOT"
 ENV TZ=${TIMEZONE}
 
-COPY settings.xml /usr/share/maven/conf
+#COPY settings.xml /usr/share/maven/conf
 # set up folders
 COPY . ${PROJROOT}
 RUN cd $PROJROOT \

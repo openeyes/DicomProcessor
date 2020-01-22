@@ -99,8 +99,11 @@ public class DicomBlobUtils {
     }
 
     public static int getHashCode(Blob blob) throws SQLException {
+        return java.util.Arrays.hashCode(convertBlobToByteArray(blob));
+    }
+
+    public static byte[] convertBlobToByteArray(Blob blob) throws SQLException {
         int blobLength = (int) blob.length();
-        byte[] blobAsBytes = blob.getBytes(1, blobLength);
-        return java.util.Arrays.hashCode(blobAsBytes);
+        return blob.getBytes(1, blobLength);
     }
 }

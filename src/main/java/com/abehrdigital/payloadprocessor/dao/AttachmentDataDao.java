@@ -10,6 +10,7 @@ import com.abehrdigital.payloadprocessor.utils.QueryResultUtils;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -67,17 +68,17 @@ public class AttachmentDataDao implements BaseDao<AttachmentData, Integer> {
         return (AttachmentData) QueryResultUtils.getFirstResultOrNull(session.createQuery(criteriaQuery));
     }
 
-    public boolean attachmentAlreadyExistsWithThisHashCodeAndEventId(int eventId , int hashCode) throws Exception {
+    public boolean attachmentAlreadyExistsWithThisHashCodeAndEventId(int eventId , int hashCode)
+    {
+        List results = getAttachmentsByEventIdAndHashcode(eventId, hashCode);
+        return !results.isEmpty();
+    }
 
-        NativeQuery query = session.createSQLQuery("" +
-                "SELECT DISTINCT t.id FROM attachment_data t " +
-                "RIGHT JOIN `event_attachment_item` eti ON eti.`attachment_data_id` = t.id " +
-                "RIGHT JOIN event_attachment_group eag ON eag.`event_id` = :event_id " +
-                "WHERE t.hash_code = :hash_code ")
+    public List<AttachmentData> getAttachmentsByEventIdAndHashcode(int eventId , int hashCode) {
+        TypedQuery<AttachmentData> query = session.createNamedQuery("routinesForEventWithSameHashcode", AttachmentData.class)
                 .setParameter("event_id", eventId)
                 .setParameter("hash_code", hashCode);
-
-        List results = query.list();
-        return !results.isEmpty();
+        List<AttachmentData> results = query.getResultList();
+       return results;
     }
 }
