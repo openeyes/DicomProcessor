@@ -29,6 +29,7 @@
         <!-- Drop and re-create the database schema on startup -->
         <property name="hbm2ddl.auto">validate</property>
         <property name="hibernate.connection.autocommit">false</property>
+        <property name="hibernate.connection.isolation">2</property>
         <!--Names the annotated entity class-->
         <mapping class="com.abehrdigital.payloadprocessor.models.Request"></mapping>
         <mapping class="com.abehrdigital.payloadprocessor.models.RequestRoutine"></mapping>
