@@ -4,7 +4,7 @@ var previousEventData = null;
 var defaultSubspecialty = 'General Ophthalmology';
 var defaultService = 'Eye Casualty Service';
 
-if (!requestData.patientId || patientHasEpisodes(requestData.patientId)) {
+if (patientHasEpisodes(requestData.patientId)) {
 var eventTemplate = {
                       _OE_System: 'ABEHR Jason Local v3.0',
                       _Version: 'v0.1',
