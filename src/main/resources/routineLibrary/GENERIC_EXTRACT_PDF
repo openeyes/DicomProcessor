@@ -20,7 +20,7 @@
         new Error('Unknown laterality has been found : LATERALITY: ' + requestData.laterality + " IMAGE_LATERALITY: " + requestData.image_laterality);
     }
 
-    if(requestData.file_description.toLowerCase().indexOf("rawdata") == -1) {
+    if(typeof requestData.file_description == "undefined" || requestData.file_description.toLowerCase().indexOf("rawdata") == -1) {
      var pdf = bindBinary('event_pdf' , null, requestData.bodySiteSnomed , null , null, dicomObject.getAttachmentAsBlob());
      } else {
         addPriorityRoutine('GENERIC_BLOB_NOT_READABLE_CLEAN_UP');
