@@ -305,12 +305,21 @@ public class RoutineScriptService {
         return movedPath != null;
     }
 
-    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height) throws SQLException, IOException, TesseractException {
+    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height , String regex) throws SQLException, IOException, TesseractException {
         ImageTextExtractor imageTextExtractor = new ImageTextExtractor();
         Rectangle rectangle = new Rectangle(x, y, width, height);
         InputStream blobBinaryStream = attachmentData.getBlobData().getBinaryStream();
         BufferedImage image = ImageIO.read(blobBinaryStream);
-        return imageTextExtractor.read(image, rectangle);
+        String extractedText = imageTextExtractor.read(image, rectangle);
+        if(extractedText.matches(regex)) {
+            return extractedText;
+        } else {
+            throw new Error("Regex doesn't match for (" +  extractedText + " ) Regex (" + regex + ")");
+        }
+    }
+
+    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height) throws SQLException, IOException, TesseractException {
+        return readTextFromImage(attachmentData,x,y,width,height,".*");
     }
 
     public boolean attachmentsContentAreEqual(AttachmentData attachmentData, int attachmentDataIdToCompare) throws SQLException {
