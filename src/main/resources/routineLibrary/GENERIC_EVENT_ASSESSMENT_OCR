@@ -1,3 +1,3 @@
 var requestData = bindObject('REQUEST_DATA');
-
+addRoutine('create_assessment_event');
 //addRoutine(requestData.report_type.replace(/ /g, "_").replace("/", "_") + "_OCR");
