@@ -453,12 +453,12 @@ if (patientHasEpisodes(requestData.patientId)) {
 }
 
 
-//Check if the unique identifier is there and if there is check if there was an event already with that id
-// If there is set that event data instead of the template and find the attachment data id to delete from the previous
-// event
+// Check for an event with the same unique identifier to extract EVENT_ID or a template or an eye_id in case the last one
+// was one side report and now a different sided one comes in we have to combine the templates
 var previousEventId = -1;
 var previousAttachmentDataId;
 var previousEyeId;
+var previousEventData;
 if (requestData.study_instance_uid != null) {
     var attachmentData = getEventDataByDeviceInformationStudyInstanceUID('event_data', requestData.study_instance_uid.toString());
     if (attachmentData != null) {
@@ -467,9 +467,6 @@ if (requestData.study_instance_uid != null) {
             previousEventData.$$_XID_Map_$$.forEach(function(data) {
                 if (data.$$_XID_$$ == '$$_event[1]_$$') {
                     previousEventId = data.id;
-                }
-                if (data.$$_XID_$$ == '$$_attachment_data[1]_$$') {
-                    previousAttachmentDataId = data.id;
                 }
             });
 
@@ -484,12 +481,9 @@ if (requestData.study_instance_uid != null) {
 if (previousEventId != -1) {
     if (!eventIsDeleted(previousEventId)) {
         eventTemplate = previousEventData;
-        requestData.previousAttachmentDataId = previousAttachmentDataId;
-
-        addRoutine('EVENT_ATTACHMENTS_ARE_SAME');
+        requestData.previousEventId = previousEventId;
     }
 }
-
 
 if (typeof previousEyeId != "undefined" && previousEyeId !== requestData.eyeId) {
 
@@ -511,8 +505,6 @@ if (typeof previousEyeId != "undefined" && previousEyeId !== requestData.eyeId) 
                     secondRowEyeId = 1;
                 }
                 data.$$_ROW_$$[1].eye_id = secondRowEyeId;
-
-
             }
         });
         requestData.eyeId = 3;
