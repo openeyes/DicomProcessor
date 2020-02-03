@@ -1,6 +1,6 @@
 var eventData = bindObject('event_data');
 var requestData = bindObject('REQUEST_DATA');
-var octImage = getAttachmentDataByAttachmentMnemonicAndBodySite('OCT_REPORT_JPG', null);
+var octImage = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
 var eventID;
 
 
@@ -13,7 +13,7 @@ var attachmentId = octImage.getId();
 if (requestData.attachmentDataItemToDelete == attachmentId) {
     requestData.attachmentDataItemToDelete = null;
 } else {
-    linkAttachmentDataWithEvent(octImage, eventID, 'OEModule\\OphGeneric\\models\\Attachment');
+   linkAttachmentDataWithEventNewGroup(octImage, eventID, 'OEModule\\OphGeneric\\models\\Attachment');
 }
 createAndSetThumbnailsOnAttachmentData(octImage);
 addRoutine('delink_attachment');
