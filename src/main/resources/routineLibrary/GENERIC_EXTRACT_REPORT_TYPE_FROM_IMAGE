@@ -1,6 +1,30 @@
 var requestData = bindObject('REQUEST_DATA');
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
-requestData.report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 65);
 
+var report_type = null;
+try {
+report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 65, ".*(Report|Analysis)");
+ } catch(error) {
+    print(error.message);
+ }
+
+  if(report_type == null) {
+try {
+ if(report_type == null) {
+   report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 85, ".*(Report|Analysis)");
+ }
+
+ } catch(error) {
+     print(error.message);
+  }
+
+         if(report_type == null) {
+         report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 55, ".*(Report|Analysis)");
+         }
+  }
+
+requestData.report_type = report_type;
+
+requestData.study_instance_uid = requestData.study_instance_uid + "_" + requestData.report_type;
 addRoutine('GENERIC_SET_ATTACHMENT_TYPE');
 addRoutine('GENERIC_EVENT_ASSESSMENT_OCR');
