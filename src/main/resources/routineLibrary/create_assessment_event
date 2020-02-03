@@ -4,7 +4,6 @@ var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf'
 var eventSubtype = requestData.report_type;
 var eventDisplayOrder = 2;
 
-if(!requestData.duplicateRequest || typeof requestData.duplicateRequest == "undefined") {
 var assessmentData = bindObject('ASSESSMENT_DATA');
 var abac_json = bindObject('ABAC_JSON');
 
@@ -99,11 +98,7 @@ putText(
     eventData,
     'NONE',
     null, 'application/json');
-    addRoutine('link_attachment_with_event');
+   // addRoutine('link_attachment_with_event');
 
-    } else {
-        addRoutine('event_not_updated_duplicate_attachment');
-    }
-
-//addRoutine('link_oct_image_with_event');
+addRoutine('link_oct_image_with_event');
 //addRoutine('TIDY_OCT_XML');
