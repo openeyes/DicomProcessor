@@ -305,7 +305,7 @@ public class RoutineScriptService {
         return movedPath != null;
     }
 
-    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height , String regex) throws SQLException, IOException, TesseractException {
+    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height , String regex) throws Exception {
         ImageTextExtractor imageTextExtractor = new ImageTextExtractor();
         Rectangle rectangle = new Rectangle(x, y, width, height);
         InputStream blobBinaryStream = attachmentData.getBlobData().getBinaryStream();
@@ -314,11 +314,11 @@ public class RoutineScriptService {
         if(extractedText.matches(regex)) {
             return extractedText;
         } else {
-            throw new Error("Regex doesn't match for (" +  extractedText + " ) Regex (" + regex + ")");
+            throw new Exception("Regex doesn't match for (" +  extractedText + " ) Regex (" +regex + ")");
         }
     }
 
-    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height) throws SQLException, IOException, TesseractException {
+    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height) throws Exception {
         return readTextFromImage(attachmentData,x,y,width,height,".*");
     }
 
