@@ -15,7 +15,7 @@ import java.sql.Blob;
 @Table(name = "attachment_data")
 @NamedNativeQueries({
         @NamedNativeQuery(name = "routinesForEventWithSameHashcode", query = "" +
-                "SELECT t.id , t.blob_data FROM attachment_data t " +
+                "SELECT * FROM attachment_data t " +
                 "RIGHT JOIN `event_attachment_item` eti ON eti.`attachment_data_id` = t.id " +
                 "RIGHT JOIN event_attachment_group eag ON eag.`event_id` = :event_id " +
                 "WHERE t.hash_code = :hash_code ",
