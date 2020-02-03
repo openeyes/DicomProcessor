@@ -493,7 +493,7 @@ if (previousEventId != -1) {
 
 if (typeof previousEyeId != "undefined" && previousEyeId !== requestData.eyeId) {
 
-    if (previousEyeId != 3 && requestData.eyeId != 3) {
+    if (previousEyeId != 3) {
         previousEventData['$$_SaveSet[1]_$$'].forEach(function(data) {
 
             if (data.$$_DataSet_$$ == 'ophgeneric_assessment_entry') {
@@ -516,6 +516,8 @@ if (typeof previousEyeId != "undefined" && previousEyeId !== requestData.eyeId) 
             }
         });
         requestData.eyeId = 3;
+    } else {
+        requestData.eyeId = previousEyeId;
     }
 }
 
