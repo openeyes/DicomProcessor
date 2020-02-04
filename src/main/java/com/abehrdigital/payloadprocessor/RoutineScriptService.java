@@ -197,9 +197,9 @@ public class RoutineScriptService {
         lockEventRow(eventId);
 
         if (!isAttachmentAlreadyAttached(eventId, attachmentData)) {
-                DataAPI dataAPI = new DataAPI(daoManager.getConnection());
-                dataAPI.linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, eventClassName, eventViewDocumentSet);
-            }
+            DataAPI dataAPI = new DataAPI(daoManager.getConnection());
+            dataAPI.linkAttachmentDataWithEventNewGroup(attachmentData, eventId, elementTypeClassName, eventClassName, eventViewDocumentSet);
+        }
     }
 
     private void lockEventRow(int eventId) throws Exception {
@@ -262,6 +262,13 @@ public class RoutineScriptService {
         }
     }
 
+    public String createEvent(String eventData, String routineUid) throws Exception, EmptyKnownFieldsException, ValuesNotFoundException,
+            InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
+        // Get lock on a row on the routineUid ( study instance UID or any other identifier)
+        daoManager.getRequestRoutineLockDao().getWithLock(routineUid, LockMode.UPGRADE_NOWAIT);
+        return createEvent(eventData);
+    }
+
     public String createEvent(String eventData) throws Exception, EmptyKnownFieldsException, ValuesNotFoundException,
             InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
         //TODO for light intergration
@@ -305,21 +312,21 @@ public class RoutineScriptService {
         return movedPath != null;
     }
 
-    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height , String regex) throws Exception {
+    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height, String regex) throws Exception {
         ImageTextExtractor imageTextExtractor = new ImageTextExtractor();
         Rectangle rectangle = new Rectangle(x, y, width, height);
         InputStream blobBinaryStream = attachmentData.getBlobData().getBinaryStream();
         BufferedImage image = ImageIO.read(blobBinaryStream);
         String extractedText = imageTextExtractor.read(image, rectangle);
-        if(extractedText.matches(regex)) {
+        if (extractedText.matches(regex)) {
             return extractedText;
         } else {
-            throw new Exception("Regex doesn't match for (" +  extractedText + " ) Regex (" +regex + ")");
+            throw new Exception("Regex doesn't match for (" + extractedText + " ) Regex (" + regex + ")");
         }
     }
 
     public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height) throws Exception {
-        return readTextFromImage(attachmentData,x,y,width,height,".*");
+        return readTextFromImage(attachmentData, x, y, width, height, ".*");
     }
 
     public boolean attachmentsContentAreEqual(AttachmentData attachmentData, int attachmentDataIdToCompare) throws SQLException {
@@ -379,6 +386,14 @@ public class RoutineScriptService {
                 routine.setStatus(Status.VOID);
                 daoManager.getRequestRoutineDao().save(routine);
             }
+        }
+    }
+
+    public void createRequestRoutineLockEntryIfDoesntExist(String routineUid) {
+        RequestRoutineLock routineLock = daoManager.getRequestRoutineLockDao().get(routineUid);
+        if (routineLock == null) {
+            routineLock = new RequestRoutineLock(routineUid);
+            daoManager.getRequestRoutineLockDao().save(routineLock);
         }
     }
 }
