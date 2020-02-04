@@ -135,7 +135,6 @@ if (patientHasEpisodes(requestData.patientId)) {
                         crt: 'null',
                         avg_thickness: 'null',
                         total_vol: 'null',
-                        no_fluid: 'null',
                         irf: 'null',
                         srf: 'null',
                         srf: 'null',
@@ -158,7 +157,6 @@ if (patientHasEpisodes(requestData.patientId)) {
                         crt: 'null',
                         avg_thickness: 'null',
                         total_vol: 'null',
-                        no_fluid: 'null',
                         irf: 'null',
                         srf: 'null',
                         srf: 'null',
@@ -372,7 +370,6 @@ if (patientHasEpisodes(requestData.patientId)) {
                         crt: 'null',
                         avg_thickness: 'null',
                         total_vol: 'null',
-                        no_fluid: 'null',
                         irf: 'null',
                         srf: 'null',
                         srf: 'null',
@@ -395,7 +392,6 @@ if (patientHasEpisodes(requestData.patientId)) {
                         crt: 'null',
                         avg_thickness: 'null',
                         total_vol: 'null',
-                        no_fluid: 'null',
                         irf: 'null',
                         srf: 'null',
                         srf: 'null',
@@ -514,6 +510,7 @@ if (typeof previousEyeId != "undefined" && previousEyeId !== requestData.eyeId) 
 }
 
 
+createRequestRoutineLockEntryIfDoesntExist(requestData.study_instance_uid);
 
 
 //Save event data ( from template or previous request)
