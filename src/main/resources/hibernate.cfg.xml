@@ -42,5 +42,6 @@
         <mapping class="com.abehrdigital.payloadprocessor.models.RequestDetails"></mapping>
         <mapping class="com.abehrdigital.payloadprocessor.models.Event"></mapping>
         <mapping class="com.abehrdigital.payloadprocessor.models.EventType"></mapping>
+        <mapping class="com.abehrdigital.payloadprocessor.models.RequestRoutineLock"></mapping>
     </session-factory>
 </hibernate-configuration>
