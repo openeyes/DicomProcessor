@@ -3,7 +3,7 @@ var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf'
 
 var report_type = null;
 try {
-report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 65, ".*(Report|Analysis)");
+report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 65, "(.*(Report|Analysis).*)");
  } catch(error) {
     print(error.message);
  }
@@ -11,7 +11,7 @@ report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 65, ".*(Report|Analy
   if(report_type == null) {
 try {
  if(report_type == null) {
-   report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 85, ".*(Report|Analysis)");
+   report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 85, "(.*(Report|Analysis).*)");
  }
 
  } catch(error) {
@@ -19,7 +19,7 @@ try {
   }
 
          if(report_type == null) {
-         report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 55, ".*(Report|Analysis)");
+         report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 55, "(.*(Report|Analysis).*)");
          }
   }
 
