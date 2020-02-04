@@ -13,6 +13,7 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     private EpisodeDao episodeDao;
     private BiometryImportedEventsDao biometryImportedEventsDao;
     private RequestDetailsDao requestDetailsDao;
+    private RequestRoutineLockDao requestRoutineLockDao;
 
     public ScriptEngineDaoManager() {
     }
@@ -100,5 +101,12 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
             this.requestDetailsDao = new RequestDetailsDao(getConnection());
         }
         return this.requestDetailsDao;
+    }
+
+    public RequestRoutineLockDao getRequestRoutineLockDao() {
+        if (this.requestRoutineLockDao == null) {
+            this.requestRoutineLockDao = new RequestRoutineLockDao(getConnection());
+        }
+        return this.requestRoutineLockDao;
     }
 }
