@@ -298,9 +298,14 @@ String.prototype.replaceAll = function(search, replacement) {
 };
 
 function extractHospitalNumber(hosNum) {
+
     if(typeof env['HOSPITAL_NUMBER_CONSTRUCT_REGEX'] != "undefined") {
         var regexMatches = hosNum.match(env['HOSPITAL_NUMBER_CONSTRUCT_REGEX']);
-        return regexMatches[1];
+        if(typeof regexMatches[2] != "undefined") {
+        return regexMatches[2];
+        } else {
+            return regexMatches[3];
+        }
     } else {
         return hosNum;
     }
