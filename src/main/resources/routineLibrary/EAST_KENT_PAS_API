@@ -1,7 +1,0 @@
-var requestData = bindObject('REQUEST_DATA');
-var hosNum = requestData.hosNum.toString();
-if(hosNum.length == 8) {
-    hosNum = hosNum.slice(2,8);
-}
-
-requestData.patientId = getPatientId(hosNum);
