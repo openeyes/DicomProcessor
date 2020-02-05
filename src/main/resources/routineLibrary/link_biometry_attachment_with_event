@@ -18,4 +18,5 @@ if (requestData.attachmentDataItemToDelete == attachmentId) {
 }
 createAndSetThumbnailsOnAttachmentData(attachmentPdf);
 addRoutine('delink_attachment');
+deleteRequestBlobData();
 }

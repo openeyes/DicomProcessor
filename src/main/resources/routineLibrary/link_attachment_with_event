@@ -16,4 +16,5 @@ if (requestData.attachmentDataItemToDelete == attachmentId) {
     linkAttachmentDataWithEvent(attachmentPdf, requestData.eventId, 'OEModule\\OphGeneric\\models\\Attachment');
 }
 createAndSetThumbnailsOnAttachmentData(attachmentPdf);
+deleteRequestBlobData();
 addRoutine('delink_attachment');
