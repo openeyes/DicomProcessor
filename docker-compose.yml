@@ -13,6 +13,7 @@ services:
       DATABASE_USER: "${DATABASE_USER:-openeyes}"
       DATABASE_PASS: "${DATABASE_PASS:-openeyes}"
       API_DO_HTTPS: "FALSE"
+      HOSPITAL_NUMBER_CONSTRUCT_REGEX: "((?=^[0-9]{8}$$)^0{2}([0-9]*$$)|(?!^[0-9]{8}$$)([0-9]*))"
 
     stdin_open: true
     tty: true
