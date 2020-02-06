@@ -505,6 +505,8 @@ if (typeof previousEyeId != "undefined" && previousEyeId !== requestData.eyeId) 
             }
         });
         requestData.eyeId = 3;
+        requestData.laterality = "B";
+        requestData.image_laterality = "B";
     } else {
         requestData.eyeId = previousEyeId;
     }
