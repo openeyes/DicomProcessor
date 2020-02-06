@@ -19,7 +19,11 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
     }
 
     if (data.$$_XID_$$ == '$$_event_date[1]_$$') {
+        if(typeof requestData.study_date != "undefined") {
         data.date = convertStudyDateTimeToSqlTime(requestData.study_date, requestData.study_time);
+        } else {
+        data.date = convertStudyDateTimeToSqlTime(requestData.content_date, requestData.content_time);
+        }
     }
 
     if(data.$$_XID_$$ == '$$_event_subtype[1]_$$') {
