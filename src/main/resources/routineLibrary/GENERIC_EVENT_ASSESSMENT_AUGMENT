@@ -514,9 +514,6 @@ if (typeof previousEyeId != "undefined" && previousEyeId !== requestData.eyeId) 
 
 
 
-createRequestRoutineLockEntryIfDoesntExist(requestData.study_instance_uid);
-
-
 //Save event data ( from template or previous request)
 putText(
     'event_data',
