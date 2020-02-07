@@ -3,30 +3,30 @@ var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf'
 
 var report_type = null;
 
-if(requestData.series_description == "COLOR") {
+if (requestData.series_description == "COLOR") {
     report_type = "Clinical Photograph";
 } else {
-try {
-report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 65, "(.*(Report|Analysis).*)");
- } catch(error) {
-    print(error.message);
- }
+    try {
+        report_type = readTextFromImage(attachmentPdf, 0, 0, 400, 65, "(.*(Report|Analysis).*)");
+    } catch (error) {
+        print(error.message);
+    }
 
-  if(report_type == null) {
-try {
- if(report_type == null) {
-   report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 85, "(.*(Report|Analysis).*)");
- }
+    if (report_type == null) {
+        try {
+            if (report_type == null) {
+                report_type = readTextFromImage(attachmentPdf, 0, 0, 400, 85, "(.*(Report|Analysis).*)");
+            }
 
- } catch(error) {
-     print(error.message);
-  }
+        } catch (error) {
+            print(error.message);
+        }
 
-         if(report_type == null) {
-         report_type = readTextFromImage(attachmentPdf, 0 , 0 ,400 , 55, "(.*(Report|Analysis).*)");
-         }
-  }
-  }
+        if (report_type == null) {
+            report_type = readTextFromImage(attachmentPdf, 0, 0, 400, 55, "(.*(Report|Analysis).*)");
+        }
+    }
+}
 
 requestData.report_type = report_type;
 

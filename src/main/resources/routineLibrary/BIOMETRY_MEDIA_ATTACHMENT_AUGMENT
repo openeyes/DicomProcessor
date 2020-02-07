@@ -1,29 +1,25 @@
- var requestData = bindObject('REQUEST_DATA');
- var eventTemplate = {
-                                                         _OE_System: 'ABEHR Jason Local v3.0',
-                                                         _Version: 'v0.1',
-                                                         $$_XID_Map_$$: [
-                                                         ],
-                                                         '$$_SaveSet[1]_$$': [
-                                                           {
-                                                             $$_DataSet_$$: 'et_ophgeneric_attachment',
-                                                             $$_ROW_$$: [
-                                                               {
-                                                                 $$_CRUD_$$: 'MERGE',
-                                                                 id: '$$_et_ophgeneric_attachment[1]_$$',
-                                                                 event_id: '$$_event[1].id_$$'
-                                                               }
-                                                             ]
-                                                           },
+var requestData = bindObject('REQUEST_DATA');
+var eventTemplate = {
+    _OE_System: 'ABEHR Jason Local v3.0',
+    _Version: 'v0.1',
+    $$_XID_Map_$$: [],
+    '$$_SaveSet[1]_$$': [{
+            $$_DataSet_$$: 'et_ophgeneric_attachment',
+            $$_ROW_$$: [{
+                $$_CRUD_$$: 'MERGE',
+                id: '$$_et_ophgeneric_attachment[1]_$$',
+                event_id: '$$_event[1].id_$$'
+            }]
+        },
 
-                                                         ]
-                                                       }
+    ]
+}
 
-                    //Save event data ( from template or previous request)
-                    putText(
-                        'event_data',
-                        JSON.stringify(eventTemplate),
-                        'NONE',
-                        null,
-                        'application/json'
-                    );
+//Save event data ( from template or previous request)
+putText(
+    'event_data',
+    JSON.stringify(eventTemplate),
+    'NONE',
+    null,
+    'application/json'
+);

@@ -19,12 +19,12 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
         data.date = convertStudyDateTimeToSqlTime(requestData.study_date, requestData.study_time);
     }
 
-    if(data.$$_XID_$$ == '$$_event_subtype[1]_$$') {
-       data.event_subtype = eventSubtype;
+    if (data.$$_XID_$$ == '$$_event_subtype[1]_$$') {
+        data.event_subtype = eventSubtype;
     }
 
-    if(data.$$_XID_$$ == '$$_event_subtype[2]_$$') {
-       data.display_order = eventDisplayOrder;
+    if (data.$$_XID_$$ == '$$_event_subtype[2]_$$') {
+        data.display_order = eventDisplayOrder;
     }
 });
 

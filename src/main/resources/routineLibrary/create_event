@@ -3,8 +3,8 @@ var requestData = bindObject('REQUEST_DATA');
 var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
 var eventSubtype = "OCT";
 
-if(typeof requestData.event_subtype != "undefined") {
-   eventSubtype = requestData.event_subtype;
+if (typeof requestData.event_subtype != "undefined") {
+    eventSubtype = requestData.event_subtype;
 }
 
 var eventDisplayOrder = 2;
@@ -19,19 +19,19 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
     }
 
     if (data.$$_XID_$$ == '$$_event_date[1]_$$') {
-        if(typeof requestData.study_date != "undefined") {
-        data.date = convertStudyDateTimeToSqlTime(requestData.study_date, requestData.study_time);
+        if (typeof requestData.study_date != "undefined") {
+            data.date = convertStudyDateTimeToSqlTime(requestData.study_date, requestData.study_time);
         } else {
-        data.date = convertStudyDateTimeToSqlTime(requestData.content_date, requestData.content_time);
+            data.date = convertStudyDateTimeToSqlTime(requestData.content_date, requestData.content_time);
         }
     }
 
-    if(data.$$_XID_$$ == '$$_event_subtype[1]_$$') {
-       data.event_subtype = eventSubtype;
+    if (data.$$_XID_$$ == '$$_event_subtype[1]_$$') {
+        data.event_subtype = eventSubtype;
     }
 
-    if(data.$$_XID_$$ == '$$_event_subtype[2]_$$') {
-       data.display_order = eventDisplayOrder;
+    if (data.$$_XID_$$ == '$$_event_subtype[2]_$$') {
+        data.display_order = eventDisplayOrder;
     }
 });
 

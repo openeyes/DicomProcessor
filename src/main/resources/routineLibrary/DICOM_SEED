@@ -1,7 +1,7 @@
 var requestData = bindObject('REQUEST_DATA');
 //Get dicom headers from dicom blob
 var dicomObject = getDicom('REQUEST_BLOB', null);
-var dicomHeader = bindObject('DICOM_HEADER', null , null, null ,null , dicomObject.getHeaderJsonString());
+var dicomHeader = bindObject('DICOM_HEADER', null, null, null, null, dicomObject.getHeaderJsonString());
 
 //Extract Dicom Header Values
 requestData.manufacturer = dicomHeader['80070'];
@@ -39,9 +39,9 @@ requestData.file_description = dicomHeader['22011000'];
 //REQUESTDATA.EVENT_SUB_TYPE = FUNCTION TO GET EVENT SUB TYPE ( REQUESTDATA.MODALITY)
 
 //Calling manufacturer device handler
-if(typeof requestData.manufacturer != "undefined" && requestData.manufacturer.startsWith("Kowa")) {
+if (typeof requestData.manufacturer != "undefined" && requestData.manufacturer.startsWith("Kowa")) {
     addRoutine("Kowa");
-} else if(typeof requestData.manufacturer != "undefined") {
+} else if (typeof requestData.manufacturer != "undefined") {
     addRoutine(requestData.manufacturer.replace(/ /g, "_"));
 } else {
     addRoutine("GENERIC_MANUFACTURER");

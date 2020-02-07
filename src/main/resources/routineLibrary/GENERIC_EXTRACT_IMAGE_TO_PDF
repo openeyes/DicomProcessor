@@ -1,25 +1,25 @@
- var requestData = bindObject('REQUEST_DATA');
- var dicomObject = getDicom('REQUEST_BLOB');
- var dicomHeader =  bindObject('DICOM_HEADER', null , null, null ,null , dicomObject.getHeaderJsonString());
+var requestData = bindObject('REQUEST_DATA');
+var dicomObject = getDicom('REQUEST_BLOB');
+var dicomHeader = bindObject('DICOM_HEADER', null, null, null, null, dicomObject.getHeaderJsonString());
 
 
-        //IF( REQUESTDATA.ATTACHMENT TYPE != FALSE  OR UNDEFINED OR NOT EMPTY STRING){
-       //     NEW error ( attachment type NOT EXSISTS);
-       // }
-    //Lookup Laterality
-    if(requestData.laterality == 'L' || requestData.image_laterality  == 'L'){
-        requestData.bodySiteSnomed = 8966001;
-        requestData.eyeId = 1;
-    } else if (requestData.laterality == 'R' || requestData.image_laterality  == 'R') {
-        requestData.bodySiteSnomed = 18944008;
-        requestData.eyeId = 2;
-    } else if (requestData.laterality == 'B' || requestData.image_laterality  == 'B'){
-        requestData.bodySiteSnomed = 40638003;
-        requestData.eyeId = 3;
-    } else {
-        new Error('Unknown laterality has been found : LATERALITY: ' + requestData.laterality + " IMAGE_LATERALITY: " + requestData.image_laterality);
-    }
-    // ADD MODALITY CODE FROM REQUEST DATA
-    //Get PDF from Dicom and Save
-    //attachment_type = requestDATA.ATTACHMENT_TYPE
-     var pdf = bindBinary('event_pdf' , null, requestData.bodySiteSnomed , null , null, dicomObject.getImagesAsPdfBlob());
+//IF( REQUESTDATA.ATTACHMENT TYPE != FALSE  OR UNDEFINED OR NOT EMPTY STRING){
+//     NEW error ( attachment type NOT EXSISTS);
+// }
+//Lookup Laterality
+if (requestData.laterality == 'L' || requestData.image_laterality == 'L') {
+    requestData.bodySiteSnomed = 8966001;
+    requestData.eyeId = 1;
+} else if (requestData.laterality == 'R' || requestData.image_laterality == 'R') {
+    requestData.bodySiteSnomed = 18944008;
+    requestData.eyeId = 2;
+} else if (requestData.laterality == 'B' || requestData.image_laterality == 'B') {
+    requestData.bodySiteSnomed = 40638003;
+    requestData.eyeId = 3;
+} else {
+    new Error('Unknown laterality has been found : LATERALITY: ' + requestData.laterality + " IMAGE_LATERALITY: " + requestData.image_laterality);
+}
+// ADD MODALITY CODE FROM REQUEST DATA
+//Get PDF from Dicom and Save
+//attachment_type = requestDATA.ATTACHMENT_TYPE
+var pdf = bindBinary('event_pdf', null, requestData.bodySiteSnomed, null, null, dicomObject.getImagesAsPdfBlob());

@@ -513,9 +513,6 @@ if (previousEventId != -1) {
 }
 
 
-
-
-
 //Save event data ( from template or previous request)
 putText(
     'event_data',
