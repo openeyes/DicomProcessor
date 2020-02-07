@@ -2,6 +2,7 @@ package com.abehrdigital.payloadprocessor;
 
 import com.abehrdigital.payloadprocessor.dao.BiometryImportedEventsDao;
 import com.abehrdigital.payloadprocessor.dao.RequestDetailsDao;
+import com.abehrdigital.payloadprocessor.dao.RequestRoutineLockDao;
 import com.abehrdigital.payloadprocessor.dao.ScriptEngineDaoManager;
 import com.abehrdigital.payloadprocessor.exceptions.EmptyKnownFieldsException;
 import com.abehrdigital.payloadprocessor.exceptions.InvalidNumberOfRowsAffectedException;
@@ -14,6 +15,7 @@ import net.sourceforge.tess4j.TesseractException;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
+import org.hibernate.Session;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -262,13 +264,6 @@ public class RoutineScriptService {
         }
     }
 
-    public String createEvent(String eventData, String routineUid) throws Exception, EmptyKnownFieldsException, ValuesNotFoundException,
-            InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
-        // Get lock on a row on the routineUid ( study instance UID or any other identifier)
-        daoManager.getRequestRoutineLockDao().getWithLock(routineUid, LockMode.UPGRADE_NOWAIT);
-        return createEvent(eventData);
-    }
-
     public String createEvent(String eventData) throws Exception, EmptyKnownFieldsException, ValuesNotFoundException,
             InvalidNumberOfRowsAffectedException, NoSearchedFieldsProvidedException {
         //TODO for light intergration
@@ -389,11 +384,31 @@ public class RoutineScriptService {
         }
     }
 
-    public void createRequestRoutineLockEntryIfDoesntExist(String routineUid) {
-        RequestRoutineLock routineLock = daoManager.getRequestRoutineLockDao().get(routineUid);
-        if (routineLock == null) {
-            routineLock = new RequestRoutineLock(routineUid);
-            daoManager.getRequestRoutineLockDao().save(routineLock);
+    public void synchronizedJavaSubroutine(String name, String synchronizationLockMode) throws Exception {
+
+        if (synchronizationLockMode.equals("runtime_sequential")) {
+            while (true) {
+                // need to catch time out
+                RequestRoutineLock routineLock = daoManager.getRequestRoutineLockDao().getWithLock(name, LockMode.UPGRADE_NOWAIT);
+
+                if (routineLock == null) {
+                    Session routineLockSession = HibernateUtil.getSessionFactory().openSession();
+                    routineLockSession.beginTransaction();
+                    try {
+                        RequestRoutineLockDao requestRoutineLockDao = new RequestRoutineLockDao(routineLockSession);
+                        routineLock = new RequestRoutineLock(name);
+                        requestRoutineLockDao.save(routineLock);
+                        routineLockSession.getTransaction().commit();
+                    } catch(Exception exception) {
+                        // Need to catch unique constraint violation
+                        throw exception;
+                    }
+                } else {
+                    break;
+                }
+            }
+        } else {
+            throw new Exception("INVALID synchronization lock mode");
         }
     }
 }
