@@ -310,3 +310,15 @@ function extractHospitalNumber(hosNum) {
         return hosNum;
     }
 }
+
+function getDefaultVariableValue(key, defaultValue) {
+    if(typeof defaultValue != undefined) {
+        defaultValue = null;
+    }
+
+    if(typeof env["DEFAULT_" + key] != "undefined") {
+        return env["DEFAULT_" + key]
+    } else {
+        return defaultValue;
+    }
+}
