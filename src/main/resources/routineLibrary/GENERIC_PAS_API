@@ -1,4 +1,36 @@
 var requestData = bindObject('REQUEST_DATA');
+var hosNum = requestData.hosNum.toString();
 requestData.extractedHospitalNumber = extractHospitalNumber(requestData.hosNum.toString());
 
-requestData.patientId = getPatientId(requestData.extractedHospitalNumber);
+var patientId;
+var patientIdFound = false;
+var hospitalNumbersSearched = [];
+
+try{
+    hospitalNumbersSearched.push(hosNum);
+    patientId = getPatientId(hosNum);
+    patientIdFound = true;
+} catch (err) {
+    print("Hos num " + hosNum + " error : " + err);
+}
+
+if(!patientIdFound) {
+    while(hosNum.indexOf("0") == 0 && !patientIdFound) {
+ hosNum = hosNum.substring(1);
+    try {
+        hospitalNumbersSearched.push(hosNum);
+        patientId = getPatientId(hosNum);
+        patientIdFound = true;
+    } catch(err) {
+        print("Hos num " + hosNum + " error : " + err);
+    }
+ }
+}
+
+if(!patientIdFound) {
+    throw new Error("ERROR: Patient id not found , Hospital numbers that have been tried :" + hospitalNumbersSearched);
+}
+
+
+requestData.extractedHospitalNumber = hosNum;
+requestData.patientId = patientId;
