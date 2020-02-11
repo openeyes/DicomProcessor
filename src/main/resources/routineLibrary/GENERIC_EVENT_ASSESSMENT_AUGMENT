@@ -1,6 +1,6 @@
 var requestData = bindObject('REQUEST_DATA');
 
-var defaultSubspecialty = getDefaultVariableValue('SUBSPECIALTY','General Ophthalmology');
+var defaultSubspecialty = getDefaultVariableValue('SUBSPECIALTY','Eye Casualty');
 var defaultService = getDefaultVariableValue('SERVICE','Eye Casualty Service');
 var defaultFirmName = getDefaultVariableValue('FIRM_NAME', 'Eye Casualty Service');
 
@@ -134,45 +134,13 @@ if (patientHasEpisodes(requestData.patientId)) {
                         $$_CRUD_$$: 'MERGE',
                         id: '$$_ophgeneric_assessment_entry[1]_$$',
                         element_id: '$$_et_ophgeneric_assessment[1].id_$$',
-                        crt: 'null',
-                        avg_thickness: 'null',
-                        total_vol: 'null',
-                        irf: 'null',
-                        srf: 'null',
-                        srf: 'null',
-                        retinal_thickening: 'null',
-                        ped: 'null',
-                        cmo: 'null',
-                        dmo: 'null',
-                        heamorrhage: 'null',
-                        exudates: 'null',
-                        avg_rnfl: 'null',
-                        cct: 'null',
-                        cd_ratio: 'null',
                         eye_id: '1',
-                        abac_json: 'null'
                     },
                     {
                         $$_CRUD_$$: 'MERGE',
                         id: '$$_ophgeneric_assessment_entry[2]_$$',
                         element_id: '$$_et_ophgeneric_assessment[1].id_$$',
-                        crt: 'null',
-                        avg_thickness: 'null',
-                        total_vol: 'null',
-                        irf: 'null',
-                        srf: 'null',
-                        srf: 'null',
-                        retinal_thickening: 'null',
-                        ped: 'null',
-                        cmo: 'null',
-                        dmo: 'null',
-                        heamorrhage: 'null',
-                        exudates: 'null',
-                        avg_rnfl: 'null',
-                        cct: 'null',
-                        cd_ratio: 'null',
                         eye_id: '2',
-                        abac_json: 'null'
 
                     },
 
@@ -370,45 +338,13 @@ if (patientHasEpisodes(requestData.patientId)) {
                         $$_CRUD_$$: 'MERGE',
                         id: '$$_ophgeneric_assessment_entry[1]_$$',
                         element_id: '$$_et_ophgeneric_assessment[1].id_$$',
-                        crt: 'null',
-                        avg_thickness: 'null',
-                        total_vol: 'null',
-                        irf: 'null',
-                        srf: 'null',
-                        srf: 'null',
-                        retinal_thickening: 'null',
-                        ped: 'null',
-                        cmo: 'null',
-                        dmo: 'null',
-                        heamorrhage: 'null',
-                        exudates: 'null',
-                        avg_rnfl: 'null',
-                        cct: 'null',
-                        cd_ratio: 'null',
                         eye_id: '1',
-                        abac_json: 'null'
                     },
                     {
                         $$_CRUD_$$: 'MERGE',
                         id: '$$_ophgeneric_assessment_entry[2]_$$',
                         element_id: '$$_et_ophgeneric_assessment[1].id_$$',
-                        crt: 'null',
-                        avg_thickness: 'null',
-                        total_vol: 'null',
-                        irf: 'null',
-                        srf: 'null',
-                        srf: 'null',
-                        retinal_thickening: 'null',
-                        ped: 'null',
-                        cmo: 'null',
-                        dmo: 'null',
-                        heamorrhage: 'null',
-                        exudates: 'null',
-                        avg_rnfl: 'null',
-                        cct: 'null',
-                        cd_ratio: 'null',
                         eye_id: '2',
-                        abac_json: 'null'
 
                     },
 
@@ -510,6 +446,8 @@ if (previousEventId != -1) {
                 requestData.image_laterality = "B";
             } else {
                 requestData.eyeId = previousEyeId;
+                requestData.laterality = "B";
+                requestData.image_laterality = "B";
             }
         }
     }
