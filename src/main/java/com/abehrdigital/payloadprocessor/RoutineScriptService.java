@@ -308,9 +308,21 @@ public class RoutineScriptService {
     }
 
     public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height, String regex) throws Exception {
+        return readTextFromImage(attachmentData.getBlobData(), x, y, width, height, regex);
+    }
+
+    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height) throws Exception {
+        return readTextFromImage(attachmentData.getBlobData(), x, y, width, height, ".*");
+    }
+
+    public String readTextFromImage(Blob imageBlob, int x, int y, int width, int height) throws Exception {
+        return readTextFromImage(imageBlob, x, y, width, height, ".*");
+    }
+
+    public String readTextFromImage(Blob imageBlob, int x, int y, int width, int height, String regex) throws Exception {
         ImageTextExtractor imageTextExtractor = new ImageTextExtractor();
         Rectangle rectangle = new Rectangle(x, y, width, height);
-        InputStream blobBinaryStream = attachmentData.getBlobData().getBinaryStream();
+        InputStream blobBinaryStream = imageBlob.getBinaryStream();
         BufferedImage image = ImageIO.read(blobBinaryStream);
         String extractedText = imageTextExtractor.read(image, rectangle);
         if (extractedText.matches(regex)) {
@@ -318,10 +330,6 @@ public class RoutineScriptService {
         } else {
             throw new Exception("Regex doesn't match for (" + extractedText + " ) Regex (" + regex + ")");
         }
-    }
-
-    public String readTextFromImage(AttachmentData attachmentData, int x, int y, int width, int height) throws Exception {
-        return readTextFromImage(attachmentData, x, y, width, height, ".*");
     }
 
     public boolean attachmentsContentAreEqual(AttachmentData attachmentData, int attachmentDataIdToCompare) throws SQLException {
