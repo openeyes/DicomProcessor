@@ -172,7 +172,7 @@ function isEmpty(obj) {
     return true;
 }
 
-function bindObject(attachmentMnemonic, attachmentType, bodySite,
+function bindTextObject(attachmentMnemonic, attachmentType, bodySite,
     mimeType, systemOnlyManaged, initFrom) {
 
 
@@ -198,7 +198,11 @@ function bindObject(attachmentMnemonic, attachmentType, bodySite,
      }
 
     if (isEmpty(object.item) && initFrom != null) {
+        if(typeof initFrom == "string") {
         object.item = JSON.parse(initFrom);
+        } else if(typeof initFrom == "object") {
+        object.item = initFrom;
+        }
     }
 
     bindedObjects.push(object);
@@ -262,7 +266,7 @@ function bindBinary(attachmentMnemonic, attachmentType, bodySite,
 
     var attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
     if (attachmentData != null) {
-        binaryObject.blob = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite).getBlobData();
+        binaryObject.blob = attachmentData.getBlobData();
     } else {
         binaryObject.blob = null;
     }
@@ -272,6 +276,14 @@ function bindBinary(attachmentMnemonic, attachmentType, bodySite,
 
     bindedObjects.push(binaryObject);
     return binaryObject.blob;
+}
+
+function getObject(attachmentMnemonic,bodySite) {
+    if (bodySite == null || typeof bodySite == "undefined") {
+        bodySite = null;
+    }
+    var attachmentData = getAttachmentDataByAttachmentMnemonicAndBodySite(attachmentMnemonic, bodySite);
+    return attachmentData;
 }
 
 function convertStudyDateTimeToSqlTime(dateString, timeString) {
@@ -321,4 +333,19 @@ function getDefaultVariableValue(key, defaultValue) {
     } else {
         return defaultValue;
     }
+}
+
+function modifyObjectValue(object, newObject) {
+
+  Object.keys(object).forEach(function(key) {
+    delete object[key];
+  });
+
+  if(typeof newObject == "string") {
+    newObject = JSON.parse(newObject);
+  }
+
+  Object.keys(newObject).forEach(function(key) {
+    object[key] = newObject[key];
+  });
 }
