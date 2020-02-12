@@ -1,7 +1,7 @@
-var requestData = bindObject('REQUEST_DATA');
+var requestData = bindTextObject('REQUEST_DATA');
 //Get dicom headers from dicom blob
 var dicomObject = getDicom('REQUEST_BLOB', null);
-var dicomHeader = bindObject('DICOM_HEADER', null , null, null ,null , dicomObject.getHeaderJsonString());
+var dicomHeader = bindTextObject('DICOM_HEADER', null , null, null ,null , dicomObject.getHeaderJsonString());
 
 //Extract Dicom Header Values
 requestData.manufacturer = dicomHeader['80070'];

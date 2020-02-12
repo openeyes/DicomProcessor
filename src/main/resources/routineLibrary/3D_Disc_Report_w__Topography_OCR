@@ -1,6 +1,6 @@
-var requestData = bindObject('REQUEST_DATA');
-var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
-var assessmentData = bindObject('ASSESSMENT_DATA');
+var requestData = bindTextObject('REQUEST_DATA');
+var attachmentPdf = getObject('event_pdf', requestData.bodySiteSnomed);
+var assessmentData = bindTextObject('ASSESSMENT_DATA');
 //assessmentData.avg_rnfl = readTextFromImage(attachmentPdf, 193 , 753 ,80 , 30);
 //assessmentData.crt = readTextFromImage(attachmentPdf, 1162 , 210 ,120 , 30);
 //assessmentData.avg_thickness = readTextFromImage(attachmentPdf, 1178 , 240 ,120 , 30);

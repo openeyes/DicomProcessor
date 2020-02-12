@@ -1,5 +1,5 @@
-var requestData = bindObject('REQUEST_DATA');
-var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
+var requestData = bindTextObject('REQUEST_DATA');
+var attachmentPdf = getObject('event_pdf', requestData.bodySiteSnomed);
 
 var report_type = null;
 

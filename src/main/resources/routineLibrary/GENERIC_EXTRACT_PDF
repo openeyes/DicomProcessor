@@ -1,6 +1,6 @@
-var requestData = bindObject('REQUEST_DATA');
+var requestData = bindTextObject('REQUEST_DATA');
 var dicomObject = getDicom('REQUEST_BLOB');
-var dicomHeader = bindObject('DICOM_HEADER', null, null, null, null, dicomObject.getHeaderJsonString());
+var dicomHeader = bindTextObject('DICOM_HEADER', null, null, null, null, dicomObject.getHeaderJsonString());
 
 
 //IF( REQUESTDATA.ATTACHMENT TYPE != FALSE  OR UNDEFINED OR NOT EMPTY STRING){

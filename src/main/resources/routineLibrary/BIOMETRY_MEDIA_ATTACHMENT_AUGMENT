@@ -1,5 +1,5 @@
-var requestData = bindObject('REQUEST_DATA');
-var eventTemplate = {
+var requestData = bindTextObject('REQUEST_DATA');
+var eventTemplate = bindTextObject('event_data', null , null , null, null , {
     _OE_System: 'ABEHR Jason Local v3.0',
     _Version: 'v0.1',
     $$_XID_Map_$$: [],
@@ -13,13 +13,4 @@ var eventTemplate = {
         },
 
     ]
-}
-
-//Save event data ( from template or previous request)
-putText(
-    'event_data',
-    JSON.stringify(eventTemplate),
-    'NONE',
-    null,
-    'application/json'
-);
+});

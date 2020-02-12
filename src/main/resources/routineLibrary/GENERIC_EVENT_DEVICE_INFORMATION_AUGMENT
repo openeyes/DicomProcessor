@@ -1,6 +1,6 @@
-var requestData = bindObject('REQUEST_DATA');
+var requestData = bindTextObject('REQUEST_DATA');
 var previousEventData = null;
-
+var eventData = bindTextObject('event_data');
 var defaultSubspecialty = 'General Ophthalmology';
 var defaultService = 'Eye Casualty Service';
 
@@ -362,11 +362,4 @@ if (previousEventId != -1) {
 }
 
 
-//Save event data ( from template or previous request)
-putText(
-    'event_data',
-    JSON.stringify(eventTemplate),
-    'NONE',
-    null,
-    'application/json'
-);
+modifyObjectValue(eventData,eventTemplate);

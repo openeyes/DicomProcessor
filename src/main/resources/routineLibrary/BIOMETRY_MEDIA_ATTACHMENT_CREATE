@@ -1,6 +1,6 @@
-var eventData = JSON.parse(getTextIfNullReturnEmptyJson('event_data', null));
-var requestData = bindObject('REQUEST_DATA');
-var attachmentPdf = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
+var eventData = bindTextObject('event_data');
+var requestData = bindTextObject('REQUEST_DATA');
+var attachmentPdf = getObject('event_pdf', requestData.bodySiteSnomed);
 
 if (typeof requestData.study_instance_uid != "undefined") {
     requestData.biometryId = getBiometryEventId(requestData.study_instance_uid);
@@ -8,9 +8,6 @@ if (typeof requestData.study_instance_uid != "undefined") {
     throw new Error("Study instance UID is required to get biometry ID");
 }
 
-requestData.isDuplicateAttachmentForEvent = isDuplicateAttachmentForEvent(requestData.biometryId, attachmentPdf.getHashCode());
-
-if (!requestData.isDuplicateAttachmentForEvent || typeof requestData.isDuplicateAttachmentForEvent == "undefined") {
     requestData.eventId = requestData.biometryId;
 
     eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
@@ -22,14 +19,7 @@ if (!requestData.isDuplicateAttachmentForEvent || typeof requestData.isDuplicate
         }
     });
 
-    var eventData = createEvent(JSON.stringify(eventData));
+    var createdEventData = createEvent(JSON.stringify(eventData));
+    modifyObjectValue(eventData, createdEventData);
 
-    putText(
-        'event_data',
-        eventData,
-        'NONE',
-        null, 'application/json');
     addRoutine('link_biometry_attachment_with_event');
-} else {
-    addRoutine('event_not_updated_duplicate_attachment');
-}

@@ -1,2 +1,2 @@
-var requestData = bindObject('REQUEST_DATA');
+var requestData = bindTextObject('REQUEST_DATA');
 addRoutine('Carl_Zeiss_Meditec_' + requestData.modality);

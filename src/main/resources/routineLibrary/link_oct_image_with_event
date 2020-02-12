@@ -1,6 +1,6 @@
-var eventData = bindObject('event_data');
-var requestData = bindObject('REQUEST_DATA');
-var octImage = getAttachmentDataByAttachmentMnemonicAndBodySite('event_pdf', requestData.bodySiteSnomed);
+var eventData = bindTextObject('event_data');
+var requestData = bindTextObject('REQUEST_DATA');
+var octImage = getObject('event_pdf', requestData.bodySiteSnomed);
 var eventID;
 
 
@@ -9,12 +9,9 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
         eventID = data.id;
     }
 });
-var attachmentId = octImage.getId();
-if (requestData.attachmentDataItemToDelete == attachmentId) {
-    requestData.attachmentDataItemToDelete = null;
-} else {
-   linkAttachmentDataWithEventNewGroup(octImage, eventID, 'OEModule\\OphGeneric\\models\\Attachment');
-}
+
+linkAttachmentDataWithEventNewGroup(octImage, eventID, 'OEModule\\OphGeneric\\models\\Attachment');
+
 createAndSetThumbnailsOnAttachmentData(octImage);
 deleteRequestBlobData();
 addRoutine('delink_attachment');

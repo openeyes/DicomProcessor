@@ -1,4 +1,4 @@
-var requestData = bindObject('REQUEST_DATA');
+var requestData = bindTextObject('REQUEST_DATA');
 var documentNode = bindXml('REQUEST_BLOB', null, null);
 var regex = requestData.file_name.replace(".xml" , "") + ".*\.jpg";
 var reportFileArray = searchFiles(env.TOPCON_PENDING_DIR, regex);
