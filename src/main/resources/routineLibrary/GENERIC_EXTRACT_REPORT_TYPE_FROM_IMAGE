@@ -22,10 +22,19 @@ if (requestData.series_description == "COLOR") {
             print(error.message);
         }
 
+
+        try {
         if (report_type == null) {
             report_type = readTextFromImage(attachmentPdf, 0, 0, 400, 55, "(.*(Report|Analysis).*)");
         }
+        } catch (error) {
+              print(error.message);
+        }
     }
+}
+
+if (report_type == null && typeof requestData.source_platform != "undefined" && requestData.source_platform.toLowerCase() == "imagenet") {
+    report_type = "Clinical Photograph Black/White"
 }
 
 requestData.report_type = report_type;
