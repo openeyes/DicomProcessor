@@ -4,7 +4,7 @@ var attachmentPdf = getObject('event_pdf', requestData.bodySiteSnomed);
 var report_type = null;
 
 if (requestData.series_description == "COLOR") {
-    report_type = "Clinical Photograph";
+    report_type = "Clinical Photograph Colour";
 } else {
     try {
         report_type = readTextFromImage(attachmentPdf, 0, 0, 400, 65, "(.*(Report|Analysis).*)");
