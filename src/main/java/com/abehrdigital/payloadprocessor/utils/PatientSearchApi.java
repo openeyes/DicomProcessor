@@ -56,19 +56,20 @@ public class PatientSearchApi {
      * @return The status code of the HTTP response
      * @throws ConnectException
      */
-    public static String searchPatient(String hospitalNumber) throws Exception {
+    public static String searchPatient(String hospitalNumber, String gender, String dateOfBirth) throws Exception {
         String jsonPatientData = read(hospitalNumber);
         if (jsonPatientData.equals(EMPTY_JSON_RESPONSE)) {
             throw new Exception("Empty JSON RESPONSE");
         }
-        return getPatientIdFromJson(jsonPatientData);
+        return getPatientIdFromJson(jsonPatientData,gender, dateOfBirth);
     }
 
-    private static String getPatientIdFromJson(String jsonPatientData) throws Exception {
+    private static String getPatientIdFromJson(String jsonPatientData , String gender, String dateOfBirth) throws Exception {
         int ONE_PATIENT_RESULT = 1;
         JSONParser parser = new JSONParser();
         Object parsedJson;
         JSONArray jsonArray;
+        dateOfBirth = dateOfBirth.replaceAll("-", "");
 
         try {
             parsedJson = parser.parse(jsonPatientData);
@@ -81,6 +82,19 @@ public class PatientSearchApi {
             Iterator jsonArrayIterator = jsonArray.iterator();
             while (jsonArrayIterator.hasNext()) {
                 JSONObject jsonObject = (JSONObject) jsonArrayIterator.next();
+                if(gender != null) {
+                    String genderFromApi = (String) jsonObject.get("genderletter");
+                    if(!genderFromApi.equals(gender)) {
+                        throw new Exception("Gender doesn't match for the found patient. Expected:" + gender + " Actual: " + genderFromApi);
+                    }
+                }
+                if(dateOfBirth != null) {
+                    String dateOfBirthFromApi = (String) jsonObject.get("dob");
+                    dateOfBirthFromApi = dateOfBirthFromApi.replaceAll("-", "");
+                    if(!dateOfBirthFromApi.equals(dateOfBirth)) {
+                        throw new Exception("DoB doesn't match for the found patient. Expected:" + dateOfBirth + " Actual: " + dateOfBirthFromApi);
+                    }
+                }
                 return (String) jsonObject.get("id");
             }
         } else {
