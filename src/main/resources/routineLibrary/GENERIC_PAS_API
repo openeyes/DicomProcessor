@@ -5,13 +5,15 @@ requestData.extractedHospitalNumber = extractHospitalNumber(requestData.hosNum.t
 var patientId;
 var patientIdFound = false;
 var hospitalNumbersSearched = [];
+var errors = [];
 
 try{
     hospitalNumbersSearched.push(hosNum);
-    patientId = getPatientId(hosNum);
+    patientId = getPatientId(hosNum,  requestData.gender, requestData.date_of_birth.toString());
     patientIdFound = true;
 } catch (err) {
     print("Hos num " + hosNum + " error : " + err);
+    errors.push(err);
 }
 
 if(!patientIdFound) {
@@ -19,16 +21,17 @@ if(!patientIdFound) {
  hosNum = hosNum.substring(1);
     try {
         hospitalNumbersSearched.push(hosNum);
-        patientId = getPatientId(hosNum);
+        patientId = getPatientId(hosNum,  requestData.gender, requestData.date_of_birth.toString());
         patientIdFound = true;
     } catch(err) {
         print("Hos num " + hosNum + " error : " + err);
+         errors.push(err);
     }
  }
 }
 
 if(!patientIdFound) {
-    throw new Error("ERROR: Patient id not found , Hospital numbers that have been tried :" + hospitalNumbersSearched);
+    throw new Error("ERROR: Patient id not found , Hospital numbers that have been tried :" + hospitalNumbersSearched + " ERRORS :" + errors);
 }
 
 
