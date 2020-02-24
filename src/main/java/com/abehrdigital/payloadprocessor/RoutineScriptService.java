@@ -232,14 +232,18 @@ public class RoutineScriptService {
         return attachmentIsAlreadyAttached;
     }
 
-    public String getPatientId(String hospitalNumber) throws Exception {
+    public String getPatientId(String hospitalNumber, String gender, String dateOfBirth) throws Exception {
         String patientId;
         try {
-            patientId = PatientSearchApi.searchPatient(hospitalNumber);
+            patientId = PatientSearchApi.searchPatient(hospitalNumber, gender, dateOfBirth);
         } catch (Exception exception) {
             throw new Exception("Patient was not found with Hospital number: " + hospitalNumber, exception);
         }
         return patientId;
+    }
+
+    public String getPatientId(String hospitalNumber) throws Exception {
+        return getPatientId(hospitalNumber, null, null);
     }
 
     public AttachmentData getEventDataByDeviceInformationStudyInstanceUID(String attachmentMnemonic, String studyInstanceUID) {
