@@ -237,7 +237,7 @@ public class RoutineScriptService {
         try {
             patientId = PatientSearchApi.searchPatient(hospitalNumber, gender, dateOfBirth);
         } catch (Exception exception) {
-            throw new Exception("Patient was not found with Hospital number: " + hospitalNumber, exception);
+            throw new Exception("Patient was not found with Hospital number: " + hospitalNumber + StackTraceUtil.getStackTraceAsString(exception));
         }
         return patientId;
     }
