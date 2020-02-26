@@ -1,0 +1,3 @@
+var requestData = bindTextObject('REQUEST_DATA');
+var attachmentMedia = getObject('event_pdf', requestData.bodySiteSnomed);
+deleteAttachmentIfNotNeeded(attachmentMedia);
