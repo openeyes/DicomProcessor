@@ -14,11 +14,23 @@ import java.sql.Blob;
 @Entity
 @Table(name = "attachment_data")
 @NamedNativeQueries({
-        @NamedNativeQuery(name = "routinesForEventWithSameHashcode", query = "" +
+        @NamedNativeQuery(name = "attachmentForEventWithSameHashcode", query = "" +
                 "SELECT * FROM attachment_data t " +
                 "RIGHT JOIN `event_attachment_item` eti ON eti.`attachment_data_id` = t.id " +
                 "RIGHT JOIN event_attachment_group eag ON eag.`event_id` = :event_id " +
                 "WHERE t.hash_code = :hash_code ",
+                resultClass = AttachmentData.class),
+        @NamedNativeQuery(name = "attachmentUsedInEventAttachmentItem", query = "" +
+                "SELECT * FROM attachment_data t " +
+                "RIGHT JOIN `event_attachment_item` eti ON eti.`attachment_data_id` = t.id " +
+                "WHERE eti.attachment_data_id = :attachment_data_id ",
+                resultClass = AttachmentData.class),
+        @NamedNativeQuery(name = "attachmentsThatAreAttachedWithSameHashcode", query = "" +
+                "SELECT * FROM attachment_data t " +
+                "RIGHT JOIN `event_attachment_item` eti ON eti.`attachment_data_id` = t.id " +
+                "RIGHT JOIN event_attachment_group eag ON eag.id = eti.event_attachment_group_id " +
+                "RIGHT JOIN event ev ON ev.id = eag.event_id " +
+                "WHERE t.hash_code = :hash_code AND t.id != :current_attachment_id AND ev.deleted = 0",
                 resultClass = AttachmentData.class)
 })
 public class AttachmentData {
@@ -196,7 +208,7 @@ public class AttachmentData {
         return hashCode;
     }
 
-    public void setHashCode(int hashCode) {
+    public void setHashCode(Integer hashCode) {
         this.hashCode = hashCode;
     }
 }
