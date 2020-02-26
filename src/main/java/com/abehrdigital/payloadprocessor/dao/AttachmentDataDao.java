@@ -75,10 +75,25 @@ public class AttachmentDataDao implements BaseDao<AttachmentData, Integer> {
     }
 
     public List<AttachmentData> getAttachmentsByEventIdAndHashcode(int eventId , int hashCode) {
-        TypedQuery<AttachmentData> query = session.createNamedQuery("routinesForEventWithSameHashcode", AttachmentData.class)
+        TypedQuery<AttachmentData> query = session.createNamedQuery("attachmentForEventWithSameHashcode", AttachmentData.class)
                 .setParameter("event_id", eventId)
                 .setParameter("hash_code", hashCode);
         List<AttachmentData> results = query.getResultList();
        return results;
+    }
+
+    public Boolean isNotAttached(int attachmentDataId) throws Exception {
+        TypedQuery<AttachmentData> query = session.createNamedQuery("attachmentUsedInEventAttachmentItem", AttachmentData.class)
+                .setParameter("attachment_data_id", attachmentDataId);
+        List<AttachmentData> results = query.getResultList();
+       return results.isEmpty();
+    }
+
+    public List<AttachmentData> getAttachmentsThatAreAttachedWithSameHashcode(AttachmentData attachmentData) throws Exception {
+        TypedQuery<AttachmentData> query = session.createNamedQuery("attachmentsThatAreAttachedWithSameHashcode", AttachmentData.class)
+                .setParameter("current_attachment_id", attachmentData.getHashCode())
+                .setParameter("hash_code", attachmentData.getHashCode());
+        List<AttachmentData> results = query.getResultList();
+        return results;
     }
 }
