@@ -69,7 +69,6 @@ public class PatientSearchApi {
         JSONParser parser = new JSONParser();
         Object parsedJson;
         JSONArray jsonArray;
-        dateOfBirth = dateOfBirth.replaceAll("-", "");
 
         try {
             parsedJson = parser.parse(jsonPatientData);
@@ -82,13 +81,14 @@ public class PatientSearchApi {
             Iterator jsonArrayIterator = jsonArray.iterator();
             while (jsonArrayIterator.hasNext()) {
                 JSONObject jsonObject = (JSONObject) jsonArrayIterator.next();
-                if(gender != null) {
+                if(gender != null && !gender.equals("undefined")) {
                     String genderFromApi = (String) jsonObject.get("genderletter");
                     if(!genderFromApi.equals(gender)) {
                         throw new Exception("Gender doesn't match for the found patient. Expected:" + gender + " Actual: " + genderFromApi);
                     }
                 }
-                if(dateOfBirth != null) {
+                if(dateOfBirth != null && !dateOfBirth.equals("undefined")) {
+                    dateOfBirth = dateOfBirth.replaceAll("-", "");
                     String dateOfBirthFromApi = (String) jsonObject.get("dob");
                     dateOfBirthFromApi = dateOfBirthFromApi.replaceAll("-", "");
                     if(!dateOfBirthFromApi.equals(dateOfBirth)) {
