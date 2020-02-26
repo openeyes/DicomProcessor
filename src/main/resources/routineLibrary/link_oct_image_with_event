@@ -1,17 +1,16 @@
 var eventData = bindTextObject('event_data');
 var requestData = bindTextObject('REQUEST_DATA');
 var octImage = getObject('event_pdf', requestData.bodySiteSnomed);
-var eventID;
 
 
 eventData.$$_XID_Map_$$.forEach(function(data) {
     if (data.$$_XID_$$ == '$$_event[1]_$$') {
-        eventID = data.id;
+        requestData.eventId = data.id;
     }
 });
 
-linkAttachmentDataWithEventNewGroup(octImage, eventID, 'OEModule\\OphGeneric\\models\\Attachment');
+linkAttachmentDataWithEventNewGroup(octImage, requestData.eventId, 'OEModule\\OphGeneric\\models\\Attachment');
 
 createAndSetThumbnailsOnAttachmentData(octImage);
 deleteRequestBlobData();
-addRoutine('delink_attachment');
+addRoutine('generic_clean_up');
