@@ -1,9 +1,6 @@
 package com.abehrdigital.payloadprocessor;
 
-import com.abehrdigital.payloadprocessor.dao.BiometryImportedEventsDao;
-import com.abehrdigital.payloadprocessor.dao.RequestDetailsDao;
-import com.abehrdigital.payloadprocessor.dao.RequestRoutineLockDao;
-import com.abehrdigital.payloadprocessor.dao.ScriptEngineDaoManager;
+import com.abehrdigital.payloadprocessor.dao.*;
 import com.abehrdigital.payloadprocessor.exceptions.EmptyKnownFieldsException;
 import com.abehrdigital.payloadprocessor.exceptions.InvalidNumberOfRowsAffectedException;
 import com.abehrdigital.payloadprocessor.exceptions.NoSearchedFieldsProvidedException;
@@ -421,6 +418,31 @@ public class RoutineScriptService {
             }
         } else {
             throw new Exception("INVALID synchronization lock mode");
+        }
+    }
+
+    public void deleteAttachmentIfNotNeeded(AttachmentData attachmentData) throws Exception {
+        AttachmentDataDao attachmentDataDao = daoManager.getAttachmentDataDao();
+
+        if(attachmentDataDao.isNotAttached(attachmentData.getId())) {
+            boolean attachmentCanBeDeleted = false;
+            List<AttachmentData> attachmentsWithSameHashCode = attachmentDataDao.getAttachmentsThatAreAttachedWithSameHashcode(attachmentData);
+            RequestDetails currentAttachmentsStudyInstanceUid = daoManager.getRequestDetailsDao().getByName("study_instance_uid", requestId);
+            for (AttachmentData attachmentDataWithSameHashcode :
+                    attachmentsWithSameHashCode) {
+                int requestIdOfAttachmentWithSameHashcode = attachmentDataWithSameHashcode.getRequestId();
+                RequestDetails duplicateAttachmentsStudyInstanceUid = daoManager.getRequestDetailsDao().getByName("study_instance_uid", requestIdOfAttachmentWithSameHashcode);
+                if(currentAttachmentsStudyInstanceUid.getValue().equals(duplicateAttachmentsStudyInstanceUid.getValue())) {
+                    attachmentCanBeDeleted = true;
+                    break;
+                }
+            }
+
+            if(attachmentCanBeDeleted) {
+                attachmentData.setBlobData(null);
+                attachmentData.setHashCode(null);
+                attachmentDataDao.save(attachmentData);
+            }
         }
     }
 }
