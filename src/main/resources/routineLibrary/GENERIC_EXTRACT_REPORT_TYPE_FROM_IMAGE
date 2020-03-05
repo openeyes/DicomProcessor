@@ -35,7 +35,9 @@ if (requestData.series_description == "COLOR") {
 
 if (report_type == null && typeof requestData.source_platform != "undefined" && requestData.source_platform.toLowerCase() == "imagenet") {
     report_type = "Clinical Photograph Black/White"
-} else {
+}
+
+if(report_type == null) {
     throw new Error("report type was not extracted");
 }
 
