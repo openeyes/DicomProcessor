@@ -2,7 +2,7 @@ var eventData = bindTextObject('event_data');
 var requestData = bindTextObject('REQUEST_DATA');
 var octImage = getObject('event_pdf', requestData.bodySiteSnomed);
 
-
+synchronizedJavaSubroutine(requestData.patientId, "runtime_sequential");
 eventData.$$_XID_Map_$$.forEach(function(data) {
     if (data.$$_XID_$$ == '$$_event[1]_$$') {
         requestData.eventId = data.id;
