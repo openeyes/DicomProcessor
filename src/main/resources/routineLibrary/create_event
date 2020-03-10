@@ -3,6 +3,9 @@ var requestData = bindTextObject('REQUEST_DATA');
 var attachmentPdf = getObject('event_pdf', requestData.bodySiteSnomed);
 var eventSubtype = "OCT";
 
+synchronizedJavaSubroutine(requestData.patientId, "runtime_sequential");
+synchronizedJavaSubroutine(requestData.study_instance_uid, "runtime_sequential");
+
 if (typeof requestData.event_subtype != "undefined") {
     eventSubtype = requestData.event_subtype;
 }

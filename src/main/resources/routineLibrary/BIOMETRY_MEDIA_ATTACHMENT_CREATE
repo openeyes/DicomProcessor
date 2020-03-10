@@ -2,6 +2,9 @@ var eventData = bindTextObject('event_data');
 var requestData = bindTextObject('REQUEST_DATA');
 var attachmentPdf = getObject('event_pdf', requestData.bodySiteSnomed);
 
+synchronizedJavaSubroutine(requestData.patientId, "runtime_sequential");
+synchronizedJavaSubroutine(requestData.study_instance_uid, "runtime_sequential");
+
 if (typeof requestData.study_instance_uid != "undefined") {
     requestData.biometryId = getBiometryEventId(requestData.study_instance_uid);
 } else {
