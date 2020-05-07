@@ -11,6 +11,7 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
 });
 
 linkAttachmentDataWithEventNewGroup(attachmentPdf, eventID, 'OEModule\\OphGeneric\\models\\Attachment', 'OphInBiometry', ' ');
+updateLastModifiedDate(eventID);
 
 createAndSetThumbnailsOnAttachmentData(attachmentPdf);
 addRoutine('delink_attachment');
