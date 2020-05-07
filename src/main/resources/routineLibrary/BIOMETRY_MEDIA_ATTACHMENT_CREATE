@@ -6,7 +6,7 @@ synchronizedJavaSubroutine(requestData.patientId, "runtime_sequential");
 synchronizedJavaSubroutine(requestData.study_instance_uid, "runtime_sequential");
 
 if (typeof requestData.study_instance_uid != "undefined") {
-    requestData.biometryId = getBiometryEventId(requestData.study_instance_uid);
+    requestData.biometryId = getBiometryEventId("1.2.276.0.75.2.1.10.0.1.150731171549375.1120642.1009604");
 } else {
     throw new Error("Study instance UID is required to get biometry ID");
 }
