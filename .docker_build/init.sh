@@ -60,6 +60,10 @@ if ! /wait = 1; then
   exit; 
 fi
 
+## Load in docker secrets
+[ -f /run/secrets/API_PASSWORD ] && export API_PASSWORD=$(cat /run/secrets/API_PASSWORD) || :
+[ -f /run/secrets/DATABASE_PASS ] && export API_PASSWORD=$(cat /run/secrets/DATABASE_PASS) || :
+
 switches="-sf /routineLibrary/ -rq ${PROCESSOR_QUEUE_NAME} -sy ${SYNCHRONIZE_ROUTINE_DELAY} -rq ${RETRY_DATABASE_CONNECTION}"
 
 

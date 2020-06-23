@@ -44,11 +44,20 @@ List of needed environment variables:
 - `API_USER` - The openeyes user account name for use in API calls. This user must have the 'API Access' RBAC role, and should not be able to login interactively. (Default = admin)
 - `API_PASSWORD` - The password for the openeyes user account for API calls (default = admin)
   - **NOTE:** in production envirnments this should be provided as a docker secret
+- `DATABASE_HOST` - Host name of the database server
+- `DATABASE_USER` - user account for connecting to the database server
+- `DATABASE_PASS` - Password for connecting to the database server
+  - **NOTE:** - in production envirnments this should be provided as a docker secret
+
 
 
 List of Optional environment variables:
 
-- `API_DO_HTTPS` - require HTTPS (Default = false) 
+- `API_DO_HTTPS` - require HTTPS (Default = false)
+- `HOSPITAL_NUMBER_CONSTRUCT_REGEX` -  Define the regular expression for matching a hospital number in incoming device files. Only needed if default matching fails. (e.g., "((?=^[0-9]{8}$$)^0{2}([0-9]*$$)|(?!^[0-9]{8}$$)([0-9]*))" )
+- `DEFAULT_SUBSPECIALTY`: If no subspecialty is defined in the payload, then this will be used as the default (default = 'Eye Casualty')
+- `DEFAULT_SERVICE` - If no 'service' context is defined in the payload, then this will be used as the default (default = 'Eye Casualty Service')
+- `DEFAULT_FIRM_NAME` - If no context is defined in the payload, then this will be used as the default (default = 'Eye Casualty Service')
 
 
 ## Required command line arguments
