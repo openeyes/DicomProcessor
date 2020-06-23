@@ -39,23 +39,17 @@ This is done with envronment variables and api is used to look for a patient wit
 it handles hospital number regexs and calls PAS
 
 List of needed environment variables:
-```
-API_HOST
-```
-```
-API_PORT
-```
-```
-API_USER
-```
-```
-API_PASSWORD
-```
+- `API_HOST` - DNS hostname/IP address of the openeyes server that the payload API is running on
+- `API_PORT` - Port number that the openeyes payload API is running on (default = 80)
+- `API_USER` - The openeyes user account name for use in API calls. This user must have the 'API Access' RBAC role, and should not be able to login interactively. (Default = admin)
+- `API_PASSWORD` - The password for the openeyes user account for API calls (default = admin)
+  - **NOTE:** in production envirnments this should be provided as a docker secret
+
 
 List of Optional environment variables:
-```
-API_DO_HTTPS 
-```
+
+- `API_DO_HTTPS` - require HTTPS (Default = false) 
+
 
 ## Required command line arguments
 
