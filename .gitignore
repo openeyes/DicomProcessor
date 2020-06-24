@@ -162,7 +162,10 @@ fabric.properties
 
 
 
-
+# eclipse IDE settings
+.settings
+# Visual Studio Code settings
+.vscode
 
 
 
