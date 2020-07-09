@@ -91,9 +91,11 @@ public class RequestQueueLocker {
     }
 
     public void unlock() {
-        Transaction transaction = session.getTransaction();
-        if (transaction.isActive()) {
-            transaction.commit();
+        if (session.isJoinedToTransaction()) {
+            Transaction transaction = session.getTransaction();
+            if (transaction != null && transaction.isActive()) {
+                transaction.commit();
+            }
         }
     }
 }
