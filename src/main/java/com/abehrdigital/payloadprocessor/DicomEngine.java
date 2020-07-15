@@ -11,6 +11,7 @@ import com.abehrdigital.payloadprocessor.models.ApiConfig;
 import com.abehrdigital.payloadprocessor.utils.*;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.SystemUtils;
+import org.hibernate.JDBCException;
 import org.hibernate.cfg.Configuration;
 
 import java.util.concurrent.TimeUnit;
@@ -27,6 +28,7 @@ public class DicomEngine {
     private static long shutdownMsClock;
     private static boolean runAsService = false;
     private static long synchronizeRoutineLibraryDelay;
+    private static boolean needsInit = false;
 
     /**
      * @param args the command line arguments
@@ -60,10 +62,17 @@ public class DicomEngine {
 
         // Stability recovery loop
         while (runAsService || System.currentTimeMillis() < shutdownMsClock) {
+            String exceptionMessage = "";
             try {
+                if(needsInit) {
+                    buildSessionFactory();
+                    requestQueueExecutor = createRequestQueueExecutor();
+                    needsInit = false;
+                }
                 // Main request handler iterator
                 while (runAsService || System.currentTimeMillis() < shutdownMsClock) {
                     requestQueueExecutor.execute();
+                    TimeUnit.SECONDS.sleep(5);
                 }
                 throw new OrderlyExitSuccessException("Engine run was successful");
             } catch (RequestQueueMissingException queueMissingException) {
@@ -71,16 +80,35 @@ public class DicomEngine {
                         StackTraceUtil.getStackTraceAsString(queueMissingException));
                 break;
             } catch (OrderlyExitSuccessException successException) {
-                Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-                        successException.toString());
-            } catch (Exception exception) {
+                exceptionMessage = successException.toString();
+            }catch(JDBCException dbException) {
+                HibernateUtil.shutdown();
+                needsInit = true;
+                exceptionMessage = StackTraceUtil.getStackTraceAsString(dbException);
+            }
+            catch (Exception exception) {
                 requestQueueExecutor.shutDown();
                 System.out.println(exception.getClass());
+                exceptionMessage = StackTraceUtil.getStackTraceAsString(exception);
+            }
+            finally {
                 Logger.getLogger(DicomEngine.class.getName()).log(Level.SEVERE,
-                        StackTraceUtil.getStackTraceAsString(exception));
+                        exceptionMessage);
             }
         }
         requestQueueExecutor.shutDown();
+    }
+
+    private static RequestQueueExecutor createRequestQueueExecutor() {
+        return new RequestQueueExecutor(
+                requestQueue,
+                new RoutineLibrarySynchronizer(
+                        new RoutineScriptAccessor(),
+                        DaoFactory.createEngineInitialisationDaoManager(),
+                        synchronizeRoutineLibraryDelay
+                ),
+                shutdownMsClock,
+                runAsService);
     }
 
     private static void init(String[] args) {
