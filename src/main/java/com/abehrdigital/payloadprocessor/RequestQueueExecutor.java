@@ -49,7 +49,8 @@ public class RequestQueueExecutor implements RequestThreadListener {
         this.runAsService = runAsService;
     }
 
-    public void execute() throws RequestQueueMissingException {
+    public void execute() throws Exception {
+
         try {
             requestQueueLocker.lockWithMaximumTryCount(LOCK_MAXIMUM_TRY_COUNT);
             List<RequestRoutine> requestRoutinesForExecution;
@@ -101,6 +102,7 @@ public class RequestQueueExecutor implements RequestThreadListener {
             Logger.getLogger(RequestQueueExecutor.class.getName()).log(Level.SEVERE,
                     exception.toString() + " Executor exception");
             exception.printStackTrace();
+            throw exception;
         }
     }
 
