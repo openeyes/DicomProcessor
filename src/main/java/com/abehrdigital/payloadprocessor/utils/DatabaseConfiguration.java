@@ -43,7 +43,7 @@ public class DatabaseConfiguration {
 
         String password;
         try {
-            password = Files.asCharSource(new File("run/secrets/DATABASE_PASSWORD"), Charsets.UTF_8).read().trim();
+            password = Files.asCharSource(new File("run/secrets/DATABASE_PASS"), Charsets.UTF_8).read().trim();
         } catch (Exception e) {
             password = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_PASS");
         }

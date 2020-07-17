@@ -39,23 +39,26 @@ This is done with envronment variables and api is used to look for a patient wit
 it handles hospital number regexs and calls PAS
 
 List of needed environment variables:
-```
-API_HOST
-```
-```
-API_PORT
-```
-```
-API_USER
-```
-```
-API_PASSWORD
-```
+- `API_HOST` - DNS hostname/IP address of the openeyes server that the payload API is running on
+- `API_PORT` - Port number that the openeyes payload API is running on (default = 80)
+- `API_USER` - The openeyes user account name for use in API calls. This user must have the 'API Access' RBAC role, and should not be able to login interactively. (Default = admin)
+- `API_PASSWORD` - The password for the openeyes user account for API calls (default = admin)
+  - **NOTE:** in production envirnments this should be provided as a docker secret
+- `DATABASE_HOST` - Host name of the database server
+- `DATABASE_USER` - user account for connecting to the database server
+- `DATABASE_PASS` - Password for connecting to the database server
+  - **NOTE:** - in production envirnments this should be provided as a docker secret
+
+
 
 List of Optional environment variables:
-```
-API_DO_HTTPS 
-```
+
+- `API_DO_HTTPS` - require HTTPS (Default = false)
+- `HOSPITAL_NUMBER_CONSTRUCT_REGEX` -  Define the regular expression for matching a hospital number in incoming device files. Only needed if default matching fails. (e.g., "((?=^[0-9]{8}$$)^0{2}([0-9]*$$)|(?!^[0-9]{8}$$)([0-9]*))" )
+- `DEFAULT_SUBSPECIALTY`: If no subspecialty is defined in the payload, then this will be used as the default (default = 'Eye Casualty')
+- `DEFAULT_SERVICE` - If no 'service' context is defined in the payload, then this will be used as the default (default = 'Eye Casualty Service')
+- `DEFAULT_FIRM_NAME` - If no context is defined in the payload, then this will be used as the default (default = 'Eye Casualty Service')
+
 
 ## Required command line arguments
 

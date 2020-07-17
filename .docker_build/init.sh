@@ -39,42 +39,6 @@ echo "Setting Timezone to ${TZ:-'Europe/London'}"
 grep -q "$TZ" /etc/timezone >/dev/null
 [ $? = 1 ] && { ln -sf /usr/share/zoneinfo/${TZ:-Europe/London} /etc/localtime && echo ${TZ:-'Europe/London'} > /etc/timezone; } || :
 
-
-### The following section is commented out, as there currently isn't a need for SSH in this container
-### Left in currently, incese it needs reinstating before we settle on final build methods
-# # Set ssh key Can be done using a secret (SSH_PRIVATE_KEY), as an ENV variable (SSH_PRIVATE_KEY)
-# # Or by mounting your host .ssh folder to /root/.host-ssh
-# # All efforts are made to avoid updating a file if it already exists - to minimise FS layers
-# mkdir -p /root/.ssh /tmp/.ssh
-# idfilecontent="Host github.com\nStrictHostKeyChecking no"
-# [ -d /tmp/.host-ssh ] && rsync -av --no-perms --no-owner --no-group /tmp/.host-ssh/ /root/.ssh --exclude known_hosts --delete 2>/dev/null || :
-# [ ! -z ${SSH_PRIVATE_KEY} ] && { echo "${SSH_PRIVATE_KEY}" > /tmp/.ssh/id_rsa && echo -e "$idfilecontent\nIdentityFile /tmp/.ssh/id_rsa" > /root/.ssh/config; } || :
-# [[ -f /run/secrets/SSH_PRIVATE_KEY && ! -f /tmp/.ssh/id_rsa ]] && { echo "USING DOCKER SECRET FOR SSH"; cp /run/secrets/SSH_PRIVATE_KEY /tmp/.ssh/id_rsa; echo -e "$idfilecontent\nIdentityFile /tmp/.ssh/id_rsa" > /root/.ssh/config ; } || :
-# if ! grep -Fxq "StrictHostKeyChecking no" /root/.ssh/config 2>/dev/null; then echo -e "\n$idfilecontent\n" >> /root/.ssh/config; fi
-
-# # Set up authorised keys for SSH server (if provided)
-# [[ ! -z "$SSH_AUTHORIZED_KEYS" && ! -f ~/.ssh/authorized_keys ]] && echo "${SSH_AUTHORIZED_KEYS}" > ~/.ssh/authorized_keys || :
-# [[ -f /run/secrets/SSH_AUTHORIZED_KEYS && ! -f ~/.ssh/authorized_keys ]] && { echo "ADDING SSH AUTHORISED KEYS"; cp /run/secrets//SSH_AUTHORIZED_KEYS ~/.ssh/authorized_keys; chmod 644 ~/.ssh/authorized_keys ; } || :
-
-# # Update file permissions to 600 for SSH files if not already correct
-# # Checks current permissions firs, to avoid creating unecessary extra filesystem layers
-# folders600=( /root/.ssh /tmp/.ssh )
-# for i in "${folders600[@]}"
-# do
-#   shopt -s nullglob
-#   for f in $(ls "$i" | sort -V)
-#   do
-#       if [[ $(stat -c %a "$i"/"$f") != *"600" ]]; then
-#         chmod 600 "$i"/"$f"
-#         echo updated permissions for "$i"/"$f"
-#       fi
-#   done
-# done
-
-# # If SSH server is enabled, start it early in the process so that it is accessible for debugging
-# [ "$SSH_SERVER_ENABLE" == "TRUE" ] && service ssh start
-### End commented out SSH section
-
 # Use docker secret as DB password, or fall back to environment variable
 [ -f /run/secrets/DATABASE_PASS ] && dbpassword="$(</run/secrets/DATABASE_PASS)" || dbpassword=${DATABASE_PASS:-""}
 [ ! -z $dbpassword ] && dbpassword="-p$dbpassword" || dbpassword="-p''" # Add -p to the beginning of the password (workaround for blank passwords)
@@ -105,9 +69,9 @@ switches="-sf /routineLibrary/ -rq ${PROCESSOR_QUEUE_NAME} -sy ${SYNCHRONIZE_ROU
 # Start processor
 echo "Starting opeyes DicomProcessor process..."
 echo ""
-echo "*********************************************"
-echo "**       -= END OF STARTUP SCRIPT =-       **"
-echo "*********************************************"
+echo "***************************************************************"
+echo "**       -= END OF PAYLOAD PROCESSOR STARTUP SCRIPT =-       **"
+echo "***************************************************************"
 
 
 $PROJROOT/appassembler/bin/dicomEngine $switches

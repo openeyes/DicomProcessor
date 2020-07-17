@@ -31,6 +31,7 @@ import java.nio.file.Paths;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class RoutineScriptService {
@@ -444,5 +445,11 @@ public class RoutineScriptService {
                 attachmentDataDao.save(attachmentData);
             }
         }
+    }
+
+    public void updateLastModifiedDate(int eventId) {
+        Event event = daoManager.getEventDao().get(eventId);
+        event.setLastModifiedDate(new Date());
+        daoManager.getEventDao().save(event);
     }
 }
