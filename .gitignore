@@ -161,13 +161,10 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 
-
-
-
-
-
 ### PROJECT-SPECIFIC IGNORABLES ###
 applog.txt
 *.iml
 /bin
 .env
+.vscode/*
+.settings/*
