@@ -60,7 +60,7 @@ public class Event implements Serializable {
     @Basic(optional = false)
     @Column(name = "delete_pending")
     private boolean deletePending;
-    @Basic(optional = false)
+    @Basic(optional = true)
     @Column(name = "episode_id")
     private Integer episodeId;
     @JoinColumn(name = "event_type_id", referencedColumnName = "id")
