@@ -35,7 +35,7 @@ public class DatabaseConfiguration {
 
         String username;
         try {
-            username = Files.asCharSource(new File("run/secrets/DATABASE_USER"), Charsets.UTF_8).read().trim();
+            username = Files.asCharSource(new File("/run/secrets/DATABASE_USER"), Charsets.UTF_8).read().trim();
         } catch (Exception exception) {
             username = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_USER");
         }
@@ -43,7 +43,7 @@ public class DatabaseConfiguration {
 
         String password;
         try {
-            password = Files.asCharSource(new File("run/secrets/DATABASE_PASS"), Charsets.UTF_8).read().trim();
+            password = Files.asCharSource(new File("/run/secrets/DATABASE_PASS"), Charsets.UTF_8).read().trim();
         } catch (Exception e) {
             password = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_PASS");
         }
