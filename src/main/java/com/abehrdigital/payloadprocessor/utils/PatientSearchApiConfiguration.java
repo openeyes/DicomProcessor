@@ -1,6 +1,9 @@
 package com.abehrdigital.payloadprocessor.utils;
 
 import com.abehrdigital.payloadprocessor.models.ApiConfig;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
+import java.io.File;
 
 public class PatientSearchApiConfiguration {
     private static String host = "localhost";
@@ -20,13 +23,21 @@ public class PatientSearchApiConfiguration {
         if (environmentVariableValue != null) {
             port = environmentVariableValue;
         }
-        environmentVariableValue = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("API_USER");
-        if (environmentVariableValue != null) {
-            username = environmentVariableValue;
+        try {
+            username = Files.asCharSource(new File("run/secrets/API_USER"), Charsets.UTF_8).read().trim();
+        } catch (Exception e) {
+            environmentVariableValue = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("API_USER");
+            if (environmentVariableValue != null) {
+                username = environmentVariableValue;
+            }
         }
-        environmentVariableValue = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("API_PASSWORD");
-        if (environmentVariableValue != null) {
-            password = environmentVariableValue;
+        try {
+            password = Files.asCharSource(new File("run/secrets/API_PASSWORD"), Charsets.UTF_8).read().trim();
+        } catch (Exception e) {
+            environmentVariableValue = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("API_PASSWORD");
+            if (environmentVariableValue != null) {
+                password = environmentVariableValue;
+            }
         }
         environmentVariableValue = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("API_DO_HTTPS");
         if (environmentVariableValue != null) {
