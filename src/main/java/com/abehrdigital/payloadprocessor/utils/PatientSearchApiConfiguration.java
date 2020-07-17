@@ -24,14 +24,20 @@ public class PatientSearchApiConfiguration {
             port = environmentVariableValue;
         }
         try {
-            password = Files.asCharSource(new File("run/secrets/API_USER"), Charsets.UTF_8).read().trim();
+            username = Files.asCharSource(new File("run/secrets/API_USER"), Charsets.UTF_8).read().trim();
         } catch (Exception e) {
-            password = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("API_USER");
+            environmentVariableValue = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("API_USER");
+            if (environmentVariableValue != null) {
+                username = environmentVariableValue;
+            }
         }
         try {
             password = Files.asCharSource(new File("run/secrets/API_PASSWORD"), Charsets.UTF_8).read().trim();
         } catch (Exception e) {
-            password = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("API_PASSWORD");
+            environmentVariableValue = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("API_PASSWORD");
+            if (environmentVariableValue != null) {
+                password = environmentVariableValue;
+            }
         }
         environmentVariableValue = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("API_DO_HTTPS");
         if (environmentVariableValue != null) {
