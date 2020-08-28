@@ -1,7 +1,7 @@
 var requestData = bindTextObject('REQUEST_DATA');
 
-addRoutine('GENERIC_PAS_API');
 addRoutine('GENERIC_EXTRACT_PDF');
+addRoutine('GENERIC_PAS_API');
 addRoutine('GENERIC_EVENT_DEVICE_INFORMATION_AUGMENT');
 addRoutine('create_event');
 requestData.report_type = "OCT";
