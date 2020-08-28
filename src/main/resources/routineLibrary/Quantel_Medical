@@ -1,3 +1,5 @@
+var requestData = bindTextObject('REQUEST_DATA');
+
 addRoutine('GENERIC_PAS_API');
 addRoutine('GENERIC_EXTRACT_PDF');
 addRoutine('GENERIC_EVENT_ASSESSMENT_AUGMENT');
