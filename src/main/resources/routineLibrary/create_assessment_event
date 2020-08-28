@@ -271,6 +271,7 @@ if (patientHasEpisodes(requestData.patientId)) {
                 "$$_ROW_$$": [{
                     "$$_CRUD_$$": "RETRIEVE",
                     "id": "$$_firm[1]_$$",
+                    "active": "1",
                     "service_subspecialty_assignment_id": "$$_service_subspecialty_assignment[1].id_$$",
                     "name": defaultFirmName
                 }]
