@@ -1,6 +1,14 @@
 var requestData = bindTextObject('REQUEST_DATA');
+var dicomHeader = bindTextObject('DICOM_HEADER');
 
+requestData.gender = requestData.gender.substring(1,0);
+// Needs testing as i couldn't find any other header that could be used. Reading dicomFile could provide more information
+requestData.is_image = typeof dicomHeader['280004'] != "undefined";
+if(requestData.is_image) {
+ addRoutine('GENERIC_EXTRACT_IMAGE');
+} else {
 addRoutine('GENERIC_EXTRACT_PDF');
+}
 addRoutine('GENERIC_PAS_API');
 addRoutine('GENERIC_EVENT_DEVICE_INFORMATION_AUGMENT');
 addRoutine('create_event');
