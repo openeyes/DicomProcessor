@@ -1,5 +1,12 @@
 var requestData = bindTextObject('REQUEST_DATA');
+//Get dicom headers from dicom blob
+var dicomObject = getDicom('REQUEST_BLOB', null);
+var dicomHeader = bindTextObject('DICOM_HEADER', null, null, null, null, dicomObject.getHeaderJsonString());
+
 requestData.event_subtype = "Visual Fields";
+requestData.mean_deviation = dicomHeader['77171016'];
+requestData.visual_field_index = dicomHeader['77171034'];
+
 addRoutine('GENERIC_EXTRACT_PDF');
 addRoutine('GENERIC_PAS_API');
 addRoutine('GENERIC_EVENT_DEVICE_INFORMATION_AUGMENT');
