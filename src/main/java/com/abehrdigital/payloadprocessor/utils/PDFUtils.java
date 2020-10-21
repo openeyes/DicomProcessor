@@ -10,9 +10,11 @@ import org.apache.pdfbox.text.PDFTextStripperByArea;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.sql.Blob;
+import java.sql.SQLException;
 
 public class PDFUtils {
-    public static PDDocument extractPdfFromBytes(byte[] binaryPDF) throws IOException { //TODO: Check if PDDocument.load() solves this instead
+    public static PDDocument extractPdfDocumentFromBytes(byte[] binaryPDF) throws IOException { //TODO: Check if PDDocument.load() solves this instead
         PDFParser pdfParser = null;
         PDDocument pdDocument = null;
 
@@ -24,9 +26,13 @@ public class PDFUtils {
             pdDocument = pdfParser.getPDDocument();
         } catch (IOException ex) {
             throw ex;
-        } finally {
         }
         return pdDocument;
+    }
+
+    public static PDDocument extractPdfDocumentFromBlob(Blob binaryBlop) throws SQLException, IOException {
+        int blopLength = (int) binaryBlop.length();
+        return extractPdfDocumentFromBytes(binaryBlop.getBytes(1,blopLength));
     }
 
     public static void savePdf(PDDocument pdf, String filepath) {
