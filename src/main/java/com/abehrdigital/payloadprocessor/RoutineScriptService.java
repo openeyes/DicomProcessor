@@ -452,15 +452,4 @@ public class RoutineScriptService {
         event.setLastModifiedDate(new Date());
         daoManager.getEventDao().save(event);
     }
-
-    public int getEyeId(String laterality) throws Exception {
-        int eyeId;
-        try {
-            EyeDao eyeDao = daoManager.getEyeDao();
-            eyeId = eyeDao.getIdByLaterality(laterality);
-        } catch (Exception exception) {
-            throw new Exception("Eye id was not found having the laterality: " + laterality + StackTraceUtil.getStackTraceAsString(exception));
-        }
-        return eyeId;
-    }
 }

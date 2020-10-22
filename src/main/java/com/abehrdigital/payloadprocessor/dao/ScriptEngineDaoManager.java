@@ -14,7 +14,6 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
     private BiometryImportedEventsDao biometryImportedEventsDao;
     private RequestDetailsDao requestDetailsDao;
     private RequestRoutineLockDao requestRoutineLockDao;
-    private EyeDao eyeDao;
 
     public ScriptEngineDaoManager() {
     }
@@ -109,12 +108,5 @@ public class ScriptEngineDaoManager extends BaseDaoManager {
             this.requestRoutineLockDao = new RequestRoutineLockDao(getConnection());
         }
         return this.requestRoutineLockDao;
-    }
-
-    public EyeDao getEyeDao() {
-        if (this.eyeDao == null) {
-            this.eyeDao = new EyeDao(getConnection());
-        }
-        return this.eyeDao;
     }
 }
