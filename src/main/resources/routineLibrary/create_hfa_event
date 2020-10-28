@@ -1,7 +1,6 @@
 var eventData = bindTextObject('event_data');
 var requestData = bindTextObject('REQUEST_DATA');
 var attachmentPdf = getObject('event_pdf', requestData.bodySiteSnomed);
-var eventSubtype = "OCT";
 
 var defaultSubspecialty = getDefaultVariableValue('SUBSPECIALTY','Eye Casualty');
 var defaultService = getDefaultVariableValue('SERVICE','Eye Casualty Service');
@@ -411,7 +410,7 @@ if (requestData.study_instance_uid != null) {
             });
 
             previousEventData['$$_SaveSet[1]_$$'].forEach(function(data) {
-                if (data.$$_DataSet_$$ == 'et_ophgeneric_assessment') {
+                if (data.$$_DataSet_$$ == 'et_ophgeneric_hfa') {
                     previousEyeId = data.$$_ROW_$$[0].eye_id;
                 }
             });
@@ -542,8 +541,7 @@ eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
     }
 });
 
-   var createdEventData = createEvent(JSON.stringify(eventData));
-    modifyObjectValue(eventData, createdEventData);
-
+var createdEventData = createEvent(JSON.stringify(eventData));
+modifyObjectValue(eventData, createdEventData);
 
 addRoutine('link_attachment_with_event');
