@@ -1,0 +1,547 @@
+var eventData = bindTextObject('event_data');
+var requestData = bindTextObject('REQUEST_DATA');
+var attachmentPdf = getObject('event_pdf', requestData.bodySiteSnomed);
+
+var defaultSubspecialty = getDefaultVariableValue('SUBSPECIALTY','Eye Casualty');
+var defaultService = getDefaultVariableValue('SERVICE','Eye Casualty Service');
+var defaultFirmName = getDefaultVariableValue('FIRM_NAME', 'Eye Casualty Service');
+
+
+synchronizedJavaSubroutine(requestData.patientId, "runtime_sequential");
+synchronizedJavaSubroutine(requestData.study_instance_uid, "runtime_sequential");
+
+
+if (patientHasEpisodes(requestData.patientId)) {
+    var eventTemplate = {
+        _OE_System: 'ABEHR Jason Local v3.0',
+        _Version: 'v0.1',
+        $$_XID_Map_$$: [{
+                $$_XID_$$: '$$_patient[1]_$$',
+                $$_DataSet_$$: 'patient',
+                id: 'xxx'
+            },
+            {
+                $$_XID_$$: '$$_attachment_data[1]_$$',
+                $$_DataSet_$$: 'attachment_data',
+                id: 'xxx',
+                request_id: 'xxx'
+            },
+            {
+                $$_XID_$$: '$$_user[1]_$$',
+                $$_DataSet_$$: 'user',
+                id: '1'
+            },
+            {
+                $$_XID_$$: '$$_subspecialty[1]_$$',
+                $$_DataSet_$$: 'subspecialty',
+                name: defaultSubspecialty
+            },
+            {
+                $$_XID_$$: '$$_service[1]_$$',
+                $$_DataSet_$$: 'service',
+                name: defaultService
+            },
+            {
+                $$_XID_$$: '$$_event_date[1]_$$',
+                $$_DataSet_$$: 'event',
+                date: 'xxx'
+            },
+            {
+                $$_XID_$$: '$$_event_subtype[1]_$$',
+                $$_DataSet_$$: 'event_subtype',
+                event_subtype: 'xxx',
+            },
+            {
+                $$_XID_$$: '$$_event_subtype[2]_$$',
+                $$_DataSet_$$: 'event_subtype',
+                display_order: '1',
+            },
+        ],
+        '$$_SaveSet[1]_$$': [{
+                $$_DataSet_$$: 'event_type',
+                $$_ROW_$$: [{
+                    $$_CRUD_$$: 'RETRIEVE',
+                    id: '$$_event_type[1]_$$',
+                    class_name: 'OphGeneric'
+                }]
+            },
+            {
+                $$_DataSet_$$: 'episode',
+                $$_ROW_$$: [{
+                    $$_CRUD_$$: 'RETRIEVE',
+                    id: '$$_episode[1]_$$',
+                    patient_id: '$$_patient[1].id_$$',
+                    $$_QUERIES_$$: [{
+                        $$_PARAMETERS_$$: [
+                            '$$_patient[1].id_$$'
+                        ],
+                        $$_SQL_$$: '(SELECT ep.id FROM openeyes.`episode` ep JOIN openeyes.`event` ev ON ev.`episode_id` = ep.`id`WHERE ep.`patient_id` = $$_patient[1].id_$$ ORDER BY ev.`event_date` DESC LIMIT 1) UNION ALL (SELECT ep.id FROM openeyes.`episode` ep WHERE ep.`patient_id` = $$_patient[1].id_$$ AND NOT EXISTS ( SELECT NULL FROM openeyes.`episode` ep2 JOIN openeyes.`event` ev2 ON ev2.`episode_id` = ep2.`id` WHERE ep2.`patient_id` = $$_patient[1].id_$$) ORDER BY ep.`created_date` DESC LIMIT 1);'
+                    }]
+                }]
+            },
+            {
+                $$_DataSet_$$: 'event',
+                $$_ROW_$$: {
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_event[1]_$$',
+                    episode_id: '$$_episode[1].id_$$',
+                    created_user_id: '$$_user[1].id_$$',
+                    event_type_id: '$$_event_type[1].id_$$',
+                    last_modified_user_id: '$$_user[1].id_$$',
+                    created_date: '$$_SysDateTime_$$',
+                    event_date: '$$_event_date[1].date_$$',
+                    info: 'Draft',
+                    deleted: '0',
+                    delete_reason: 'null',
+                    delete_pending: '0',
+                    is_automated: 'null',
+                    automated_source: 'null',
+                    parent_id: 'null',
+                    sub_type: 'null',
+                }
+            },
+            {
+                $$_DataSet_$$: 'et_ophgeneric_attachment',
+                $$_ROW_$$: [{
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_et_ophgeneric_attachment[1]_$$',
+                    event_id: '$$_event[1].id_$$'
+                }]
+            },
+            {
+                $$_DataSet_$$: 'et_ophgeneric_comments',
+                $$_ROW_$$: [{
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_et_ophgeneric_comments[1]_$$',
+                    event_id: '$$_event[1].id_$$'
+                }]
+            },
+            {
+                $$_DataSet_$$: 'event_subtype_item',
+                $$_ROW_$$: [{
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_event_subtype_item[1]_$$',
+                    event_id: '$$_event[1].id_$$',
+                    event_subtype: '$$_event_subtype[1].event_subtype_$$',
+                    display_order: '$$_event_subtype[2].display_order_$$',
+                }]
+            },
+            {
+                $$_DataSet_$$: 'et_ophgeneric_hfa',
+                $$_ROW_$$: [{
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_et_ophgeneric_hfa[1]_$$',
+                    event_id: '$$_event[1].id_$$',
+                    eye_id: 'null'
+                }]
+            },
+            {
+                $$_DataSet_$$: 'ophgeneric_hfa_entry',
+                $$_ROW_$$: [{
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_ophgeneric_hfa_entry[1]_$$',
+                    element_id: '$$_et_ophgeneric_hfa[1].id_$$',
+                    eye_id: '1',
+                },
+                {
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_ophgeneric_hfa_entry[2]_$$',
+                    element_id: '$$_et_ophgeneric_hfa[1].id_$$',
+                    eye_id: '2',
+
+                }]
+            },
+            {
+                $$_DataSet_$$: 'et_ophgeneric_device_information',
+                $$_ROW_$$: [{
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_et_ophgeneric_device_information[1]_$$',
+                    manufacturer: 'null',
+                    manufacturer_model_name: 'null',
+                    modality: 'null',
+                    series_description: 'null',
+                    laterality: 'null',
+                    image_laterality: 'null',
+                    study_description: 'null',
+                    document_title: 'null',
+                    acquisition_date_time: 'null',
+                    study_date: 'null',
+                    study_time: 'null',
+                    content_date: 'null',
+                    content_time: 'null',
+                    station_name: 'null',
+                    operators_name: 'null',
+                    software_version: 'null',
+                    study_instance_uid: 'null',
+                    series_instance_uid: 'null',
+                    study_id: 'null',
+                    series_number: 'null',
+                    instance_number: 'null',
+                    sop_instance_uid: 'null',
+                    modifying_system: 'null',
+                    operator_identification_sequence: 'null',
+                    event_id: '$$_event[1].id_$$',
+                    last_request_id: '$$_attachment_data[1].request_id_$$'
+                }]
+            }
+        ]
+    }
+} else {
+    eventTemplate = {
+        "_OE_System": "ABEHR Jason Local v3.0",
+        "_Version": "v0.1",
+        "$$_XID_Map_$$": [{
+                "$$_XID_$$": "$$_patient[1]_$$",
+                "$$_DataSet_$$": "patient",
+                "id": "xxx"
+            },
+            {
+                "$$_XID_$$": "$$_attachment_data[1]_$$",
+                "$$_DataSet_$$": "attachment_data",
+                "id": "xxx",
+                "request_id": "xxx"
+            },
+            {
+                "$$_XID_$$": "$$_user[1]_$$",
+                "$$_DataSet_$$": "user",
+                "id": "1"
+            },
+            {
+                "$$_XID_$$": "$$_subspecialty[1]_$$",
+                "$$_DataSet_$$": "subspecialty",
+                "name": defaultSubspecialty
+            },
+            {
+                "$$_XID_$$": "$$_service[1]_$$",
+                "$$_DataSet_$$": "service",
+                "name": defaultService
+            },
+            {
+                "$$_XID_$$": "$$_event_date[1]_$$",
+                "$$_DataSet_$$": "event",
+                "date": "xxx"
+            },
+            {
+                "$$_XID_$$": "$$_event_subtype[1]_$$",
+                "$$_DataSet_$$": "event_subtype",
+                "event_subtype": "xxx"
+            },
+            {
+                "$$_XID_$$": "$$_event_subtype[2]_$$",
+                "$$_DataSet_$$": "event_subtype",
+                "display_order": "1"
+            }
+        ],
+        "$$_SaveSet[1]_$$": [{
+                "$$_DataSet_$$": "event_type",
+                "$$_ROW_$$": [{
+                    "$$_CRUD_$$": "RETRIEVE",
+                    "id": "$$_event_type[1]_$$",
+                    "class_name": "OphGeneric"
+                }]
+            },
+            {
+                "$$_DataSet_$$": "subspecialty",
+                "$$_ROW_$$": [{
+                    "$$_CRUD_$$": "RETRIEVE",
+                    "id": "$$_subspecialty[1]_$$"
+                }]
+            },
+            {
+                "$$_DataSet_$$": "service",
+                "$$_ROW_$$": [{
+                    "$$_CRUD_$$": "RETRIEVE",
+                    "id": "$$_service[1]_$$"
+                }]
+            },
+            {
+                "$$_DataSet_$$": "service_subspecialty_assignment",
+                "$$_ROW_$$": [{
+                    "$$_CRUD_$$": "RETRIEVE",
+                    "id": "$$_service_subspecialty_assignment[1]_$$",
+                    "service_id": "$$_service[1].id_$$",
+                    "subspecialty_id": "$$_subspecialty[1].id_$$"
+                }]
+            },
+            {
+                "$$_DataSet_$$": "firm",
+                "$$_ROW_$$": [{
+                    "$$_CRUD_$$": "RETRIEVE",
+                    "id": "$$_firm[1]_$$",
+                    "service_subspecialty_assignment_id": "$$_service_subspecialty_assignment[1].id_$$",
+                     "name": defaultFirmName
+                }]
+            },
+            {
+                "$$_DataSet_$$": "episode",
+                "$$_ROW_$$": [{
+                    "$$_CRUD_$$": "MERGE",
+                    "id": "$$_episode[1]_$$",
+                    "patient_id": "$$_patient[1].id_$$",
+                    "firm_id": "$$_firm[1].id_$$"
+                }]
+            },
+            {
+                "$$_DataSet_$$": "event",
+                "$$_ROW_$$": {
+                    "$$_CRUD_$$": "MERGE",
+                    "id": "$$_event[1]_$$",
+                    "episode_id": "$$_episode[1].id_$$",
+                    "created_user_id": "$$_user[1].id_$$",
+                    "event_type_id": "$$_event_type[1].id_$$",
+                    "last_modified_user_id": "$$_user[1].id_$$",
+                    "created_date": "$$_SysDateTime_$$",
+                    "event_date": "$$_event_date[1].date_$$",
+                    "info": "Draft",
+                    "deleted": "0",
+                    "delete_reason": "null",
+                    "delete_pending": "0",
+                    "is_automated": "null",
+                    "automated_source": "null",
+                    "parent_id": "null",
+                    "sub_type": "null"
+                }
+            },
+            {
+                "$$_DataSet_$$": "et_ophgeneric_attachment",
+                "$$_ROW_$$": [{
+                    "$$_CRUD_$$": "MERGE",
+                    "id": "$$_et_ophgeneric_attachment[1]_$$",
+                    "event_id": "$$_event[1].id_$$"
+                }]
+            },
+            {
+                "$$_DataSet_$$": "et_ophgeneric_comments",
+                "$$_ROW_$$": [{
+                    "$$_CRUD_$$": "MERGE",
+                    "id": "$$_et_ophgeneric_comments[1]_$$",
+                    "event_id": "$$_event[1].id_$$"
+                }]
+            },
+            {
+                "$$_DataSet_$$": "event_subtype_item",
+                "$$_ROW_$$": [{
+                    "$$_CRUD_$$": "MERGE",
+                    "id": "$$_event_subtype_item[1]_$$",
+                    "event_id": "$$_event[1].id_$$",
+                    "event_subtype": "$$_event_subtype[1].event_subtype_$$",
+                    "display_order": "$$_event_subtype[2].display_order_$$"
+                }]
+            },
+            {
+                $$_DataSet_$$: 'et_ophgeneric_hfa',
+                $$_ROW_$$: [{
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_et_ophgeneric_hfa[1]_$$',
+                    event_id: '$$_event[1].id_$$',
+                    eye_id: 'null'
+                }]
+            },
+            {
+                $$_DataSet_$$: 'ophgeneric_hfa_entry',
+                $$_ROW_$$: [{
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_ophgeneric_hfa_entry[1]_$$',
+                    element_id: '$$_et_ophgeneric_hfa[1].id_$$',
+                    eye_id: '1',
+                },
+                {
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_ophgeneric_hfa_entry[2]_$$',
+                    element_id: '$$_et_ophgeneric_hfa[1].id_$$',
+                    eye_id: '2',
+                }]
+            },
+            {
+                "$$_DataSet_$$": "et_ophgeneric_device_information",
+                "$$_ROW_$$": [{
+                    "$$_CRUD_$$": "MERGE",
+                    "id": "$$_et_ophgeneric_device_information[1]_$$",
+                    "manufacturer": "null",
+                    "manufacturer_model_name": "null",
+                    "modality": "null",
+                    "series_description": "null",
+                    "laterality": "null",
+                    "image_laterality": "null",
+                    "study_description": "null",
+                    "document_title": "null",
+                    "acquisition_date_time": "null",
+                    "study_date": "null",
+                    "study_time": "null",
+                    "content_date": "null",
+                    "content_time": "null",
+                    "station_name": "null",
+                    "operators_name": "null",
+                    "software_version": "null",
+                    "study_instance_uid": "null",
+                    "series_instance_uid": "null",
+                    "study_id": "null",
+                    "series_number": "null",
+                    "instance_number": "null",
+                    "sop_instance_uid": "null",
+                    "modifying_system": "null",
+                    "operator_identification_sequence": "null",
+                    "event_id": "$$_event[1].id_$$",
+                    "last_request_id": "$$_attachment_data[1].request_id_$$"
+                }]
+            }
+        ]
+    }
+}
+
+modifyObjectValue(eventData,eventTemplate);
+
+
+// Check for an event with the same unique identifier to extract EVENT_ID or a template or an eye_id in case the last one
+// was one side report and now a different sided one comes in we have to combine the templates
+var previousEventId = -1;
+var previousAttachmentDataId;
+var previousEyeId;
+var previousEventData;
+if (requestData.study_instance_uid != null) {
+    var attachmentData = getEventDataByDeviceInformationStudyInstanceUID('event_data', requestData.study_instance_uid.toString());
+    if (attachmentData != null) {
+        previousEventData = JSON.parse(attachmentData.getTextData());
+        if (previousEventData != null) {
+            previousEventData.$$_XID_Map_$$.forEach(function(data) {
+                if (data.$$_XID_$$ == '$$_event[1]_$$') {
+                    previousEventId = data.id;
+                }
+            });
+
+            previousEventData['$$_SaveSet[1]_$$'].forEach(function(data) {
+                if (data.$$_DataSet_$$ == 'et_ophgeneric_hfa') {
+                    previousEyeId = data.$$_ROW_$$[0].eye_id;
+                }
+            });
+        }
+    }
+}
+
+if (previousEventId != -1) {
+    if (!eventIsDeleted(previousEventId)) {
+        modifyObjectValue(eventData,previousEventData);
+        requestData.previousEventId = previousEventId;
+
+        if (typeof previousEyeId != "undefined" && previousEyeId !== requestData.eyeId) {
+
+            if (previousEyeId != 3) {
+                previousEventData['$$_SaveSet[1]_$$'].forEach(function(data) {
+
+                    if (data.$$_DataSet_$$ == 'ophgeneric_hfa_entry') {
+                        data.$$_ROW_$$[1] = JSON.parse(JSON.stringify(data.$$_ROW_$$[0]));
+
+                        if (data.$$_ROW_$$[0].id == "$$_ophgeneric_hfa_entry[2]_$$") {
+                            data.$$_ROW_$$[1].id = "$$_ophgeneric_hfa_entry[1]_$$";
+                        } else {
+                            data.$$_ROW_$$[1].id = "$$_ophgeneric_hfa_entry[2]_$$";
+                        }
+                        var secondRowEyeId;
+                        if (data.$$_ROW_$$[0].eye_id == 1) {
+                            secondRowEyeId = 2;
+                        } else {
+                            secondRowEyeId = 1;
+                        }
+                        data.$$_ROW_$$[1].eye_id = secondRowEyeId;
+
+                    }
+                });
+                requestData.eyeId = 3;
+                requestData.laterality = "B";
+                requestData.image_laterality = "B";
+            } else {
+                requestData.eyeId = previousEyeId;
+                requestData.laterality = "B";
+                requestData.image_laterality = "B";
+            }
+        }
+    }
+}
+
+
+
+if (typeof requestData.event_subtype != "undefined") {
+    eventSubtype = requestData.event_subtype;
+}
+
+var eventDisplayOrder = 2;
+var hfaData = bindTextObject('HFA_DATA');
+
+eventData.$$_XID_Map_$$.forEach(function(data) {
+    if (data.$$_XID_$$ == '$$_attachment_data[1]_$$') {
+        data.id = attachmentPdf.getId().toString();
+        data.request_id = attachmentPdf.getRequestId().toString();
+    }
+    if (data.$$_XID_$$ == '$$_patient[1]_$$') {
+        data.id = requestData.patientId;
+    }
+
+    if (data.$$_XID_$$ == '$$_event_date[1]_$$') {
+        if (typeof requestData.study_date != "undefined") {
+            data.date = convertStudyDateTimeToSqlTime(requestData.study_date, requestData.study_time);
+        } else {
+            data.date = convertStudyDateTimeToSqlTime(requestData.content_date, requestData.content_time);
+        }
+    }
+
+    if (data.$$_XID_$$ == '$$_event_subtype[1]_$$') {
+        data.event_subtype = eventSubtype;
+    }
+
+    if (data.$$_XID_$$ == '$$_event_subtype[2]_$$') {
+        data.display_order = eventDisplayOrder;
+    }
+});
+
+eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
+    var dataSet = data.$$_DataSet_$$;
+
+    if (dataSet == "et_ophgeneric_hfa") {
+        var hfaRow = data.$$_ROW_$$[0];
+        hfaRow.eye_id = requestData.eyeId;
+    }
+
+    if (dataSet == "ophgeneric_hfa_entry") {
+        if (requestData.eyeId !== 3) {
+            var hfaReportRow = data.$$_ROW_$$[0];
+            for (hfaDataKey in hfaData) {
+                hfaReportRow[hfaDataKey] = hfaData[hfaDataKey];
+            }
+            hfaReportRow.eye_id = requestData.eyeId;
+            data.$$_ROW_$$[1] = {};
+        }
+    }
+
+    if (dataSet == "et_ophgeneric_device_information") {
+        var deviceInformationRow = data.$$_ROW_$$[0];
+        deviceInformationRow.manufacturer = requestData.manufacturer;
+        deviceInformationRow.manufacturer_model_name = requestData.manufacturer_model_name;
+        deviceInformationRow.modality = requestData.modality;
+        deviceInformationRow.series_description = requestData.series_description;
+        deviceInformationRow.laterality = requestData.laterality;
+        deviceInformationRow.image_laterality = requestData.image_laterality;
+        deviceInformationRow.study_description = requestData.study_description;
+        deviceInformationRow.document_title = requestData.document_title;
+        deviceInformationRow.acquisition_date_time = requestData.acquisition_date_time;
+        deviceInformationRow.study_date = requestData.study_date;
+        deviceInformationRow.study_time = requestData.study_time;
+        deviceInformationRow.content_date = requestData.content_date;
+        deviceInformationRow.content_time = requestData.content_time;
+        deviceInformationRow.station_name = requestData.station_name;
+        deviceInformationRow.operators_name = requestData.operators_name;
+        deviceInformationRow.software_version = requestData.software_version;
+        deviceInformationRow.study_instance_uid = requestData.study_instance_uid;
+        deviceInformationRow.series_instance_uid = requestData.series_instance_uid;
+        deviceInformationRow.study_id = requestData.study_id;
+        deviceInformationRow.series_number = requestData.series_number;
+        deviceInformationRow.instance_number = requestData.instance_number;
+        deviceInformationRow.modifying_system = requestData.modifying_system;
+        deviceInformationRow.operator_identification_sequence = requestData.operator_identification_sequence;
+        deviceInformationRow.sop_instance_uid = requestData.sop_instance_uid;
+    }
+});
+
+var createdEventData = createEvent(JSON.stringify(eventData));
+modifyObjectValue(eventData, createdEventData);
+
+addRoutine('link_attachment_with_event');

@@ -1,4 +1,15 @@
+var requestData = bindTextObject('REQUEST_DATA');
+var hfaData = bindTextObject('HFA_DATA');
+//Get dicom headers from dicom blob
+var dicomObject = getDicom('REQUEST_BLOB', null);
+var dicomHeader = bindTextObject('DICOM_HEADER', null, null, null, null, dicomObject.getHeaderJsonString());
+
+requestData.event_subtype = "Visual Fields";
+
+hfaData.mean_deviation = dicomHeader['77171016'];
+hfaData.visual_field_index = dicomHeader['77171034'];
+
 addRoutine('GENERIC_EXTRACT_PDF');
 addRoutine('GENERIC_PAS_API');
 addRoutine('GENERIC_EVENT_DEVICE_INFORMATION_AUGMENT');
-addRoutine('create_event');
+addRoutine('create_hfa_event');
