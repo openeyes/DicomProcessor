@@ -3,9 +3,6 @@ var dicomObject = getDicom('REQUEST_BLOB');
 var dicomHeader = bindTextObject('DICOM_HEADER', null, null, null, null, dicomObject.getHeaderJsonString());
 
 
-//IF( REQUESTDATA.ATTACHMENT TYPE != FALSE  OR UNDEFINED OR NOT EMPTY STRING){
-//     NEW error ( attachment type NOT EXSISTS);
-// }
 //Lookup Laterality
 if (requestData.laterality == 'L' || requestData.image_laterality == 'L') {
     requestData.bodySiteSnomed = 8966001;
@@ -17,7 +14,7 @@ if (requestData.laterality == 'L' || requestData.image_laterality == 'L') {
     requestData.bodySiteSnomed = 40638003;
     requestData.eyeId = 3;
 } else {
-    new Error('Unknown laterality has been found : LATERALITY: ' + requestData.laterality + " IMAGE_LATERALITY: " + requestData.image_laterality);
+    throw new Error('Unknown laterality has been found : LATERALITY: ' + requestData.laterality + " IMAGE_LATERALITY: " + requestData.image_laterality);
 }
 
 if (typeof requestData.file_description == "undefined" || requestData.file_description.toLowerCase().indexOf("rawdata") == -1) {
