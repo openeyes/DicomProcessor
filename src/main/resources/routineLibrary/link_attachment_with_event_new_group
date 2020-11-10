@@ -1,0 +1,17 @@
+var eventData = bindTextObject('event_data');
+var requestData = bindTextObject('REQUEST_DATA');
+var attachmentPdf = getObject('event_pdf', requestData.bodySiteSnomed);
+var eventID = requestData.eventId;
+
+synchronizedJavaSubroutine(requestData.patientId, "runtime_sequential");
+eventData.$$_XID_Map_$$.forEach(function(data) {
+    if (data.$$_XID_$$ == '$$_event[1]_$$') {
+        requestData.eventId = data.id;
+    }
+});
+
+linkAttachmentDataWithEventNewGroup(attachmentPdf, requestData.eventId, 'OEModule\\OphGeneric\\models\\Attachment');
+createAndSetThumbnailsOnAttachmentData(attachmentPdf);
+deleteRequestBlobData();
+addRoutine('delink_attachment');
+addRoutine('generic_clean_up');
