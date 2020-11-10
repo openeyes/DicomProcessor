@@ -5,4 +5,8 @@ addRoutine('GENERIC_PAS_API');
 addRoutine('BIOMETRY_MEDIA_ATTACHMENT_CREATE');
 requestData.report_type = "Biometry Report";
 requestData.event_subtype = "Biometry Report";
+
+if(requestData.software_version == "7.5.2.0076") {
+    requestData.laterality = 'B';
+}
 addRoutine('GENERIC_SET_ATTACHMENT_TYPE');
