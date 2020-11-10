@@ -1,9 +1,13 @@
 var requestData = bindTextObject('REQUEST_DATA');
 requestData.event_subtype = "Visual Field Images";
+requestData.report_type = "Visual Field Images";
 addRoutine('GENERIC_EXTRACT_PDF');
 addRoutine('GENERIC_PAS_API');
 addRoutine('GENERIC_EVENT_DEVICE_INFORMATION_AUGMENT');
 addRoutine('create_event');
 
-requestData.report_type = "Visual Field Images";
+//Study date/time seems to be the print date not actual study date/time
+requestData.study_date = requestData.acquisition_date_time.substr(0,8);
+requestData.study_time = requestData.acquisition_date_time.substr(8,6);
+
 addRoutine('GENERIC_SET_ATTACHMENT_TYPE');
