@@ -449,5 +449,4 @@ eventData['$$_SaveSet[1]_$$'].forEach(function (data) {
 var createdEventData = createEvent(JSON.stringify(eventData));
 modifyObjectValue(eventData, createdEventData);
 
-
-addRoutine('link_attachment_with_event');
+addRoutine('link_attachment_with_event_new_group');

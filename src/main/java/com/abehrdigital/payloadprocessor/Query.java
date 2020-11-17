@@ -8,6 +8,7 @@ import org.hibernate.transform.AliasToEntityMapResultTransformer;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import javax.persistence.Parameter;
 import java.util.*;
 
 public class Query {
@@ -670,9 +671,20 @@ public class Query {
 
         // throw an exception of the number of rows affected does not correspond to the one expected
         if (aliasToValueMapList.size() < minRowsExpected || aliasToValueMapList.size() > 1) {
+
+            StringBuilder parameterString = new StringBuilder();
+            Set<Parameter<?>> parameters = sqlQuery.getParameters();
+            for (Parameter parameter : parameters) {
+                parameterString.append("\r\n")
+                        .append(parameter.getName())
+                        .append(" value: ")
+                        .append(sqlQuery.getParameterValue(parameter.getName()));
+
+            }
             throw new InvalidNumberOfRowsAffectedException(aliasToValueMapList.size() +
                     " rows returned! Expected no less than " + minRowsExpected + " rows and no more than one."
-            + sqlQuery.getQueryString());
+                    + sqlQuery.getQueryString() +
+                    "Parameter list : " + parameterString);
         }
         return aliasToValueMapList;
     }

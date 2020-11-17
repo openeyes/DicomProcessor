@@ -14,3 +14,4 @@ linkAttachmentDataWithEvent(attachmentPdf, requestData.eventId, 'OEModule\\OphGe
 createAndSetThumbnailsOnAttachmentData(attachmentPdf);
 deleteRequestBlobData();
 addRoutine('delink_attachment');
+addRoutine('generic_clean_up');
