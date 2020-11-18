@@ -8,14 +8,38 @@ var dicomHeader = bindTextObject('DICOM_HEADER', null, null, null, null, dicomOb
 // }
 
 var laterality;
-if(typeof requestData.laterality != "undefined") {
+if (typeof requestData.laterality != "undefined") {
     laterality = requestData.laterality;
 } else if (typeof requestData.image_laterality != "undefined") {
     laterality = requestData.image_laterality;
 }
 
-if(typeof laterality == "undefined") {
-    laterality = readTextFromImage(dicomObject.getImageAsBlob(), 87,139,14, 20, "(.*(L|B|R).*)");
+if (typeof laterality == "undefined") {
+    var imageBlob = dicomObject.getImageAsBlob();
+    var lateralityFound = false;
+    var errorMessage = '';
+
+    try {
+        laterality = readTextFromImage(imageBlob, 87, 139, 14, 20, "(.*(L|B|R).*)");
+        lateralityFound = true;
+    } catch (error) {
+        errorMessage = error.message;
+    }
+
+    if (!lateralityFound) {
+        try {
+            laterality = readTextFromImage(imageBlob, 88, 139, 18, 20, "(.*(L|B|R).*)");
+            lateralityFound = true;
+        } catch (error) {
+            errorMessage = error.message;
+        }
+    }
+
+    laterality = laterality.trim();
+
+    if (!lateralityFound) {
+        throw new Error(errorMessage);
+    }
     requestData.laterality = laterality;
 }
 //Lookup Laterality
