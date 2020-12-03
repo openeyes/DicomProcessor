@@ -6,14 +6,12 @@ var eventID = requestData.eventId;
 synchronizedJavaSubroutine(requestData.patientId, "runtime_sequential");
 eventData.$$_XID_Map_$$.forEach(function(data) {
     if (data.$$_XID_$$ == '$$_event[1]_$$') {
-        eventID = data.id;
+        requestData.eventId = data.id;
     }
 });
 
-linkAttachmentDataWithEventNewGroup(attachmentPdf, eventID, 'OEModule\\OphGeneric\\models\\Attachment', 'OphInBiometry', ' ');
-updateLastModifiedDate(eventID);
-
+linkAttachmentDataWithEventNewGroup(attachmentPdf, requestData.eventId, 'OEModule\\OphGeneric\\models\\Attachment');
 createAndSetThumbnailsOnAttachmentData(attachmentPdf);
-addRoutine('delink_attachment');
 deleteRequestBlobData();
+addRoutine('delink_attachment');
 addRoutine('generic_clean_up');

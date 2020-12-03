@@ -8,8 +8,10 @@ import com.abehrdigital.payloadprocessor.exceptions.ValuesNotFoundException;
 import com.abehrdigital.payloadprocessor.models.*;
 import com.abehrdigital.payloadprocessor.models.Event;
 import com.abehrdigital.payloadprocessor.utils.*;
-import net.sourceforge.tess4j.TesseractException;
 import org.apache.commons.io.IOUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 import org.hibernate.Session;
@@ -322,16 +324,27 @@ public class RoutineScriptService {
     }
 
     public String readTextFromImage(Blob imageBlob, int x, int y, int width, int height, String regex) throws Exception {
-        ImageTextExtractor imageTextExtractor = new ImageTextExtractor();
-        Rectangle rectangle = new Rectangle(x, y, width, height);
         InputStream blobBinaryStream = imageBlob.getBinaryStream();
         BufferedImage image = ImageIO.read(blobBinaryStream);
+        return readTextFromImage(image, x, y, width, height, regex);
+    }
+
+    public String readTextFromImage(BufferedImage image, int x, int y, int width, int height, String regex) throws Exception {
+        Rectangle rectangle = new Rectangle(x, y, width, height);
+        ImageTextExtractor imageTextExtractor = new ImageTextExtractor();
         String extractedText = imageTextExtractor.read(image, rectangle);
         if (extractedText.matches(regex)) {
             return extractedText;
         } else {
             throw new Exception("Regex doesn't match for (" + extractedText + " ) Regex (" + regex + ")");
         }
+    }
+
+    public String readTextFromPdf(Blob pdfBlob, int x, int y, int width, int height) throws Exception {
+        PDDocument pdfDocument = PDFUtils.extractPdfDocumentFromBlob(pdfBlob);
+        PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
+        BufferedImage image = pdfRenderer.renderImageWithDPI(0, 300, ImageType.RGB);
+        return readTextFromImage(image, x, y, width, height, ".*");
     }
 
     public boolean attachmentsContentAreEqual(AttachmentData attachmentData, int attachmentDataIdToCompare) throws SQLException {
@@ -409,7 +422,7 @@ public class RoutineScriptService {
                         routineLock = new RequestRoutineLock(name);
                         requestRoutineLockDao.save(routineLock);
                         routineLockSession.getTransaction().commit();
-                    } catch(Exception exception) {
+                    } catch (Exception exception) {
                         // Need to catch unique constraint violation
                         throw exception;
                     }
@@ -425,7 +438,7 @@ public class RoutineScriptService {
     public void deleteAttachmentIfNotNeeded(AttachmentData attachmentData) throws Exception {
         AttachmentDataDao attachmentDataDao = daoManager.getAttachmentDataDao();
 
-        if(attachmentDataDao.isNotAttached(attachmentData.getId())) {
+        if (attachmentDataDao.isNotAttached(attachmentData.getId())) {
             boolean attachmentCanBeDeleted = false;
             List<AttachmentData> attachmentsWithSameHashCode = attachmentDataDao.getAttachmentsThatAreAttachedWithSameHashcode(attachmentData);
             RequestDetails currentAttachmentsStudyInstanceUid = daoManager.getRequestDetailsDao().getByName("study_instance_uid", requestId);
@@ -433,13 +446,13 @@ public class RoutineScriptService {
                     attachmentsWithSameHashCode) {
                 int requestIdOfAttachmentWithSameHashcode = attachmentDataWithSameHashcode.getRequestId();
                 RequestDetails duplicateAttachmentsStudyInstanceUid = daoManager.getRequestDetailsDao().getByName("study_instance_uid", requestIdOfAttachmentWithSameHashcode);
-                if(currentAttachmentsStudyInstanceUid.getValue().equals(duplicateAttachmentsStudyInstanceUid.getValue())) {
+                if (currentAttachmentsStudyInstanceUid.getValue().equals(duplicateAttachmentsStudyInstanceUid.getValue())) {
                     attachmentCanBeDeleted = true;
                     break;
                 }
             }
 
-            if(attachmentCanBeDeleted) {
+            if (attachmentCanBeDeleted) {
                 attachmentData.setBlobData(null);
                 attachmentData.setHashCode(null);
                 attachmentDataDao.save(attachmentData);
