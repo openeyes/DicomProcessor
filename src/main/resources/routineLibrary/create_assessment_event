@@ -1,7 +1,10 @@
 var eventData = bindTextObject('event_data');
 var requestData = bindTextObject('REQUEST_DATA');
 var attachmentPdf = getObject('event_pdf', requestData.bodySiteSnomed);
-var eventSubtype = requestData.report_type;
+var eventSubtype = "OCT";
+if (typeof requestData.report_type != "undefined") {
+    eventSubtype = requestData.report_type;
+}
 var eventDisplayOrder = 2;
 
 var defaultSubspecialty = getDefaultVariableValue('SUBSPECIALTY','Eye Casualty');

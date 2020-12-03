@@ -39,5 +39,6 @@
 *.odt binary
 *.zip binary
 *.jar binary
+*.traineddata binary
 wait binary
 /.docker_build/wait binary

@@ -1,4 +1,3 @@
-addRoutine('GENERIC_EXTRACT_PDF');
-addRoutine('GENERIC_PAS_API');
-addRoutine('GENERIC_EVENT_DEVICE_INFORMATION_AUGMENT');
-addRoutine('create_event');
+var requestData = bindTextObject('REQUEST_DATA');
+
+addRoutine('Heidelberg_Engineering_' + requestData.modality);
