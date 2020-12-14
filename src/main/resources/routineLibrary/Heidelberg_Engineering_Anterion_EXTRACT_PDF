@@ -5,6 +5,8 @@ var bodySite;
 
 bodySite = readTextFromPdf(attachmentBlob, 160, 160, 200, 200);
 
+bodySite = bodySite.toUpperCase();
+
 //Lookup Laterality
 if (bodySite == 'OS') {
     requestData.laterality = 'L';
