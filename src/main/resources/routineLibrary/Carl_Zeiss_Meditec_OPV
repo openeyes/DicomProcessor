@@ -11,3 +11,4 @@ requestData.study_date = requestData.acquisition_date_time.substr(0,8);
 requestData.study_time = requestData.acquisition_date_time.substr(8,6);
 
 addRoutine('GENERIC_SET_ATTACHMENT_TYPE');
+requestData.validate_manufacturer_model_name_for_previous_event = true;
