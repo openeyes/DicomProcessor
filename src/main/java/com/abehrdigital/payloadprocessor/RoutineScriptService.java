@@ -255,6 +255,15 @@ public class RoutineScriptService {
         }
     }
 
+    public AttachmentData getEventDataByDeviceInformationStudyInstanceUIDAndManufacturerModelName(String attachmentMnemonic, String studyInstanceUID, String manufacturerModelName) {
+        Integer requestId = daoManager.getGenericDeviceInformationDao().getRequestIdByStudyInstanceUniqueIdAndManufacturerModelName(studyInstanceUID, manufacturerModelName);
+        if (requestId != -1) {
+            return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic, requestId);
+        } else {
+            return null;
+        }
+    }
+
     public void deleteEventAttachmentByAttachmentId(int attachmentId) {
         List<EventAttachmentItem> eventAttachmentItems = daoManager.getEventAttachmentItemDao().getByAttachmentDataId(attachmentId);
         for (EventAttachmentItem eventAttachmentItem : eventAttachmentItems) {
