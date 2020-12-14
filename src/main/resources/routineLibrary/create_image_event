@@ -4,8 +4,8 @@ var attachmentPdf = getObject('event_pdf', requestData.bodySiteSnomed);
 var eventSubtype = requestData.report_type;
 var eventDisplayOrder = 2;
 
-var defaultSubspecialty = getDefaultVariableValue('SUBSPECIALTY','Eye Casualty');
-var defaultService = getDefaultVariableValue('SERVICE','Eye Casualty Service');
+var defaultSubspecialty = getDefaultVariableValue('SUBSPECIALTY', 'Eye Casualty');
+var defaultService = getDefaultVariableValue('SERVICE', 'Eye Casualty Service');
 var defaultFirmName = getDefaultVariableValue('FIRM_NAME', 'Eye Casualty Service');
 
 synchronizedJavaSubroutine(requestData.patientId, "runtime_sequential");
@@ -17,10 +17,10 @@ if (patientHasEpisodes(requestData.patientId)) {
         _OE_System: 'ABEHR Jason Local v3.0',
         _Version: 'v0.1',
         $$_XID_Map_$$: [{
-                $$_XID_$$: '$$_patient[1]_$$',
-                $$_DataSet_$$: 'patient',
-                id: 'xxx'
-            },
+            $$_XID_$$: '$$_patient[1]_$$',
+            $$_DataSet_$$: 'patient',
+            id: 'xxx'
+        },
             {
                 $$_XID_$$: '$$_attachment_data[1]_$$',
                 $$_DataSet_$$: 'attachment_data',
@@ -59,13 +59,13 @@ if (patientHasEpisodes(requestData.patientId)) {
             },
         ],
         '$$_SaveSet[1]_$$': [{
-                $$_DataSet_$$: 'event_type',
-                $$_ROW_$$: [{
-                    $$_CRUD_$$: 'RETRIEVE',
-                    id: '$$_event_type[1]_$$',
-                    class_name: 'OphGeneric'
-                }]
-            },
+            $$_DataSet_$$: 'event_type',
+            $$_ROW_$$: [{
+                $$_CRUD_$$: 'RETRIEVE',
+                id: '$$_event_type[1]_$$',
+                class_name: 'OphGeneric'
+            }]
+        },
             {
                 $$_DataSet_$$: 'episode',
                 $$_ROW_$$: [{
@@ -167,10 +167,10 @@ if (patientHasEpisodes(requestData.patientId)) {
         _OE_System: 'ABEHR Jason Local v3.0',
         _Version: 'v0.1',
         $$_XID_Map_$$: [{
-                $$_XID_$$: '$$_patient[1]_$$',
-                $$_DataSet_$$: 'patient',
-                id: 'xxx'
-            },
+            $$_XID_$$: '$$_patient[1]_$$',
+            $$_DataSet_$$: 'patient',
+            id: 'xxx'
+        },
             {
                 $$_XID_$$: '$$_attachment_data[1]_$$',
                 $$_DataSet_$$: 'attachment_data',
@@ -209,13 +209,13 @@ if (patientHasEpisodes(requestData.patientId)) {
             },
         ],
         '$$_SaveSet[1]_$$': [{
-                $$_DataSet_$$: 'event_type',
-                $$_ROW_$$: [{
-                    $$_CRUD_$$: 'RETRIEVE',
-                    id: '$$_event_type[1]_$$',
-                    class_name: 'OphGeneric'
-                }]
-            },
+            $$_DataSet_$$: 'event_type',
+            $$_ROW_$$: [{
+                $$_CRUD_$$: 'RETRIEVE',
+                id: '$$_event_type[1]_$$',
+                class_name: 'OphGeneric'
+            }]
+        },
             {
                 "$$_DataSet_$$": "subspecialty",
                 "$$_ROW_$$": [{
@@ -351,11 +351,18 @@ var previousAttachmentDataId;
 var previousEyeId;
 var previousEventData;
 if (requestData.study_instance_uid != null) {
-    var attachmentData = getEventDataByDeviceInformationStudyInstanceUID('event_data', requestData.study_instance_uid.toString());
+    var attachmentData;
+    if (typeof requestData.validate_manufacturer_model_name_for_previous_event != "undefined" &&
+        requestData.validate_manufacturer_model_name_for_previous_event &&
+        typeof requestData.manufacturer_model_name != "undefined") {
+        attachmentData = getEventDataByDeviceInformationStudyInstanceUIDAndManufacturerModelName('event_data', requestData.study_instance_uid.toString(), requestData.manufacturer_model_name);
+    } else {
+        attachmentData = getEventDataByDeviceInformationStudyInstanceUID('event_data', requestData.study_instance_uid.toString());
+    }
     if (attachmentData != null) {
         previousEventData = JSON.parse(attachmentData.getTextData());
         if (previousEventData != null) {
-            previousEventData.$$_XID_Map_$$.forEach(function(data) {
+            previousEventData.$$_XID_Map_$$.forEach(function (data) {
                 if (data.$$_XID_$$ == '$$_event[1]_$$') {
                     previousEventId = data.id;
                 }
@@ -365,12 +372,12 @@ if (requestData.study_instance_uid != null) {
 }
 if (previousEventId != -1) {
     if (!eventIsDeleted(previousEventId)) {
-        modifyObjectValue(eventData,previousEventData);
+        modifyObjectValue(eventData, previousEventData);
         requestData.previousEventId = previousEventId;
     }
 }
 
-eventData.$$_XID_Map_$$.forEach(function(data) {
+eventData.$$_XID_Map_$$.forEach(function (data) {
     if (data.$$_XID_$$ == '$$_attachment_data[1]_$$') {
         data.id = attachmentPdf.getId().toString();
         data.request_id = attachmentPdf.getRequestId().toString();
@@ -392,7 +399,7 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
     }
 });
 
-eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
+eventData['$$_SaveSet[1]_$$'].forEach(function (data) {
     var dataSet = data.$$_DataSet_$$;
     if (dataSet == "et_ophgeneric_device_information") {
         var deviceInformationRow = data.$$_ROW_$$[0];
@@ -423,7 +430,7 @@ eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
     }
 });
 
-   var createdEventData = createEvent(JSON.stringify(eventData));
-    modifyObjectValue(eventData, createdEventData);
+var createdEventData = createEvent(JSON.stringify(eventData));
+modifyObjectValue(eventData, createdEventData);
 
 addRoutine('link_oct_image_with_event');

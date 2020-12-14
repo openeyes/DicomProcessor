@@ -7,8 +7,8 @@ if (typeof requestData.report_type != "undefined") {
 }
 var eventDisplayOrder = 2;
 
-var defaultSubspecialty = getDefaultVariableValue('SUBSPECIALTY','Eye Casualty');
-var defaultService = getDefaultVariableValue('SERVICE','Eye Casualty Service');
+var defaultSubspecialty = getDefaultVariableValue('SUBSPECIALTY', 'Eye Casualty');
+var defaultService = getDefaultVariableValue('SERVICE', 'Eye Casualty Service');
 var defaultFirmName = getDefaultVariableValue('FIRM_NAME', 'Eye Casualty Service');
 
 synchronizedJavaSubroutine(requestData.patientId, "runtime_sequential");
@@ -20,10 +20,10 @@ if (patientHasEpisodes(requestData.patientId)) {
         _OE_System: 'ABEHR Jason Local v3.0',
         _Version: 'v0.1',
         $$_XID_Map_$$: [{
-                $$_XID_$$: '$$_patient[1]_$$',
-                $$_DataSet_$$: 'patient',
-                id: 'xxx'
-            },
+            $$_XID_$$: '$$_patient[1]_$$',
+            $$_DataSet_$$: 'patient',
+            id: 'xxx'
+        },
             {
                 $$_XID_$$: '$$_attachment_data[1]_$$',
                 $$_DataSet_$$: 'attachment_data',
@@ -62,13 +62,13 @@ if (patientHasEpisodes(requestData.patientId)) {
             },
         ],
         '$$_SaveSet[1]_$$': [{
-                $$_DataSet_$$: 'event_type',
-                $$_ROW_$$: [{
-                    $$_CRUD_$$: 'RETRIEVE',
-                    id: '$$_event_type[1]_$$',
-                    class_name: 'OphGeneric'
-                }]
-            },
+            $$_DataSet_$$: 'event_type',
+            $$_ROW_$$: [{
+                $$_CRUD_$$: 'RETRIEVE',
+                id: '$$_event_type[1]_$$',
+                class_name: 'OphGeneric'
+            }]
+        },
             {
                 $$_DataSet_$$: 'episode',
                 $$_ROW_$$: [{
@@ -142,11 +142,11 @@ if (patientHasEpisodes(requestData.patientId)) {
             {
                 $$_DataSet_$$: 'ophgeneric_assessment_entry',
                 $$_ROW_$$: [{
-                        $$_CRUD_$$: 'MERGE',
-                        id: '$$_ophgeneric_assessment_entry[1]_$$',
-                        element_id: '$$_et_ophgeneric_assessment[1].id_$$',
-                        eye_id: '1',
-                    },
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_ophgeneric_assessment_entry[1]_$$',
+                    element_id: '$$_et_ophgeneric_assessment[1].id_$$',
+                    eye_id: '1',
+                },
                     {
                         $$_CRUD_$$: 'MERGE',
                         id: '$$_ophgeneric_assessment_entry[2]_$$',
@@ -197,10 +197,10 @@ if (patientHasEpisodes(requestData.patientId)) {
         _OE_System: 'ABEHR Jason Local v3.0',
         _Version: 'v0.1',
         $$_XID_Map_$$: [{
-                $$_XID_$$: '$$_patient[1]_$$',
-                $$_DataSet_$$: 'patient',
-                id: 'xxx'
-            },
+            $$_XID_$$: '$$_patient[1]_$$',
+            $$_DataSet_$$: 'patient',
+            id: 'xxx'
+        },
             {
                 $$_XID_$$: '$$_attachment_data[1]_$$',
                 $$_DataSet_$$: 'attachment_data',
@@ -239,13 +239,13 @@ if (patientHasEpisodes(requestData.patientId)) {
             },
         ],
         '$$_SaveSet[1]_$$': [{
-                $$_DataSet_$$: 'event_type',
-                $$_ROW_$$: [{
-                    $$_CRUD_$$: 'RETRIEVE',
-                    id: '$$_event_type[1]_$$',
-                    class_name: 'OphGeneric'
-                }]
-            },
+            $$_DataSet_$$: 'event_type',
+            $$_ROW_$$: [{
+                $$_CRUD_$$: 'RETRIEVE',
+                id: '$$_event_type[1]_$$',
+                class_name: 'OphGeneric'
+            }]
+        },
             {
                 "$$_DataSet_$$": "subspecialty",
                 "$$_ROW_$$": [{
@@ -346,11 +346,11 @@ if (patientHasEpisodes(requestData.patientId)) {
             {
                 $$_DataSet_$$: 'ophgeneric_assessment_entry',
                 $$_ROW_$$: [{
-                        $$_CRUD_$$: 'MERGE',
-                        id: '$$_ophgeneric_assessment_entry[1]_$$',
-                        element_id: '$$_et_ophgeneric_assessment[1].id_$$',
-                        eye_id: '1',
-                    },
+                    $$_CRUD_$$: 'MERGE',
+                    id: '$$_ophgeneric_assessment_entry[1]_$$',
+                    element_id: '$$_et_ophgeneric_assessment[1].id_$$',
+                    eye_id: '1',
+                },
                     {
                         $$_CRUD_$$: 'MERGE',
                         id: '$$_ophgeneric_assessment_entry[2]_$$',
@@ -408,17 +408,25 @@ var previousAttachmentDataId;
 var previousEyeId;
 var previousEventData;
 if (requestData.study_instance_uid != null) {
-    var attachmentData = getEventDataByDeviceInformationStudyInstanceUID('event_data', requestData.study_instance_uid.toString());
+    var attachmentData;
+    if (typeof requestData.validate_manufacturer_model_name_for_previous_event != "undefined" &&
+        requestData.validate_manufacturer_model_name_for_previous_event &&
+        typeof requestData.manufacturer_model_name != "undefined") {
+        attachmentData = getEventDataByDeviceInformationStudyInstanceUIDAndManufacturerModelName('event_data', requestData.study_instance_uid.toString(), requestData.manufacturer_model_name);
+    } else {
+        attachmentData = getEventDataByDeviceInformationStudyInstanceUID('event_data', requestData.study_instance_uid.toString());
+    }
+
     if (attachmentData != null) {
         previousEventData = JSON.parse(attachmentData.getTextData());
         if (previousEventData != null) {
-            previousEventData.$$_XID_Map_$$.forEach(function(data) {
+            previousEventData.$$_XID_Map_$$.forEach(function (data) {
                 if (data.$$_XID_$$ == '$$_event[1]_$$') {
                     previousEventId = data.id;
                 }
             });
 
-            previousEventData['$$_SaveSet[1]_$$'].forEach(function(data) {
+            previousEventData['$$_SaveSet[1]_$$'].forEach(function (data) {
                 if (data.$$_DataSet_$$ == 'et_ophgeneric_assessment') {
                     previousEyeId = data.$$_ROW_$$[0].eye_id;
                 }
@@ -428,13 +436,13 @@ if (requestData.study_instance_uid != null) {
 }
 if (previousEventId != -1) {
     if (!eventIsDeleted(previousEventId)) {
-        modifyObjectValue(eventData,previousEventData);
+        modifyObjectValue(eventData, previousEventData);
         requestData.previousEventId = previousEventId;
 
         if (typeof previousEyeId != "undefined" && previousEyeId !== requestData.eyeId) {
 
             if (previousEyeId != 3) {
-                previousEventData['$$_SaveSet[1]_$$'].forEach(function(data) {
+                previousEventData['$$_SaveSet[1]_$$'].forEach(function (data) {
 
                     if (data.$$_DataSet_$$ == 'ophgeneric_assessment_entry') {
                         data.$$_ROW_$$[1] = JSON.parse(JSON.stringify(data.$$_ROW_$$[0]));
@@ -467,11 +475,10 @@ if (previousEventId != -1) {
 }
 
 
-
 var assessmentData = bindTextObject('ASSESSMENT_DATA');
 var abac_json = bindTextObject('ABAC_JSON');
 
-eventData.$$_XID_Map_$$.forEach(function(data) {
+eventData.$$_XID_Map_$$.forEach(function (data) {
     if (data.$$_XID_$$ == '$$_attachment_data[1]_$$') {
         data.id = attachmentPdf.getId().toString();
         data.request_id = attachmentPdf.getRequestId().toString();
@@ -493,7 +500,7 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
     }
 });
 
-eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
+eventData['$$_SaveSet[1]_$$'].forEach(function (data) {
     var dataSet = data.$$_DataSet_$$;
     if (dataSet == "et_ophgeneric_assessment") {
         var assessmentRow = data.$$_ROW_$$[0];
@@ -543,7 +550,7 @@ eventData['$$_SaveSet[1]_$$'].forEach(function(data) {
     }
 });
 
-   var createdEventData = createEvent(JSON.stringify(eventData));
-    modifyObjectValue(eventData, createdEventData);
+var createdEventData = createEvent(JSON.stringify(eventData));
+modifyObjectValue(eventData, createdEventData);
 
 addRoutine('link_oct_image_with_event');
