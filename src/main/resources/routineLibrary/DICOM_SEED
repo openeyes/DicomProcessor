@@ -36,6 +36,8 @@ requestData.sop_instance_uid = dicomHeader['‭80018‬'];
 requestData.file_description = dicomHeader['22011000'];
 requestData.mime_type = dicomHeader['420012'];
 
+
+requestData.validate_manufacturer_model_name_for_previous_event = false;
 //REQUESTdATA.ATTACHMENT TYEP =- FUNCTION TO GET ATTACHMENT TYPE PK ( REQUESTDATA.MODALITY)
 //REQUESTDATA.EVENT_SUB_TYPE = FUNCTION TO GET EVENT SUB TYPE ( REQUESTDATA.MODALITY)
 
