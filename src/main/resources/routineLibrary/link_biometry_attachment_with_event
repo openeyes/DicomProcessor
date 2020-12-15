@@ -14,6 +14,5 @@ linkAttachmentDataWithEventNewGroup(attachmentPdf, eventID, 'OEModule\\OphGeneri
 updateLastModifiedDate(eventID);
 
 createAndSetThumbnailsOnAttachmentData(attachmentPdf);
-addRoutine('delink_attachment');
 deleteRequestBlobData();
 addRoutine('generic_clean_up');
