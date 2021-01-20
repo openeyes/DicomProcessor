@@ -1,4 +1,6 @@
+var requestData = bindTextObject('REQUEST_DATA');
 addRoutine('GENERIC_EXTRACT_PDF');
 addRoutine('GENERIC_PAS_API');
 addRoutine('GENERIC_EVENT_ASSESSMENT_AUGMENT');
 addRoutine('create_assessment_event');
+requestData.validate_manufacturer_model_name_for_previous_event = true;

@@ -353,7 +353,14 @@ var previousAttachmentDataId;
 var previousEyeId;
 var previousEventData;
 if (requestData.study_instance_uid != null) {
-    var attachmentData = getEventDataByDeviceInformationStudyInstanceUID('event_data', requestData.study_instance_uid.toString());
+    var attachmentData;
+    if (typeof requestData.validate_manufacturer_model_name_for_previous_event != "undefined" &&
+        requestData.validate_manufacturer_model_name_for_previous_event &&
+        typeof requestData.manufacturer_model_name != "undefined") {
+        attachmentData = getEventDataByDeviceInformationStudyInstanceUIDAndManufacturerModelName('event_data', requestData.study_instance_uid.toString(), requestData.manufacturer_model_name);
+    } else {
+        attachmentData = getEventDataByDeviceInformationStudyInstanceUID('event_data', requestData.study_instance_uid.toString());
+    }
     if (attachmentData != null) {
         previousEventData = JSON.parse(attachmentData.getTextData());
         if (previousEventData != null) {

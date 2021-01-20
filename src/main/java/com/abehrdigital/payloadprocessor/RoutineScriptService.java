@@ -217,6 +217,7 @@ public class RoutineScriptService {
                 daoManager
                         .getAttachmentDataDao()
                         .getAttachmentsByEventIdAndHashcode(eventId, attachmentData.getHashCode());
+
         byte[] currentAttachmentDataBlobBytes = DicomBlobUtils.convertBlobToByteArray(attachmentData.getBlobData());
         for (AttachmentData attachmentDataWithSameHashcode :
                 attachmentsWithSameHashCode) {
@@ -248,6 +249,15 @@ public class RoutineScriptService {
 
     public AttachmentData getEventDataByDeviceInformationStudyInstanceUID(String attachmentMnemonic, String studyInstanceUID) {
         Integer requestId = daoManager.getGenericDeviceInformationDao().getRequestIdByStudyInstanceUniqueId(studyInstanceUID);
+        if (requestId != -1) {
+            return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic, requestId);
+        } else {
+            return null;
+        }
+    }
+
+    public AttachmentData getEventDataByDeviceInformationStudyInstanceUIDAndManufacturerModelName(String attachmentMnemonic, String studyInstanceUID, String manufacturerModelName) {
+        Integer requestId = daoManager.getGenericDeviceInformationDao().getRequestIdByStudyInstanceUniqueIdAndManufacturerModelName(studyInstanceUID, manufacturerModelName);
         if (requestId != -1) {
             return getAttachmentDataByAttachmentMnemonicAndRequestId(attachmentMnemonic, requestId);
         } else {
@@ -445,6 +455,13 @@ public class RoutineScriptService {
             for (AttachmentData attachmentDataWithSameHashcode :
                     attachmentsWithSameHashCode) {
                 int requestIdOfAttachmentWithSameHashcode = attachmentDataWithSameHashcode.getRequestId();
+
+                RequestDetails duplicateAttachmentEventId = daoManager.getRequestDetailsDao().getByName("eventId", requestIdOfAttachmentWithSameHashcode);
+                int eventId = Integer.parseInt(duplicateAttachmentEventId.getValue());
+
+                if (duplicateAttachmentEventId != null && eventIsDeleted(eventId)) {
+                    continue;
+                }
                 RequestDetails duplicateAttachmentsStudyInstanceUid = daoManager.getRequestDetailsDao().getByName("study_instance_uid", requestIdOfAttachmentWithSameHashcode);
                 if (currentAttachmentsStudyInstanceUid.getValue().equals(duplicateAttachmentsStudyInstanceUid.getValue())) {
                     attachmentCanBeDeleted = true;

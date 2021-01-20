@@ -13,15 +13,36 @@ public class GenericDeviceInformationDao {
         this.session = session;
     }
 
-    public Integer getRequestIdByStudyInstanceUniqueId(String studyInstanceUID){
+    public Integer getRequestIdByStudyInstanceUniqueId(String studyInstanceUID) {
         NativeQuery query = session.createSQLQuery("" +
                 "SELECT mdrp.last_request_id" +
                 " FROM et_ophgeneric_device_information mdrp " +
-                "WHERE mdrp.study_instance_uid = :study_instance_uid ")
+                " JOIN event ev on mdrp.event_id = ev.id " +
+                "WHERE mdrp.study_instance_uid = :study_instance_uid AND" +
+                " ev.deleted = 0")
                 .setParameter("study_instance_uid", studyInstanceUID);
 
         List results = query.list();
-        if(results.isEmpty()){
+        if (results.isEmpty()) {
+            return -1;
+        } else {
+            return (Integer) results.get(0);
+        }
+    }
+
+    public Integer getRequestIdByStudyInstanceUniqueIdAndManufacturerModelName(String studyInstanceUID, String manufacturerModelName) {
+        NativeQuery query = session.createSQLQuery("" +
+                "SELECT mdrp.last_request_id" +
+                " FROM et_ophgeneric_device_information mdrp" +
+                " JOIN event ev on mdrp.event_id = ev.id " +
+                "WHERE mdrp.study_instance_uid = :study_instance_uid AND " +
+                "manufacturer_model_name = :manufacturer_model_name AND " +
+                " ev.deleted = 0")
+                .setParameter("study_instance_uid", studyInstanceUID)
+                .setParameter("manufacturer_model_name", manufacturerModelName);
+
+        List results = query.list();
+        if (results.isEmpty()) {
             return -1;
         } else {
             return (Integer) results.get(0);

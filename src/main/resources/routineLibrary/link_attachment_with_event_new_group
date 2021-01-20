@@ -13,5 +13,4 @@ eventData.$$_XID_Map_$$.forEach(function(data) {
 linkAttachmentDataWithEventNewGroup(attachmentPdf, requestData.eventId, 'OEModule\\OphGeneric\\models\\Attachment');
 createAndSetThumbnailsOnAttachmentData(attachmentPdf);
 deleteRequestBlobData();
-addRoutine('delink_attachment');
 addRoutine('generic_clean_up');
