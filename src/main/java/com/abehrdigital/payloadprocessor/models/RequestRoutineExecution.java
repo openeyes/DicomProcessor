@@ -32,6 +32,7 @@ public class RequestRoutineExecution {
     @Column(name = "try_number")
     private int tryNumber;
 
+    @Transient
     private final int MAX_LOG_LENGTH = 65000;
 
     public RequestRoutineExecution() {
