@@ -24,6 +24,8 @@ public class Study {
     private Map<String, String> nonSequenceDicomElements;
     private Map<Integer, Sequence> sequenceDicomElements;
 
+    private static final String IMAGE_TYPE_FOR_MANUAL_EXTRACTION = "IJG (jpeg-6b) library with lossless patch";
+
     public Study() {
 
     }
@@ -44,6 +46,15 @@ public class Study {
     public SerialBlob getImageAsBlob() throws SQLException, IOException {
         return DicomBlobUtils.convertDicomBlobToSingleImage(dicomBlob);
     }
+
+    public SerialBlob getImageAsBlob(String imageDerivationDescription) throws SQLException, IOException {
+        if(imageDerivationDescription.equals(IMAGE_TYPE_FOR_MANUAL_EXTRACTION)) {
+            return new SerialBlob(attachmentBytes);
+        } else {
+            return getImageAsBlob();
+        }
+    }
+
 
     public SerialBlob getImagesAsPdfBlob() throws Exception {
         return DicomBlobUtils.convertDicomImagesToPdf(dicomBlob);
