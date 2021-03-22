@@ -6,13 +6,13 @@ import java.util.Calendar;
 public class RequestRoutineNextTryTimeCalculator {
     private static final int MINUTE_IN_SECONDS = 60;
 
-    private static final int MAXIMUM_FIRST_CYCLE_TRY_COUNT = 15;
-    private static final int MAXIMUM_SECOND_CYCLE_TRY_COUNT = 44;
-    private static final int MAXIMUM_THIRD_CYCLE_TRY_COUNT = 86;
+    private static final int MAXIMUM_FIRST_CYCLE_TRY_COUNT = 5;
+    private static final int MAXIMUM_SECOND_CYCLE_TRY_COUNT = 13;
+    private static final int MAXIMUM_THIRD_CYCLE_TRY_COUNT = 20;
 
-    private static final double FIRST_CYCLE_MULTIPLIER = 0.5;
-    private static final int SECOND_CYCLE_MULTIPLIER = 15;
-    private static final int THIRD_CYCLE_MULTIPLIER = 60;
+    private static final double FIRST_CYCLE_MULTIPLIER = 2;
+    private static final int SECOND_CYCLE_MULTIPLIER = 30;
+    private static final int THIRD_CYCLE_MULTIPLIER = 360;
 
     public static Timestamp getNextTryDateTimeIntervalInSeconds(int tryCount) {
         CycleIndex index = getCycleIndexByTryCount(tryCount);
