@@ -6,7 +6,7 @@ import java.util.Calendar;
 public class RequestRoutineNextTryTimeCalculator {
     private static final int MINUTE_IN_SECONDS = 60;
 
-    private static final int MAXIMUM_FIRST_CYCLE_TRY_COUNT = 15;
+    private static final int MAXIMUM_FIRST_CYCLE_TRY_COUNT = 1;
     private static final int MAXIMUM_SECOND_CYCLE_TRY_COUNT = 44;
     private static final int MAXIMUM_THIRD_CYCLE_TRY_COUNT = 86;
 
@@ -28,10 +28,6 @@ public class RequestRoutineNextTryTimeCalculator {
     private static CycleIndex getCycleIndexByTryCount(int tryCount) {
         if (tryCount < MAXIMUM_FIRST_CYCLE_TRY_COUNT) {
             return CycleIndex.FIRST_CYCLE;
-        } else if (tryCount < MAXIMUM_SECOND_CYCLE_TRY_COUNT) {
-            return CycleIndex.SECOND_CYCLE;
-        } else if (tryCount < MAXIMUM_THIRD_CYCLE_TRY_COUNT) {
-            return CycleIndex.THIRD_CYCLE;
         } else {
             return CycleIndex.FAILED_CYCLE;
         }
