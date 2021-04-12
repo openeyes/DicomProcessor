@@ -11,6 +11,9 @@ var defaultSubspecialty = getDefaultVariableValue('SUBSPECIALTY','Eye Casualty')
 var defaultService = getDefaultVariableValue('SERVICE','Eye Casualty Service');
 var defaultFirmName = getDefaultVariableValue('FIRM_NAME', 'Eye Casualty Service');
 
+var institutionId = requestData.institution_id;
+var siteId = requestData.site_id;
+
 synchronizedJavaSubroutine(requestData.patientId, "runtime_sequential");
 synchronizedJavaSubroutine(requestData.study_instance_uid, "runtime_sequential");
 
@@ -102,6 +105,8 @@ if (patientHasEpisodes(requestData.patientId)) {
                     automated_source: 'null',
                     parent_id: 'null',
                     sub_type: 'null',
+                    institution_id: institutionId,
+                    site_id: siteId
                 }
             },
             {

@@ -56,8 +56,8 @@ public class PatientSearchApi {
      * @return The status code of the HTTP response
      * @throws ConnectException
      */
-    public static String searchPatient(String hospitalNumber, String gender, String dateOfBirth) throws Exception {
-        String jsonPatientData = read(hospitalNumber);
+    public static String searchPatient(String hospitalNumber, String gender, String dateOfBirth, String patientIdentifierType) throws Exception {
+        String jsonPatientData = read(hospitalNumber,patientIdentifierType);
         if (jsonPatientData.equals(EMPTY_JSON_RESPONSE)) {
             throw new Exception("Empty JSON RESPONSE");
         }
@@ -110,14 +110,15 @@ public class PatientSearchApi {
      * @return The json string of patient data
      * @throws ConnectException
      */
-    public static String read(String term)
+    public static String read(String term, String patientIdentifierType)
             throws IOException, AuthenticationException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
         String result = "";
         String webProtocol = "http";
         if (doHttps) {
             webProtocol = "https";
         }
-        String strURL = webProtocol + "://" + host + ":" + port + "/api/v1/patient/search?term=" + URLEncoder.encode(term, java.nio.charset.StandardCharsets.UTF_8.toString());
+        String strURL = webProtocol + "://" + host + ":" + port + "/api/v1/patient/search?term=" + URLEncoder.encode(term, java.nio.charset.StandardCharsets.UTF_8.toString()) +
+                "&patient_identifier_type=" +URLEncoder.encode(patientIdentifierType, java.nio.charset.StandardCharsets.UTF_8.toString());
 
         HttpGet get = new HttpGet(strURL);
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(

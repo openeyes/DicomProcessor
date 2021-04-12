@@ -32,6 +32,9 @@ public class RequestRoutineExecution {
     @Column(name = "try_number")
     private int tryNumber;
 
+    @Transient
+    private final int MAX_LOG_LENGTH = 65000;
+
     public RequestRoutineExecution() {
     }
 
@@ -45,10 +48,13 @@ public class RequestRoutineExecution {
         this.status = status;
         this.tryNumber = tryNumber;
     }
-
     public RequestRoutineExecution(String log, int requestRoutineId,
                                    Timestamp executionDateTime, Status status, int tryNumber) {
-        this.log = log;
+        if(log.length() > MAX_LOG_LENGTH) {
+            this.log = log.substring(0, MAX_LOG_LENGTH);
+        } else {
+            this.log = log;
+        }
         this.requestRoutineId = requestRoutineId;
         this.executionDateTime = executionDateTime;
         this.status = status;

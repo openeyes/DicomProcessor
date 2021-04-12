@@ -4,6 +4,9 @@ var defaultSubspecialty = getDefaultVariableValue('SUBSPECIALTY','Eye Casualty')
 var defaultService = getDefaultVariableValue('SERVICE','Eye Casualty Service');
 var defaultFirmName = getDefaultVariableValue('FIRM_NAME', 'Eye Casualty Service');
 
+var institutionId = requestData.institution_id;
+var siteId = requestData.site_id;
+
 if (patientHasEpisodes(requestData.patientId)) {
     var eventTemplate = {
         _OE_System: 'ABEHR Jason Local v3.0',
@@ -91,6 +94,8 @@ if (patientHasEpisodes(requestData.patientId)) {
                     automated_source: 'null',
                     parent_id: 'null',
                     sub_type: 'null',
+                    institution_id: institutionId,
+                    site_id: siteId
                 }
             },
             {

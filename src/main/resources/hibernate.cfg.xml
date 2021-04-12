@@ -16,7 +16,7 @@
         <property name="hibernate.hikari.minimumIdle">10</property>
         <property name="hibernate.hikari.maximumPoolSize">20</property>
         <property name="hibernate.hikari.idleTimeout">300000</property>
-        <property name="hibernate.hikari.jdbcUrl">jdbc:mysql://localhost/openeyes</property>
+        <property name="hibernate.hikari.jdbcUrl">jdbc:mysql://localhost:3333/openeyes</property>
         <property name="hibernate.hikari.dataSource.user">openeyes</property>
         <property name="hibernate.hikari.dataSource.password">openeyes</property>
 
