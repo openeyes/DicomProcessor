@@ -34,4 +34,10 @@ if (laterality == 'L') {
 // ADD MODALITY CODE FROM REQUEST DATA
 //Get PDF from Dicom and Save
 //attachment_type = requestDATA.ATTACHMENT_TYPE
-var pdf = bindBinary('event_pdf', null, requestData.bodySiteSnomed, 'image/png', null, dicomObject.getImageAsBlob());
+var blob;
+if (typeof requestData.image_derivation_description == "undefined" ){
+    blob = dicomObject.getImageAsBlob();
+} else {
+    blob = dicomObject.getImageAsBlob(requestData.image_derivation_description);
+}
+var pdf = bindBinary('event_pdf', null, requestData.bodySiteSnomed, 'image/png', null, blob);
