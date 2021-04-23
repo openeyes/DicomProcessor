@@ -32,6 +32,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG TIMEZONE
 
 RUN apk add --update tesseract-ocr-dev
+RUN apk add tzdata
 
 ## API connection details.
 ## This is a connection to the openeyes web service
