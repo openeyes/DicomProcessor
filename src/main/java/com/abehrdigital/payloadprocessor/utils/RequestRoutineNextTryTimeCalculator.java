@@ -1,7 +1,6 @@
 package com.abehrdigital.payloadprocessor.utils;
 
-import java.sql.Timestamp;
-import java.util.Calendar;
+import java.time.ZonedDateTime;
 
 public class RequestRoutineNextTryTimeCalculator {
     private static final int MINUTE_IN_SECONDS = 60;
@@ -14,12 +13,10 @@ public class RequestRoutineNextTryTimeCalculator {
     private static final int SECOND_CYCLE_MULTIPLIER = 30;
     private static final int THIRD_CYCLE_MULTIPLIER = 360;
 
-    public static Timestamp getNextTryDateTimeIntervalInSeconds(int tryCount) {
+    public static ZonedDateTime getNextTryDateTimeIntervalInSeconds(int tryCount) {
         CycleIndex index = getCycleIndexByTryCount(tryCount);
         if (!index.equals(CycleIndex.FAILED_CYCLE)) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.SECOND, ((int) index.getIntervalForNextTryDateInSeconds(tryCount)));
-            return new Timestamp(calendar.getTimeInMillis());
+            return ZonedDateTime.now().plusSeconds((int) index.getIntervalForNextTryDateInSeconds(tryCount));
         } else {
             return null;
         }

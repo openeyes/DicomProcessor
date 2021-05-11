@@ -11,6 +11,7 @@ import java.util.HashMap;
 public class DatabaseConfiguration {
     private static HashMap<String, String> parameters = new HashMap<>();
     private static Configuration hibernateConfiguration = new Configuration().configure();
+    private static String timezone = "Europe/London";
 
 
     public static void init() {
@@ -23,6 +24,13 @@ public class DatabaseConfiguration {
         String host = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_HOST");
         String port = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_PORT");
         String databaseName = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("DATABASE_NAME");
+        String timezone = EnvironmentVariableUtils.getEnvironmentVariableReturnNullIfDoesntExist("TZ");
+
+        if (timezone == null) {
+            timezone = DatabaseConfiguration.timezone;
+        }
+
+        parameters.put("hibernate.jdbc.time_zone", timezone);
 
         if (host != null && port != null && databaseName != null) {
             String connectionString = "jdbc:mysql://" + host + ":" + port + "/" + databaseName;

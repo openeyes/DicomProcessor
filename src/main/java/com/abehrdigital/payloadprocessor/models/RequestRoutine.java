@@ -12,7 +12,7 @@ import org.hibernate.annotations.OptimisticLockType;
 import org.hibernate.annotations.OptimisticLocking;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 
 /**
  * @author admin
@@ -67,7 +67,7 @@ public class RequestRoutine {
     @Column(name = "try_count")
     private int tryCount;
     @Column(name = "next_try_date_time")
-    private Timestamp nextTryDateTime;
+    private ZonedDateTime nextTryDateTime;
     @Column(name = "execute_sequence")
     private int executeSequence;
     @Column(name = "hash_code" , columnDefinition = "BIGINT")
@@ -112,6 +112,10 @@ public class RequestRoutine {
         }
     }
 
+    public ZonedDateTime getNextTryDateTime() {
+        return nextTryDateTime;
+    }
+
     public void setExecuteSequence(int value) {
         executeSequence = value;
     }
@@ -128,7 +132,7 @@ public class RequestRoutine {
         private Status status = Status.NEW;
 
         private int tryCount = 0;
-        private Timestamp nextTryDateTime = null;
+        private ZonedDateTime nextTryDateTime = null;
         private int executeSequence = 0;
 
         public Builder(int requestId, String routineName,
@@ -148,7 +152,7 @@ public class RequestRoutine {
             return this;
         }
 
-        public Builder nextTryDateTime(Timestamp timestamp) {
+        public Builder nextTryDateTime(ZonedDateTime timestamp) {
             nextTryDateTime = timestamp;
             return this;
         }
