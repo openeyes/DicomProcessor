@@ -2,6 +2,7 @@ package com.abehrdigital.payloadprocessor;
 
 
 import org.dcm4che3.data.Attributes;
+import org.dcm4che3.data.Fragments;
 import org.dcm4che3.data.Tag;
 import org.dcm4che3.io.DicomInputStream;
 import org.dcm4che3.util.TagUtils;
@@ -20,6 +21,8 @@ public class DicomParser {
     private Attributes attributes;
     private byte[] attachmentBytes;
     private static final int MAXIMUM_SIMPLE_ELEMENT_BYTE_LENGTH = 1000;
+    private static final String IMAGE_TYPE_FOR_MANUAL_EXTRACTION = "IJG (jpeg-6b) library with lossless patch";
+
 
     public DicomParser(Blob dicomBlob, Study study) throws Exception {
         this.dicomBlob = dicomBlob;
@@ -34,12 +37,19 @@ public class DicomParser {
 
     private Map<String, String> simpleElements() {
         Map<String, String> elements = new HashMap<>();
+        boolean manualPixelDataExtractionRequired = false;
         for (int tag : attributes.tags()) {
 
             if (Tag.EncapsulatedDocument != TagUtils.normalizeRepeatingGroup(tag)) {
                 byte[] valueAsByte;
                 try {
                     valueAsByte = (byte[]) attributes.getValue(tag); //casted because getValue() returns Object
+                    if (tag == Tag.DerivationDescription) {
+                        String value = new String(valueAsByte, Charset.forName("UTF-8")).trim();
+                        if (value.equals(IMAGE_TYPE_FOR_MANUAL_EXTRACTION)) {
+                            manualPixelDataExtractionRequired = true;
+                        }
+                    }
                 } catch (ClassCastException ex) {
                     //TODO: handle cases where value is a sequence
                     continue;
@@ -53,10 +63,32 @@ public class DicomParser {
                 attachmentBytes = (byte[]) attributes.getValue(tag);
             }
         }
+
+        if (manualPixelDataExtractionRequired) {
+            extractPixelDataManually();
+        }
         return elements;
     }
 
-    public void run() throws IOException, SQLException {
+    private void extractPixelDataManually() {
+        for (int tag : attributes.tags()) {
+            if (tag == Tag.PixelData) {
+                byte[] valueAsByte;
+
+                for (Object var : (Fragments) attributes.getValue(tag)) {
+                    try {
+                        valueAsByte = (byte[]) var;
+                        attachmentBytes = valueAsByte;
+
+                    } catch (ClassCastException ex) {
+                        //Ignore everything that is not a byte array
+                    }
+                }
+            }
+        }
+    }
+
+    public void run() throws Exception {
         init();
         study.setDicomBlob(dicomBlob);
         study.setSimpleDicomElements(simpleElements());

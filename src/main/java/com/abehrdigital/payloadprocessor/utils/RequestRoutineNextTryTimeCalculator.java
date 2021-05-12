@@ -1,25 +1,22 @@
 package com.abehrdigital.payloadprocessor.utils;
 
-import java.sql.Timestamp;
-import java.util.Calendar;
+import java.time.ZonedDateTime;
 
 public class RequestRoutineNextTryTimeCalculator {
     private static final int MINUTE_IN_SECONDS = 60;
 
-    private static final int MAXIMUM_FIRST_CYCLE_TRY_COUNT = 15;
-    private static final int MAXIMUM_SECOND_CYCLE_TRY_COUNT = 44;
-    private static final int MAXIMUM_THIRD_CYCLE_TRY_COUNT = 86;
+    private static final int MAXIMUM_FIRST_CYCLE_TRY_COUNT = 5;
+    private static final int MAXIMUM_SECOND_CYCLE_TRY_COUNT = 13;
+    private static final int MAXIMUM_THIRD_CYCLE_TRY_COUNT = 20;
 
-    private static final double FIRST_CYCLE_MULTIPLIER = 0.5;
-    private static final int SECOND_CYCLE_MULTIPLIER = 15;
-    private static final int THIRD_CYCLE_MULTIPLIER = 60;
+    private static final double FIRST_CYCLE_MULTIPLIER = 2;
+    private static final int SECOND_CYCLE_MULTIPLIER = 30;
+    private static final int THIRD_CYCLE_MULTIPLIER = 360;
 
-    public static Timestamp getNextTryDateTimeIntervalInSeconds(int tryCount) {
+    public static ZonedDateTime getNextTryDateTimeIntervalInSeconds(int tryCount) {
         CycleIndex index = getCycleIndexByTryCount(tryCount);
         if (!index.equals(CycleIndex.FAILED_CYCLE)) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.SECOND, ((int) index.getIntervalForNextTryDateInSeconds(tryCount)));
-            return new Timestamp(calendar.getTimeInMillis());
+            return ZonedDateTime.now().plusSeconds((int) index.getIntervalForNextTryDateInSeconds(tryCount));
         } else {
             return null;
         }

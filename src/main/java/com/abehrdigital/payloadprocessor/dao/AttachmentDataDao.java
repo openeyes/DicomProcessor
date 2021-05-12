@@ -91,7 +91,7 @@ public class AttachmentDataDao implements BaseDao<AttachmentData, Integer> {
 
     public List<AttachmentData> getAttachmentsThatAreAttachedWithSameHashcode(AttachmentData attachmentData) throws Exception {
         TypedQuery<AttachmentData> query = session.createNamedQuery("attachmentsThatAreAttachedWithSameHashcode", AttachmentData.class)
-                .setParameter("current_attachment_id", attachmentData.getHashCode())
+                .setParameter("current_attachment_id", attachmentData.getId())
                 .setParameter("hash_code", attachmentData.getHashCode());
         List<AttachmentData> results = query.getResultList();
         return results;
